@@ -2,25 +2,31 @@ import { Feather, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
+import { useI18n, Language } from '../../contexts/I18nContext';
 import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { theme, themeMode, setThemeMode } = useTheme();
+  const { t, language, setLanguage, isRTL } = useI18n();
   const router = useRouter();
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
   };
 
+  const handleLanguageChange = async (lang: Language) => {
+    await setLanguage(lang);
+  };
+
   const handleSignOut = async () => {
     Alert.alert(
-      'Sign Out',
+      t('signOut'),
       'Are you sure you want to sign out?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('signOut'),
           style: 'destructive',
           onPress: async () => {
             await supabase.auth.signOut();
@@ -31,7 +37,7 @@ export default function SettingsScreen() {
     );
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   return (
     <ScrollView style={styles.container}>
@@ -44,17 +50,17 @@ export default function SettingsScreen() {
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Settings</Text>
+          <Text style={styles.headerTitle}>{t('settings')}</Text>
           <Text style={styles.headerSubtitle}>
-            Customize your app experience
+            {t('customizeYourAppExperience')}
           </Text>
         </View>
       </View>
 
       <View style={styles.content}>
-        {/* Theme Settings */}
+        {/* Appearance Settings */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
+          <Text style={styles.sectionTitle}>{t('appearance')}</Text>
           <View style={styles.themeOptions}>
             <TouchableOpacity
               style={[
@@ -72,7 +78,7 @@ export default function SettingsScreen() {
                 styles.themeOptionText,
                 themeMode === 'light' && styles.themeOptionTextActive,
               ]}>
-                Light
+                {t('light')}
               </Text>
               {themeMode === 'light' && (
                 <Feather name="check" size={16} color={theme.primary} />
@@ -95,7 +101,7 @@ export default function SettingsScreen() {
                 styles.themeOptionText,
                 themeMode === 'dark' && styles.themeOptionTextActive,
               ]}>
-                Dark
+                {t('dark')}
               </Text>
               {themeMode === 'dark' && (
                 <Feather name="check" size={16} color={theme.primary} />
@@ -118,7 +124,7 @@ export default function SettingsScreen() {
                 styles.themeOptionText,
                 themeMode === 'system' && styles.themeOptionTextActive,
               ]}>
-                System
+                {t('system')}
               </Text>
               {themeMode === 'system' && (
                 <Feather name="check" size={16} color={theme.primary} />
@@ -127,9 +133,53 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Language Settings */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>{t('language')}</Text>
+          <View style={styles.languageOptions}>
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                language === 'en' && styles.languageOptionActive,
+              ]}
+              onPress={() => handleLanguageChange('en')}
+            >
+              <Text style={styles.languageFlag}>🇺🇸</Text>
+              <Text style={[
+                styles.languageOptionText,
+                language === 'en' && styles.languageOptionTextActive,
+              ]}>
+                {t('english')}
+              </Text>
+              {language === 'en' && (
+                <Feather name="check" size={16} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                language === 'ar' && styles.languageOptionActive,
+              ]}
+              onPress={() => handleLanguageChange('ar')}
+            >
+              <Text style={styles.languageFlag}>🇸🇦</Text>
+              <Text style={[
+                styles.languageOptionText,
+                language === 'ar' && styles.languageOptionTextActive,
+              ]}>
+                {t('arabic')}
+              </Text>
+              {language === 'ar' && (
+                <Feather name="check" size={16} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Prayer Status Information */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Prayer Status Levels</Text>
+          <Text style={styles.sectionTitle}>{t('prayerStatusLevels')}</Text>
           
           <View style={styles.statusItem}>
             <View
@@ -141,11 +191,10 @@ export default function SettingsScreen() {
               <MaterialIcons name="warning" size={24} color={theme.error} />
             </View>
             <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>Negligent</Text>
-              <Text style={styles.statusSubtitle}>Less than 10 verses</Text>
+              <Text style={styles.statusTitle}>{t('negligent')}</Text>
+              <Text style={styles.statusSubtitle}>{t('negligentDesc')}</Text>
               <Text style={styles.statusDescription}>
-                Strive to read at least 10 verses to avoid being recorded among
-                the negligent.
+                {t('negligentExplanation')}
               </Text>
             </View>
           </View>
@@ -162,11 +211,10 @@ export default function SettingsScreen() {
               <Feather name="moon" size={24} color={theme.warning} />
             </View>
             <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>Not Negligent</Text>
-              <Text style={styles.statusSubtitle}>10-99 verses</Text>
+              <Text style={styles.statusTitle}>{t('notNegligent')}</Text>
+              <Text style={styles.statusSubtitle}>{t('notNegligentDesc')}</Text>
               <Text style={styles.statusDescription}>
-                Reading 10 or more verses keeps you from being recorded among
-                the negligent.
+                {t('notNegligentExplanation')}
               </Text>
             </View>
           </View>
@@ -183,11 +231,10 @@ export default function SettingsScreen() {
               <MaterialIcons name="military-tech" size={24} color={theme.primary} />
             </View>
             <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>Qanet</Text>
-              <Text style={styles.statusSubtitle}>100-999 verses</Text>
+              <Text style={styles.statusTitle}>{t('qanet')}</Text>
+              <Text style={styles.statusSubtitle}>{t('qanetDesc')}</Text>
               <Text style={styles.statusDescription}>
-                Reading 100 verses records you among those who are obedient to
-                Allah.
+                {t('qanetExplanation')}
               </Text>
             </View>
           </View>
@@ -204,38 +251,33 @@ export default function SettingsScreen() {
               <MaterialIcons name="military-tech" size={24} color={theme.success} />
             </View>
             <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>Mokantar</Text>
-              <Text style={styles.statusSubtitle}>1000+ verses</Text>
+              <Text style={styles.statusTitle}>{t('mokantar')}</Text>
+              <Text style={styles.statusSubtitle}>{t('mokantarDesc')}</Text>
               <Text style={styles.statusDescription}>
-                Reading 1000 verses earns you huge rewards.
+                {t('mokantarExplanation')}
               </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.hadithCard}>
-          <Text style={styles.hadithTitle}>Hadith</Text>
+          <Text style={styles.hadithTitle}>{t('hadith')}</Text>
           <Text style={styles.hadithText}>
-            The Prophet (ﷺ) said: "If anyone prays at night reciting regularly
-            ten verses, he will not be recorded among the negligent; if anyone
-            prays at night and recites a hundred verses, he will be recorded
-            among those who are obedient to Allah (Qanet); and if anyone prays
-            at night reciting one thousand verses, he will be recorded among
-            those who receive huge rewards."
+            {t('hadithText')}
           </Text>
         </View>
 
         {/* Sign Out Button */}
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Feather name="log-out" size={20} color={theme.error} />
-          <Text style={styles.signOutText}>Sign Out</Text>
+          <Text style={styles.signOutText}>{t('signOut')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
@@ -269,10 +311,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 8,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   headerSubtitle: {
     fontSize: 16,
     color: '#e2e8f0',
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   content: {
     flex: 1,
@@ -298,12 +344,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: 16,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   themeOptions: {
     gap: 12,
   },
   themeOption: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
@@ -317,16 +365,51 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   themeOptionText: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: isRTL ? 0 : 12,
+    marginRight: isRTL ? 12 : 0,
     fontSize: 16,
     color: theme.text,
     fontWeight: '500',
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   themeOptionTextActive: {
     color: theme.primary,
   },
+  languageOptions: {
+    gap: 12,
+  },
+  languageOption: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: theme.background,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  languageOptionActive: {
+    borderColor: theme.primary,
+    backgroundColor: theme.primary + '10',
+  },
+  languageFlag: {
+    fontSize: 20,
+    marginRight: isRTL ? 0 : 12,
+    marginLeft: isRTL ? 12 : 0,
+  },
+  languageOptionText: {
+    flex: 1,
+    fontSize: 16,
+    color: theme.text,
+    fontWeight: '500',
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  languageOptionTextActive: {
+    color: theme.primary,
+  },
   statusItem: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'flex-start',
     paddingVertical: 12,
   },
@@ -336,7 +419,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: isRTL ? 0 : 16,
+    marginLeft: isRTL ? 16 : 0,
   },
   statusContent: {
     flex: 1,
@@ -346,16 +430,22 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: 4,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   statusSubtitle: {
     fontSize: 14,
     color: theme.textSecondary,
     marginBottom: 8,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   statusDescription: {
     fontSize: 14,
     color: theme.textSecondary,
     lineHeight: 20,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   divider: {
     height: 1,
@@ -378,15 +468,18 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: 16,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   hadithText: {
     fontSize: 16,
     color: theme.text,
     lineHeight: 24,
     fontFamily: 'NotoNaskhArabic-Regular',
+    textAlign: isRTL ? 'right' : 'left',
   },
   signOutButton: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.card,
@@ -401,5 +494,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: theme.error,
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
 });

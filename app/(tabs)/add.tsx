@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
   calculateVersesBetween,
@@ -29,6 +30,7 @@ export default function AddPrayerScreen() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
@@ -38,7 +40,7 @@ export default function AddPrayerScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -95,7 +97,7 @@ export default function AddPrayerScreen() {
         <View style={styles.loadingContainer}>
           <MaterialIcons name="book" size={32} color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.text }]}>
-            Loading...
+            {t('loading')}
           </Text>
         </View>
       </View>
@@ -119,9 +121,9 @@ export default function AddPrayerScreen() {
           <View style={styles.iconContainer}>
             <Ionicons name="moon" size={40} color="#ffffff" />
           </View>
-          <Text style={styles.headerTitle}>Night Prayer</Text>
+          <Text style={styles.headerTitle}>{t('nightPrayer')}</Text>
           <Text style={styles.headerSubtitle}>
-            Record your spiritual journey with the Quran
+            {t('recordYourSpiritualJourney')}
           </Text>
         </View>
       </View>
@@ -144,12 +146,12 @@ export default function AddPrayerScreen() {
                 color={theme.primary}
               />
             </View>
-            <Text style={styles.cardTitle}>Prayer Date</Text>
+            <Text style={styles.cardTitle}>{t('prayerDate')}</Text>
           </View>
           <View style={styles.dateSection}>
             <View style={styles.dateDisplay}>
               <Text style={styles.dateText}>
-                {date.toLocaleDateString('en-US', {
+                {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -174,15 +176,15 @@ export default function AddPrayerScreen() {
             <View style={styles.cardIcon}>
               <Ionicons name="book-outline" size={20} color={theme.primary} />
             </View>
-            <Text style={styles.cardTitle}>Reading Range</Text>
+            <Text style={styles.cardTitle}>{t('readingRange')}</Text>
           </View>
 
           <View style={styles.rangeContainer}>
             <View style={styles.rangeSection}>
-              <Text style={styles.rangeSectionTitle}>Starting Point</Text>
+              <Text style={styles.rangeSectionTitle}>{t('startingPoint')}</Text>
               <View style={styles.pickerRow}>
                 <View style={styles.pickerWrapper}>
-                  <Text style={styles.pickerLabel}>Surah</Text>
+                  <Text style={styles.pickerLabel}>{t('surah')}</Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={selectedSurah}
@@ -202,7 +204,7 @@ export default function AddPrayerScreen() {
                   </View>
                 </View>
                 <View style={styles.pickerWrapper}>
-                  <Text style={styles.pickerLabel}>Ayah</Text>
+                  <Text style={styles.pickerLabel}>{t('ayah')}</Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={String(selectedAyah)}
@@ -238,10 +240,10 @@ export default function AddPrayerScreen() {
             </View>
 
             <View style={styles.rangeSection}>
-              <Text style={styles.rangeSectionTitle}>Ending Point</Text>
+              <Text style={styles.rangeSectionTitle}>{t('endingPoint')}</Text>
               <View style={styles.pickerRow}>
                 <View style={styles.pickerWrapper}>
-                  <Text style={styles.pickerLabel}>Surah</Text>
+                  <Text style={styles.pickerLabel}>{t('surah')}</Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={endSurah}
@@ -261,7 +263,7 @@ export default function AddPrayerScreen() {
                   </View>
                 </View>
                 <View style={styles.pickerWrapper}>
-                  <Text style={styles.pickerLabel}>Ayah</Text>
+                  <Text style={styles.pickerLabel}>{t('ayah')}</Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={String(endAyah)}
@@ -305,7 +307,7 @@ export default function AddPrayerScreen() {
               </View>
               <View style={styles.statusInfo}>
                 <Text style={[styles.statusTitle, { color: status.color }]}>
-                  {status.status}
+                  {t(status.status.toLowerCase().replace(' ', ''))}
                 </Text>
                 <Text style={styles.statusDescription}>
                   {status.description}
@@ -314,7 +316,7 @@ export default function AddPrayerScreen() {
             </View>
             <View style={styles.versesContainer}>
               <View style={styles.versesBox}>
-                <Text style={styles.versesLabel}>Total Verses</Text>
+                <Text style={styles.versesLabel}>{t('totalVerses')}</Text>
                 <Text style={[styles.versesCount, { color: status.color }]}>
                   {totalVerses}
                 </Text>
@@ -344,7 +346,7 @@ export default function AddPrayerScreen() {
               <Ionicons name="checkmark-circle" size={20} color="white" />
             )}
             <Text style={styles.saveButtonText}>
-              {loading ? 'Saving Prayer Record...' : 'Save Prayer Record'}
+              {loading ? t('savingPrayerRecord') : t('savePrayerRecord')}
             </Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -355,7 +357,7 @@ export default function AddPrayerScreen() {
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -370,6 +372,7 @@ const createStyles = (theme: any) =>
     loadingText: {
       fontSize: 16,
       fontWeight: '500',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     header: {
       height: 240,
@@ -413,12 +416,14 @@ const createStyles = (theme: any) =>
       color: '#ffffff',
       marginBottom: 8,
       textAlign: 'center',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     headerSubtitle: {
       fontSize: 16,
       color: '#e2e8f0',
       textAlign: 'center',
       maxWidth: width * 0.8,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     content: {
       flex: 1,
@@ -434,7 +439,7 @@ const createStyles = (theme: any) =>
       borderRadius: 16,
       padding: 16,
       marginBottom: 24,
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 12,
       borderWidth: 1,
@@ -445,6 +450,8 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       flex: 1,
       fontWeight: '500',
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     card: {
       backgroundColor: theme.card,
@@ -460,7 +467,7 @@ const createStyles = (theme: any) =>
       borderColor: theme.border,
     },
     cardHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       marginBottom: 20,
       gap: 12,
@@ -477,6 +484,7 @@ const createStyles = (theme: any) =>
       fontSize: 18,
       fontWeight: '700',
       color: theme.text,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     dateSection: {
       gap: 16,
@@ -493,6 +501,7 @@ const createStyles = (theme: any) =>
       color: theme.text,
       fontWeight: '600',
       textAlign: 'center',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     datePicker: {
       alignSelf: 'center',
@@ -508,6 +517,8 @@ const createStyles = (theme: any) =>
       fontWeight: '600',
       color: theme.text,
       marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     pickerRow: {
       flexDirection: 'row',
@@ -521,6 +532,8 @@ const createStyles = (theme: any) =>
       fontWeight: '500',
       color: theme.textSecondary,
       marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     pickerContainer: {
       backgroundColor: theme.background,
@@ -555,7 +568,7 @@ const createStyles = (theme: any) =>
       padding: 24,
     },
     statusHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       marginBottom: 20,
       gap: 16,
@@ -574,11 +587,15 @@ const createStyles = (theme: any) =>
       fontSize: 22,
       fontWeight: 'bold',
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     statusDescription: {
       fontSize: 15,
       color: theme.textSecondary,
       lineHeight: 20,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     versesContainer: {
       alignItems: 'center',
@@ -599,6 +616,7 @@ const createStyles = (theme: any) =>
       textTransform: 'uppercase',
       letterSpacing: 0.5,
       marginBottom: 4,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     versesCount: {
       fontSize: 28,
@@ -619,7 +637,7 @@ const createStyles = (theme: any) =>
       elevation: 2,
     },
     saveButtonGradient: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 18,
@@ -629,6 +647,7 @@ const createStyles = (theme: any) =>
       color: 'white',
       fontSize: 16,
       fontWeight: '700',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     bottomSpacer: {
       height: 20,

@@ -9,6 +9,7 @@ import { StatsOverview } from '../../components/StatsOverview';
 import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
   getCurrentStreak,
@@ -23,6 +24,7 @@ export default function HistoryScreen() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
   const [logs, setLogs] = useState<PrayerLog[]>([]);
   const [stats, setStats] = useState<{ status: string; count: number }[]>([]);
   const [streak, setStreak] = useState(0);
@@ -34,7 +36,7 @@ export default function HistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   useEffect(() => {
     if (authLoading) return;
@@ -73,7 +75,9 @@ export default function HistoryScreen() {
   if (authLoading || loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={{ color: theme.text }}>Loading...</Text>
+        <Text style={{ color: theme.text, fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
+          {t('loading')}
+        </Text>
       </View>
     );
   }
@@ -81,7 +85,9 @@ export default function HistoryScreen() {
   if (error) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
+        <Text style={[styles.errorText, { color: theme.error, fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }]}>
+          {error}
+        </Text>
       </View>
     );
   }
@@ -99,9 +105,9 @@ export default function HistoryScreen() {
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Prayer History</Text>
+          <Text style={styles.headerTitle}>{t('prayerHistory')}</Text>
           <Text style={styles.headerSubtitle}>
-            Track your progress and consistency
+            {t('trackYourProgressAndConsistency')}
           </Text>
         </View>
       </View>
@@ -148,7 +154,7 @@ export default function HistoryScreen() {
         />
 
         <View style={styles.historyCard}>
-          <Text style={styles.sectionTitle}>Recent History</Text>
+          <Text style={styles.sectionTitle}>{t('recentHistory')}</Text>
           {logs.map((log) => (
             <View key={log.id} style={styles.historyItem}>
               <View
@@ -165,14 +171,14 @@ export default function HistoryScreen() {
               </View>
               <View style={styles.historyContent}>
                 <Text style={styles.historyDate}>
-                  {new Date(log.date).toLocaleDateString()}
+                  {new Date(log.date).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
                 </Text>
                 <Text style={styles.historyRange}>
                   {log.start_surah} {log.start_ayah} → {log.end_surah}{' '}
                   {log.end_ayah}
                 </Text>
                 <Text style={styles.historyVerses}>
-                  {log.total_ayahs} verses
+                  {log.total_ayahs} {t('verses')}
                 </Text>
               </View>
               <Text
@@ -181,7 +187,7 @@ export default function HistoryScreen() {
                   { color: getStatusColor(log.status) },
                 ]}
               >
-                {log.status}
+                {t(log.status.toLowerCase().replace(' ', ''))}
               </Text>
             </View>
           ))}
@@ -204,7 +210,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -239,10 +245,14 @@ const createStyles = (theme: any) =>
       fontWeight: 'bold',
       color: '#ffffff',
       marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     headerSubtitle: {
       fontSize: 16,
       color: '#e2e8f0',
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     content: {
       flex: 1,
@@ -272,9 +282,11 @@ const createStyles = (theme: any) =>
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 16,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     historyItem: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingVertical: 12,
       borderBottomWidth: 1,
@@ -286,7 +298,8 @@ const createStyles = (theme: any) =>
       borderRadius: 20,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 12,
+      marginRight: isRTL ? 0 : 12,
+      marginLeft: isRTL ? 12 : 0,
     },
     historyContent: {
       flex: 1,
@@ -295,19 +308,27 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       color: theme.textSecondary,
       marginBottom: 2,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyRange: {
       fontSize: 16,
       color: theme.text,
       marginBottom: 2,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyVerses: {
       fontSize: 14,
       color: theme.textSecondary,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyStatus: {
       fontSize: 14,
       fontWeight: '600',
-      marginLeft: 12,
+      marginLeft: isRTL ? 0 : 12,
+      marginRight: isRTL ? 12 : 0,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

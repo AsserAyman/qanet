@@ -16,6 +16,7 @@ import {
   quranData,
 } from '../../utils/quranData';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 export default function NightPrayerScreen() {
   const [mode, setMode] = useState<'target' | 'range'>('target');
@@ -27,6 +28,7 @@ export default function NightPrayerScreen() {
   const [endAyah, setEndAyah] = useState(1);
 
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
 
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
@@ -49,7 +51,7 @@ export default function NightPrayerScreen() {
 
   const status = getVerseStatus(range.totalAyahs);
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   return (
     <ScrollView style={styles.container}>
@@ -62,9 +64,9 @@ export default function NightPrayerScreen() {
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Night Prayer Calculator</Text>
+          <Text style={styles.headerTitle}>{t('nightPrayerCalculator')}</Text>
           <Text style={styles.headerSubtitle}>
-            Calculate your night prayer verses
+            {t('calculateYourNightPrayerVerses')}
           </Text>
         </View>
       </View>
@@ -89,7 +91,7 @@ export default function NightPrayerScreen() {
                 mode === 'target' && styles.modeButtonTextActive,
               ]}
             >
-              Target Verses
+              {t('targetVerses')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -110,14 +112,14 @@ export default function NightPrayerScreen() {
                 mode === 'range' && styles.modeButtonTextActive,
               ]}
             >
-              Custom Range
+              {t('customRange')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.card}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Starting Surah</Text>
+            <Text style={styles.label}>{t('startingSurah')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={selectedSurah}
@@ -138,7 +140,7 @@ export default function NightPrayerScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Starting Ayah</Text>
+            <Text style={styles.label}>{t('startingAyah')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={String(selectedAyah)}
@@ -160,7 +162,7 @@ export default function NightPrayerScreen() {
 
           {mode === 'target' ? (
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Target Verses</Text>
+              <Text style={styles.label}>{t('targetVerses')}</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={String(targetVerses)}
@@ -177,7 +179,7 @@ export default function NightPrayerScreen() {
           ) : (
             <>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Ending Surah</Text>
+                <Text style={styles.label}>{t('endingSurah')}</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={endSurah}
@@ -198,7 +200,7 @@ export default function NightPrayerScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Ending Ayah</Text>
+                <Text style={styles.label}>{t('endingAyah')}</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={String(endAyah)}
@@ -230,28 +232,28 @@ export default function NightPrayerScreen() {
           <View style={styles.statusHeader}>
             <Feather name="moon" size={24} color={status.color} />
             <Text style={[styles.statusTitle, { color: status.color }]}>
-              {status.status}
+              {t(status.status.toLowerCase().replace(' ', ''))}
             </Text>
           </View>
           <Text style={styles.statusDescription}>{status.description}</Text>
         </View>
 
         <View style={styles.resultCard}>
-          <Text style={styles.resultTitle}>Reading Range</Text>
+          <Text style={styles.resultTitle}>{t('readingRange')}</Text>
           <View style={styles.resultItem}>
-            <Text style={styles.resultLabel}>Start</Text>
+            <Text style={styles.resultLabel}>{t('start')}</Text>
             <Text style={styles.resultValue}>
-              {range.startSurah} - Ayah {range.startAyah}
+              {range.startSurah} - {t('ayah')} {range.startAyah}
             </Text>
           </View>
           <View style={styles.resultItem}>
-            <Text style={styles.resultLabel}>End</Text>
+            <Text style={styles.resultLabel}>{t('end')}</Text>
             <Text style={styles.resultValue}>
-              {range.endSurah} - Ayah {range.endAyah}
+              {range.endSurah} - {t('ayah')} {range.endAyah}
             </Text>
           </View>
           <View style={styles.totalVerses}>
-            <Text style={styles.totalVersesLabel}>Total verses</Text>
+            <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
             <Text style={styles.totalVersesValue}>{range.totalAyahs}</Text>
           </View>
         </View>
@@ -260,7 +262,7 @@ export default function NightPrayerScreen() {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
@@ -294,10 +296,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 8,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   headerSubtitle: {
     fontSize: 16,
     color: '#e2e8f0',
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   content: {
     flex: 1,
@@ -335,6 +341,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textSecondary,
     fontWeight: '600',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   modeButtonTextActive: {
     color: '#ffffff',
@@ -358,6 +365,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '500',
     color: theme.textSecondary,
     marginBottom: 8,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   pickerContainer: {
     backgroundColor: theme.background,
@@ -375,7 +384,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginBottom: 24,
   },
   statusHeader: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     marginBottom: 8,
     gap: 12,
@@ -383,11 +392,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   statusTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   statusDescription: {
     fontSize: 16,
     color: theme.textSecondary,
     lineHeight: 24,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   resultCard: {
     backgroundColor: theme.card,
@@ -405,6 +417,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: 16,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   resultItem: {
     marginBottom: 12,
@@ -413,11 +427,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textSecondary,
     marginBottom: 4,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   resultValue: {
     fontSize: 16,
     color: theme.text,
     fontWeight: '500',
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   totalVerses: {
     marginTop: 16,
@@ -429,10 +447,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.textSecondary,
     marginBottom: 4,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   totalVersesValue: {
     fontSize: 24,
     fontWeight: 'bold',
     color: theme.primary,
+    textAlign: isRTL ? 'right' : 'left',
   },
 });

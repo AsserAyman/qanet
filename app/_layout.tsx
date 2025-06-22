@@ -6,6 +6,7 @@ import { useFonts, NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@
 import { supabase } from '../utils/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+import { I18nProvider } from '../contexts/I18nContext';
 import { View, ActivityIndicator } from 'react-native';
 
 function AppContent() {
@@ -51,8 +52,10 @@ export default function RootLayout() {
   useFrameworkReady();
 
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </I18nProvider>
   );
 }

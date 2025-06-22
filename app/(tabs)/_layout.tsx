@@ -1,9 +1,11 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 export default function TabLayout() {
   const { theme } = useTheme();
+  const { t } = useI18n();
 
   return (
     <Tabs
@@ -41,7 +43,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Night Prayer',
+          title: t('nightPrayer'),
           tabBarIcon: ({ color, size }) => (
             <Feather name="moon" size={size} color={color} />
           ),
@@ -50,7 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="add"
         options={{
-          title: 'Add Prayer',
+          title: t('addPrayer'),
           tabBarIcon: ({ color, size }) => (
             <Feather name="plus-circle" size={size} color={color} />
           ),
@@ -59,7 +61,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
+          title: t('history'),
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="history" size={size} color={color} />
           ),
@@ -68,7 +70,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('settings'),
           tabBarIcon: ({ color, size }) => (
             <Feather name="settings" size={size} color={color} />
           ),

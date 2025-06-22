@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'reac
 import { useRouter } from 'expo-router';
 import { supabase } from '../../utils/supabase';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
 
   const handleSignIn = async () => {
     try {
@@ -52,7 +54,7 @@ export default function SignInScreen() {
     }
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   return (
     <View style={styles.container}>
@@ -62,8 +64,8 @@ export default function SignInScreen() {
           style={styles.backgroundImage}
         />
         <View style={styles.overlay} />
-        <Text style={styles.headerTitle}>Night Prayer Tracker</Text>
-        <Text style={styles.headerSubtitle}>Track your nightly prayers and build consistency</Text>
+        <Text style={styles.headerTitle}>{t('nightPrayerTracker')}</Text>
+        <Text style={styles.headerSubtitle}>{t('trackYourNightlyPrayers')}</Text>
       </View>
 
       <View style={styles.card}>
@@ -74,27 +76,29 @@ export default function SignInScreen() {
         )}
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{t('email')}</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder="Enter your email"
+            placeholder={t('enterYourEmail')}
             placeholderTextColor={theme.textSecondary}
             autoCapitalize="none"
             keyboardType="email-address"
+            textAlign={isRTL ? 'right' : 'left'}
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{t('password')}</Text>
           <TextInput
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            placeholder="Enter your password"
+            placeholder={t('enterYourPassword')}
             placeholderTextColor={theme.textSecondary}
             secureTextEntry
+            textAlign={isRTL ? 'right' : 'left'}
           />
         </View>
 
@@ -103,13 +107,13 @@ export default function SignInScreen() {
           onPress={handleSignIn}
           disabled={loading}>
           <Text style={styles.buttonText}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('signingIn') : t('signIn')}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
+          <Text style={styles.dividerText}>{t('or')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -118,7 +122,7 @@ export default function SignInScreen() {
           onPress={handleSignUp}
           disabled={loading}>
           <Text style={[styles.buttonText, styles.buttonTextOutline]}>
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? t('creatingAccount') : t('createAccount')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -126,7 +130,7 @@ export default function SignInScreen() {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
@@ -157,11 +161,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 8,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   headerSubtitle: {
     fontSize: 16,
     color: '#e2e8f0',
     marginBottom: 16,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   card: {
     flex: 1,
@@ -186,6 +194,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.error,
     fontSize: 14,
     textAlign: 'center',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   inputGroup: {
     marginBottom: 16,
@@ -195,6 +204,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: '500',
     color: theme.textSecondary,
     marginBottom: 6,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   input: {
     backgroundColor: theme.background,
@@ -204,6 +215,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.text,
     borderWidth: 1,
     borderColor: theme.border,
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   button: {
     backgroundColor: theme.primary,
@@ -223,6 +235,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   buttonTextOutline: {
     color: theme.primary,
@@ -242,5 +255,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 14,
     fontWeight: '500',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
 });
