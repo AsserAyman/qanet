@@ -27,7 +27,9 @@ export default function HistoryScreen() {
   const [stats, setStats] = useState<{ status: string; count: number }[]>([]);
   const [streak, setStreak] = useState(0);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [yearlyData, setYearlyData] = useState<{ [key: string]: number }>({});
+  const [yearlyData, setYearlyData] = useState<{
+    [key: string]: { verses: number; status: string };
+  }>({});
   const [monthlyData, setMonthlyData] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,15 +110,34 @@ export default function HistoryScreen() {
         <StatsOverview
           streak={streak}
           totalNights={totalNights}
-          data={yearlyData}
+          data={Object.fromEntries(
+            Object.entries(yearlyData).map(([date, dayData]) => [
+              date,
+              dayData.verses,
+            ])
+          )}
           stats={stats}
         />
 
         <CategoryBreakdownChart stats={stats} />
 
-        <WeeklyTrendsChart data={yearlyData} />
+        <WeeklyTrendsChart
+          data={Object.fromEntries(
+            Object.entries(yearlyData).map(([date, dayData]) => [
+              date,
+              dayData.verses,
+            ])
+          )}
+        />
 
-        <DailyBreakdownChart data={yearlyData} />
+        <DailyBreakdownChart
+          data={Object.fromEntries(
+            Object.entries(yearlyData).map(([date, dayData]) => [
+              date,
+              dayData.verses,
+            ])
+          )}
+        />
 
         <YearlyGraph data={yearlyData} />
 

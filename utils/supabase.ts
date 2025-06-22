@@ -125,16 +125,19 @@ export async function getYearlyData() {
 
   const { data, error } = await supabase
     .from('prayer_logs')
-    .select('date, total_ayahs')
+    .select('date, total_ayahs, status')
     .eq('user_id', user.id)
     .gte('date', format(startDate, 'yyyy-MM-dd'))
     .lte('date', format(endDate, 'yyyy-MM-dd'));
 
   if (error) throw error;
 
-  const yearlyData: { [key: string]: number } = {};
+  const yearlyData: { [key: string]: { verses: number; status: string } } = {};
   data?.forEach((log) => {
-    yearlyData[log.date] = log.total_ayahs;
+    yearlyData[log.date] = {
+      verses: log.total_ayahs,
+      status: log.status,
+    };
   });
 
   return yearlyData;

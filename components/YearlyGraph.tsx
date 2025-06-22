@@ -2,6 +2,7 @@ import { differenceInDays, format, startOfYear } from 'date-fns';
 import React from 'react';
 import {
   Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,13 +11,19 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 
 interface YearlyGraphProps {
-  data: { [key: string]: number }; // date string -> verse count
+  data: { [key: string]: { verses: number; status: string } }; // date string -> { verses, status }
 }
 
 export function YearlyGraph({ data }: YearlyGraphProps) {
   const { theme } = useTheme();
   const { width } = Dimensions.get('window');
-  const cellSize = (width - 80) / 53; // 53 weeks max
+
+  // Calculate available width considering padding and gaps
+  const containerPadding = 48; // 24px * 2
+  const dayLabelsWidth = 20;
+  const availableWidth = width - containerPadding - dayLabelsWidth;
+  const gapWidth = 4 * 52; // 4px gap * ~52 weeks
+  const cellSize = Math.max((availableWidth - gapWidth) / 53, 10); // Smaller minimum size
 
   // Generate proper date-based grid
   const today = new Date();
@@ -27,29 +34,27 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
   const totalDays = differenceInDays(yearEnd, yearStart) + 1;
   const weeks = Math.ceil(totalDays / 7);
 
-  const getIntensity = (value: number) => {
-    if (value === 0) return 0;
-    if (value <= 10) return 1;
-    if (value <= 50) return 2;
-    if (value <= 100) return 3;
-    return 4;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Mokantar':
+        return '#15803d';
+      case 'Qanet':
+        return '#2563eb';
+      case 'Not Negligent':
+        return '#ca8a04';
+      default:
+        return '#dc2626';
+    }
   };
 
-  const getColor = (intensity: number) => {
-    const colors = [
-      theme.border + '40', // No activity
-      '#22c55e20', // Light green
-      '#22c55e40', // Medium green
-      '#22c55e80', // Dark green
-      '#22c55e', // Full green
-    ];
-    return colors[intensity];
+  const getColor = (status: string, verses: number) => {
+    if (verses === 0) return theme.border + '30'; // No activity
+    return getStatusColor(status); // Single solid color per status
   };
 
-  const getBorderColor = (intensity: number) => {
-    if (intensity === 0) return theme.border;
-    const colors = ['', '#22c55e60', '#22c55e80', '#22c55eA0', '#22c55e'];
-    return colors[intensity];
+  const getBorderColor = (status: string, verses: number) => {
+    if (verses === 0) return theme.border;
+    return getStatusColor(status); // Same color for border
   };
 
   const renderGrid = () => {
@@ -65,8 +70,7 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
         if (currentDate > today) break;
 
         const dateKey = format(currentDate, 'yyyy-MM-dd');
-        const value = data[dateKey] || 0;
-        const intensity = getIntensity(value);
+        const dayData = data[dateKey] || { verses: 0, status: 'Negligent' };
 
         weekColumn.push(
           <TouchableOpacity
@@ -76,9 +80,9 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
               {
                 width: cellSize - 2,
                 height: cellSize - 2,
-                backgroundColor: getColor(intensity),
-                borderColor: getBorderColor(intensity),
-                borderWidth: intensity > 0 ? 1 : 0,
+                backgroundColor: getColor(dayData.status, dayData.verses),
+                borderColor: getBorderColor(dayData.status, dayData.verses),
+                borderWidth: dayData.verses > 0 ? 1 : 0,
               },
             ]}
             activeOpacity={0.7}
@@ -103,8 +107,11 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
       <View style={styles.header}>
         <Text style={styles.title}>Prayer Activity</Text>
         <Text style={styles.subtitle}>
-          {Object.values(data).reduce((sum, val) => sum + val, 0)} verses this
-          year
+          {Object.values(data).reduce(
+            (sum, dayData) => sum + dayData.verses,
+            0
+          )}{' '}
+          verses this year
         </Text>
       </View>
 
@@ -123,14 +130,19 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
             'Oct',
             'Nov',
             'Dec',
-          ].map((month, index) => (
-            <Text
-              key={month}
-              style={[styles.monthLabel, { left: index * cellSize * 4.3 }]}
-            >
-              {month}
-            </Text>
-          ))}
+          ].map((month, index) => {
+            // Use container width instead of graph width to prevent overflow
+            const containerWidth = availableWidth - 20; // Available width minus some padding
+            const monthPosition = (index / 11) * Math.max(containerWidth, 0); // Spread across container width
+            return (
+              <Text
+                key={month}
+                style={[styles.monthLabel, { left: monthPosition }]}
+              >
+                {month}
+              </Text>
+            );
+          })}
         </View>
 
         <View style={styles.graphWrapper}>
@@ -145,26 +157,55 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
             ))}
           </View>
 
-          <View style={styles.graph}>{renderGrid()}</View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.graph}>{renderGrid()}</View>
+          </ScrollView>
         </View>
       </View>
 
       <View style={styles.legend}>
         <Text style={styles.legendText}>Less</Text>
         <View style={styles.legendItems}>
-          {[0, 1, 2, 3, 4].map((intensity) => (
-            <View
-              key={intensity}
-              style={[
-                styles.legendItem,
-                {
-                  backgroundColor: getColor(intensity),
-                  borderColor: getBorderColor(intensity),
-                  borderWidth: intensity > 0 ? 1 : 0,
-                },
-              ]}
-            />
-          ))}
+          <View
+            style={[
+              styles.legendItem,
+              {
+                backgroundColor: theme.border + '30',
+                borderColor: theme.border,
+                borderWidth: 0,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.legendItem,
+              {
+                backgroundColor: getStatusColor('Not Negligent'),
+                borderColor: getStatusColor('Not Negligent'),
+                borderWidth: 1,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.legendItem,
+              {
+                backgroundColor: getStatusColor('Qanet'),
+                borderColor: getStatusColor('Qanet'),
+                borderWidth: 1,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.legendItem,
+              {
+                backgroundColor: getStatusColor('Mokantar'),
+                borderColor: getStatusColor('Mokantar'),
+                borderWidth: 1,
+              },
+            ]}
+          />
         </View>
         <Text style={styles.legendText}>More</Text>
       </View>
@@ -177,7 +218,7 @@ const createStyles = (theme: any, cellSize: number) =>
     container: {
       backgroundColor: theme.card,
       borderRadius: 16,
-      padding: 20,
+      padding: 24,
       marginBottom: 24,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
@@ -186,7 +227,7 @@ const createStyles = (theme: any, cellSize: number) =>
       elevation: 4,
     },
     header: {
-      marginBottom: 20,
+      marginBottom: 24,
     },
     title: {
       fontSize: 18,
@@ -208,7 +249,7 @@ const createStyles = (theme: any, cellSize: number) =>
       position: 'relative',
     },
     monthLabel: {
-      fontSize: 12,
+      fontSize: 10,
       color: theme.textSecondary,
       position: 'absolute',
     },
@@ -227,13 +268,13 @@ const createStyles = (theme: any, cellSize: number) =>
     },
     graph: {
       flexDirection: 'row',
-      gap: 3,
+      gap: 4,
     },
     week: {
-      gap: 3,
+      gap: 4,
     },
     cell: {
-      borderRadius: 3,
+      borderRadius: 4,
     },
     legend: {
       flexDirection: 'row',
@@ -243,12 +284,12 @@ const createStyles = (theme: any, cellSize: number) =>
     },
     legendItems: {
       flexDirection: 'row',
-      gap: 3,
+      gap: 4,
     },
     legendItem: {
-      width: 12,
-      height: 12,
-      borderRadius: 2,
+      width: 16,
+      height: 16,
+      borderRadius: 3,
     },
     legendText: {
       fontSize: 12,
