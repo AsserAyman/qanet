@@ -1,8 +1,12 @@
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Calendar } from '../../components/Calendar';
+import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
+import { DailyBreakdownChart } from '../../components/DailyBreakdownChart';
+import { StatsOverview } from '../../components/StatsOverview';
+import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
@@ -80,6 +84,8 @@ export default function HistoryScreen() {
     );
   }
 
+  const totalNights = logs.length;
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -99,56 +105,26 @@ export default function HistoryScreen() {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.streakCard}>
-          <View style={styles.streakIconContainer}>
-            <MaterialIcons
-              name="local-fire-department"
-              size={32}
-              color={theme.error}
-            />
-          </View>
-          <View style={styles.streakContent}>
-            <Text style={styles.streakTitle}>Current Streak</Text>
-            <Text style={styles.streakCount}>{streak} days</Text>
-          </View>
-        </View>
+        <StatsOverview
+          streak={streak}
+          totalNights={totalNights}
+          data={yearlyData}
+          stats={stats}
+        />
+
+        <CategoryBreakdownChart stats={stats} />
+
+        <WeeklyTrendsChart data={yearlyData} />
+
+        <DailyBreakdownChart data={yearlyData} />
+
+        <YearlyGraph data={yearlyData} />
 
         <Calendar
           date={selectedDate}
           markedDates={monthlyData}
           onDateChange={setSelectedDate}
         />
-
-        <YearlyGraph data={yearlyData} />
-
-        <View style={styles.statsCard}>
-          <Text style={styles.sectionTitle}>Prayer Status Distribution</Text>
-          {stats.map((stat) => (
-            <View key={stat.status} style={styles.statItem}>
-              <View
-                style={[
-                  styles.statIconContainer,
-                  { backgroundColor: getStatusColor(stat.status) + '20' },
-                ]}
-              >
-                <MaterialIcons
-                  name="military-tech"
-                  size={24}
-                  color={getStatusColor(stat.status)}
-                />
-              </View>
-              <View style={styles.statContent}>
-                <Text style={styles.statTitle}>{stat.status}</Text>
-                <Text style={styles.statCount}>{stat.count} days</Text>
-              </View>
-              <Feather
-                name="chevron-right"
-                size={20}
-                color={theme.textSecondary}
-              />
-            </View>
-          ))}
-        </View>
 
         <View style={styles.historyCard}>
           <Text style={styles.sectionTitle}>Recent History</Text>
@@ -259,42 +235,7 @@ const createStyles = (theme: any) =>
       textAlign: 'center',
       marginTop: 20,
     },
-    streakCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 20,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    streakIconContainer: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: theme.error + '20',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 16,
-    },
-    streakContent: {
-      flex: 1,
-    },
-    streakTitle: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      marginBottom: 4,
-    },
-    streakCount: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.text,
-    },
-    statsCard: {
+    historyCard: {
       backgroundColor: theme.card,
       borderRadius: 16,
       padding: 20,
@@ -310,44 +251,6 @@ const createStyles = (theme: any) =>
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 16,
-    },
-    statItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
-    },
-    statIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 12,
-    },
-    statContent: {
-      flex: 1,
-    },
-    statTitle: {
-      fontSize: 16,
-      color: theme.text,
-      marginBottom: 2,
-    },
-    statCount: {
-      fontSize: 14,
-      color: theme.textSecondary,
-    },
-    historyCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
-      padding: 20,
-      marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 4,
-      elevation: 2,
     },
     historyItem: {
       flexDirection: 'row',

@@ -20,7 +20,10 @@ export interface PrayerLog {
 }
 
 async function checkAuth() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) {
     throw new Error('Please sign in to continue');
   }
@@ -49,8 +52,8 @@ export async function savePrayerLog(
         total_ayahs: totalAyahs,
         status: status,
         date: date.toISOString().split('T')[0],
-        user_id: user.id
-      }
+        user_id: user.id,
+      },
     ])
     .select()
     .single();
@@ -76,8 +79,7 @@ export async function getPrayerLogs(days: number = 30) {
 export async function getStatusStats() {
   const user = await checkAuth();
 
-  const { data, error } = await supabase
-    .rpc('get_status_stats');
+  const { data, error } = await supabase.rpc('get_status_stats');
 
   if (error) throw error;
   return data as { status: string; count: number }[];
@@ -132,10 +134,7 @@ export async function getYearlyData() {
 
   const yearlyData: { [key: string]: number } = {};
   data?.forEach((log) => {
-    const date = new Date(log.date);
-    const weekIndex = Math.floor((365 - subDays(endDate, date).getDate()) / 7);
-    const dayIndex = date.getDay();
-    yearlyData[`${weekIndex}-${dayIndex}`] = log.total_ayahs;
+    yearlyData[log.date] = log.total_ayahs;
   });
 
   return yearlyData;
