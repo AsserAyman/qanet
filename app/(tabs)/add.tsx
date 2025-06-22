@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
   calculateVersesBetween,
@@ -19,7 +20,6 @@ import {
   quranData,
 } from '../../utils/quranData';
 import { savePrayerLog } from '../../utils/supabase';
-import { useTheme } from '../../contexts/ThemeContext';
 
 export default function AddPrayerScreen() {
   const router = useRouter();
@@ -33,6 +33,8 @@ export default function AddPrayerScreen() {
   const [endAyah, setEndAyah] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const styles = createStyles(theme);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -91,8 +93,6 @@ export default function AddPrayerScreen() {
     );
   }
 
-  const styles = createStyles(theme);
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -120,7 +120,11 @@ export default function AddPrayerScreen() {
 
         <View style={styles.card}>
           <View style={styles.dateSection}>
-            <MaterialIcons name="calendar-today" size={24} color={theme.textSecondary} />
+            <MaterialIcons
+              name="calendar-today"
+              size={24}
+              color={theme.textSecondary}
+            />
             <View style={styles.dateContent}>
               <Text style={styles.dateLabel}>Prayer Date</Text>
               {(showDatePicker || Platform.OS !== 'web') && (
@@ -250,153 +254,154 @@ export default function AddPrayerScreen() {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  header: {
-    height: 200,
-    position: 'relative',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.overlay,
-  },
-  headerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#e2e8f0',
-  },
-  content: {
-    flex: 1,
-    marginTop: -24,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: theme.background,
-    padding: 24,
-  },
-  errorContainer: {
-    backgroundColor: theme.error + '20',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  errorText: {
-    color: theme.error,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  dateSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  dateContent: {
-    flex: 1,
-  },
-  dateLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.textSecondary,
-    marginBottom: 4,
-  },
-  datePicker: {
-    marginTop: 4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: theme.border,
-    marginVertical: 20,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.textSecondary,
-    marginBottom: 8,
-  },
-  pickerContainer: {
-    backgroundColor: theme.background,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  picker: {
-    backgroundColor: theme.background,
-  },
-  statusCard: {
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-  },
-  statusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 12,
-  },
-  statusTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  statusDescription: {
-    fontSize: 16,
-    color: theme.textSecondary,
-    marginBottom: 8,
-  },
-  totalVerses: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  saveButton: {
-    backgroundColor: theme.primary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      height: 200,
+      position: 'relative',
+    },
+    backgroundImage: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.overlay,
+    },
+    headerContent: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: 24,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 8,
+    },
+    headerSubtitle: {
+      fontSize: 16,
+      color: '#e2e8f0',
+    },
+    content: {
+      flex: 1,
+      marginTop: -24,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      backgroundColor: theme.background,
+      padding: 24,
+    },
+    errorContainer: {
+      backgroundColor: theme.error + '20',
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 24,
+    },
+    errorText: {
+      color: theme.error,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    card: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    dateSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    dateContent: {
+      flex: 1,
+    },
+    dateLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.textSecondary,
+      marginBottom: 4,
+    },
+    datePicker: {
+      marginTop: 4,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginVertical: 20,
+    },
+    inputGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.textSecondary,
+      marginBottom: 8,
+    },
+    pickerContainer: {
+      backgroundColor: theme.background,
+      borderRadius: 8,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    picker: {
+      backgroundColor: theme.background,
+    },
+    statusCard: {
+      padding: 20,
+      borderRadius: 16,
+      marginBottom: 24,
+    },
+    statusHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+      gap: 12,
+    },
+    statusTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    statusDescription: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      marginBottom: 8,
+    },
+    totalVerses: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    saveButtonDisabled: {
+      opacity: 0.7,
+    },
+    saveButtonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });
