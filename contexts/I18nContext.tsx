@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { I18nManager } from 'react-native';
 import * as Localization from 'expo-localization';
 import { I18n } from 'i18n-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { I18nManager } from 'react-native';
 
 export type Language = 'en' | 'ar';
 
@@ -25,7 +25,7 @@ const translations = {
     addPrayer: 'Add Prayer',
     history: 'History',
     settings: 'Settings',
-    
+
     // Home Screen
     nightPrayerCalculator: 'Night Prayer Calculator',
     calculateYourNightPrayerVerses: 'Calculate your night prayer verses',
@@ -39,7 +39,7 @@ const translations = {
     start: 'Start',
     end: 'End',
     totalVerses: 'Total verses',
-    
+
     // Add Prayer Screen
     recordYourSpiritualJourney: 'Record your spiritual journey with the Quran',
     prayerDate: 'Prayer Date',
@@ -49,7 +49,7 @@ const translations = {
     ayah: 'Ayah',
     savingPrayerRecord: 'Saving Prayer Record...',
     savePrayerRecord: 'Save Prayer Record',
-    
+
     // History Screen
     prayerHistory: 'Prayer History',
     trackYourProgressAndConsistency: 'Track your progress and consistency',
@@ -72,7 +72,7 @@ const translations = {
     less: 'Less',
     more: 'More',
     basedOnTotalPrayerSessions: 'Based on {{count}} total prayer sessions',
-    
+
     // Settings Screen
     customizeYourAppExperience: 'Customize your app experience',
     appearance: 'Appearance',
@@ -84,29 +84,33 @@ const translations = {
     arabic: 'العربية',
     prayerStatusLevels: 'Prayer Status Levels',
     signOut: 'Sign Out',
-    
+
     // Prayer Status
     negligent: 'Negligent',
     notNegligent: 'Not Negligent',
     qanet: 'Qanet',
     mokantar: 'Mokantar',
-    
+
     // Status descriptions
     negligentDesc: 'Less than 10 verses',
     notNegligentDesc: '10-99 verses',
     qanetDesc: '100-999 verses',
     mokantarDesc: '1000+ verses',
-    
+
     // Status explanations
-    negligentExplanation: 'Strive to read at least 10 verses to avoid being recorded among the negligent.',
-    notNegligentExplanation: 'Reading 10 or more verses keeps you from being recorded among the negligent.',
-    qanetExplanation: 'Reading 100 verses records you among those who are obedient to Allah.',
+    negligentExplanation:
+      'Strive to read at least 10 verses to avoid being recorded among the negligent.',
+    notNegligentExplanation:
+      'Reading 10 or more verses keeps you from being recorded among the negligent.',
+    qanetExplanation:
+      'Reading 100 verses records you among those who are obedient to Allah.',
     mokantarExplanation: 'Reading 1000 verses earns you huge rewards.',
-    
+
     // Hadith
     hadith: 'Hadith',
-    hadithText: 'The Prophet (ﷺ) said: "If anyone prays at night reciting regularly ten verses, he will not be recorded among the negligent; if anyone prays at night and recites a hundred verses, he will be recorded among those who are obedient to Allah (Qanet); and if anyone prays at night reciting one thousand verses, he will be recorded among those who receive huge rewards."',
-    
+    hadithText:
+      'The Prophet (ﷺ) said: "If anyone prays at night reciting regularly ten verses, he will not be recorded among the negligent; if anyone prays at night and recites a hundred verses, he will be recorded among those who are obedient to Allah (Qanet); and if anyone prays at night reciting one thousand verses, he will be recorded among those who receive huge rewards."',
+
     // Auth
     nightPrayerTracker: 'Night Prayer Tracker',
     trackYourNightlyPrayers: 'Track your nightly prayers and build consistency',
@@ -119,7 +123,7 @@ const translations = {
     or: 'or',
     creatingAccount: 'Creating account...',
     createAccount: 'Create Account',
-    
+
     // Common
     loading: 'Loading...',
     save: 'Save',
@@ -127,35 +131,54 @@ const translations = {
     confirm: 'Confirm',
     error: 'Error',
     success: 'Success',
-    
+
     // Status messages
     hugeRewardsAwaitYou: 'Huge rewards await you!',
     amongThoseObedientToAllah: 'Among those who are obedient to Allah',
     youAreNotAmongTheNegligent: 'You are not among the negligent',
     striveToReadAtLeast10Verses: 'Strive to read at least 10 verses',
-    
+
     // Categories
     consistentAndComplete: 'Consistent & Complete',
     regularPractice: 'Regular Practice',
     occasionalGaps: 'Occasional Gaps',
     irregularPractice: 'Irregular Practice',
     unknownStatus: 'Unknown Status',
-    
+
     // Days
     days: 'days',
-    
+
     // Months
-    jan: 'Jan', feb: 'Feb', mar: 'Mar', apr: 'Apr',
-    may: 'May', jun: 'Jun', jul: 'Jul', aug: 'Aug',
-    sep: 'Sep', oct: 'Oct', nov: 'Nov', dec: 'Dec',
-    
+    jan: 'Jan',
+    feb: 'Feb',
+    mar: 'Mar',
+    apr: 'Apr',
+    may: 'May',
+    jun: 'Jun',
+    jul: 'Jul',
+    aug: 'Aug',
+    sep: 'Sep',
+    oct: 'Oct',
+    nov: 'Nov',
+    dec: 'Dec',
+
     // Week days
-    mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu',
-    fri: 'Fri', sat: 'Sat', sun: 'Sun',
-    
+    mon: 'Mon',
+    tue: 'Tue',
+    wed: 'Wed',
+    thu: 'Thu',
+    fri: 'Fri',
+    sat: 'Sat',
+    sun: 'Sun',
+
     // Week days full
-    monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
-    thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+    monday: 'Monday',
+    tuesday: 'Tuesday',
+    wednesday: 'Wednesday',
+    thursday: 'Thursday',
+    friday: 'Friday',
+    saturday: 'Saturday',
+    sunday: 'Sunday',
   },
   ar: {
     // Navigation
@@ -163,7 +186,7 @@ const translations = {
     addPrayer: 'إضافة صلاة',
     history: 'التاريخ',
     settings: 'الإعدادات',
-    
+
     // Home Screen
     nightPrayerCalculator: 'حاسبة صلاة الليل',
     calculateYourNightPrayerVerses: 'احسب آيات صلاة الليل',
@@ -177,7 +200,7 @@ const translations = {
     start: 'البداية',
     end: 'النهاية',
     totalVerses: 'إجمالي الآيات',
-    
+
     // Add Prayer Screen
     recordYourSpiritualJourney: 'سجل رحلتك الروحية مع القرآن',
     prayerDate: 'تاريخ الصلاة',
@@ -187,7 +210,7 @@ const translations = {
     ayah: 'الآية',
     savingPrayerRecord: 'جاري حفظ سجل الصلاة...',
     savePrayerRecord: 'حفظ سجل الصلاة',
-    
+
     // History Screen
     prayerHistory: 'تاريخ الصلاة',
     trackYourProgressAndConsistency: 'تتبع تقدمك واستمراريتك',
@@ -210,7 +233,7 @@ const translations = {
     less: 'أقل',
     more: 'أكثر',
     basedOnTotalPrayerSessions: 'بناءً على {{count}} جلسة صلاة إجمالية',
-    
+
     // Settings Screen
     customizeYourAppExperience: 'خصص تجربة التطبيق الخاصة بك',
     appearance: 'المظهر',
@@ -222,29 +245,32 @@ const translations = {
     arabic: 'العربية',
     prayerStatusLevels: 'مستويات حالة الصلاة',
     signOut: 'تسجيل الخروج',
-    
+
     // Prayer Status
-    negligent: 'مُهمِل',
-    notNegligent: 'غير مُهمِل',
+    negligent: 'غافل',
+    notNegligent: 'غير غافل',
     qanet: 'قانت',
-    mokantar: 'مُكثِر',
-    
+    mokantar: 'مقنطر',
+
     // Status descriptions
     negligentDesc: 'أقل من 10 آيات',
     notNegligentDesc: '10-99 آية',
     qanetDesc: '100-999 آية',
     mokantarDesc: '1000+ آية',
-    
+
     // Status explanations
-    negligentExplanation: 'اجتهد في قراءة 10 آيات على الأقل لتجنب أن تُكتب من المهملين.',
-    notNegligentExplanation: 'قراءة 10 آيات أو أكثر تجعلك لا تُكتب من المهملين.',
+    negligentExplanation:
+      'اجتهد في قراءة 10 آيات على الأقل لتجنب أن تُكتب من المهملين.',
+    notNegligentExplanation:
+      'قراءة 10 آيات أو أكثر تجعلك لا تُكتب من المهملين.',
     qanetExplanation: 'قراءة 100 آية تجعلك تُكتب من القانتين المطيعين لله.',
     mokantarExplanation: 'قراءة 1000 آية تكسبك أجراً عظيماً.',
-    
+
     // Hadith
     hadith: 'الحديث',
-    hadithText: 'قال النبي ﷺ: "من قام بعشر آيات لم يُكتب من الغافلين، ومن قام بمائة آية كُتب من القانتين، ومن قام بألف آية كُتب من المقنطرين"',
-    
+    hadithText:
+      'قال النبي ﷺ: "من قام بعشر آيات لم يُكتب من الغافلين، ومن قام بمائة آية كُتب من القانتين، ومن قام بألف آية كُتب من المقنطرين"',
+
     // Auth
     nightPrayerTracker: 'متتبع صلاة الليل',
     trackYourNightlyPrayers: 'تتبع صلواتك الليلية وابن الاستمرارية',
@@ -257,7 +283,7 @@ const translations = {
     or: 'أو',
     creatingAccount: 'جاري إنشاء الحساب...',
     createAccount: 'إنشاء حساب',
-    
+
     // Common
     loading: 'جاري التحميل...',
     save: 'حفظ',
@@ -265,36 +291,55 @@ const translations = {
     confirm: 'تأكيد',
     error: 'خطأ',
     success: 'نجح',
-    
+
     // Status messages
     hugeRewardsAwaitYou: 'أجر عظيم في انتظارك!',
     amongThoseObedientToAllah: 'من القانتين المطيعين لله',
     youAreNotAmongTheNegligent: 'لست من الغافلين',
     striveToReadAtLeast10Verses: 'اجتهد في قراءة 10 آيات على الأقل',
-    
+
     // Categories
     consistentAndComplete: 'مستمر ومكتمل',
     regularPractice: 'ممارسة منتظمة',
     occasionalGaps: 'فجوات أحياناً',
     irregularPractice: 'ممارسة غير منتظمة',
     unknownStatus: 'حالة غير معروفة',
-    
+
     // Days
     days: 'أيام',
-    
+
     // Months
-    jan: 'يناير', feb: 'فبراير', mar: 'مارس', apr: 'أبريل',
-    may: 'مايو', jun: 'يونيو', jul: 'يوليو', aug: 'أغسطس',
-    sep: 'سبتمبر', oct: 'أكتوبر', nov: 'نوفمبر', dec: 'ديسمبر',
-    
+    jan: 'يناير',
+    feb: 'فبراير',
+    mar: 'مارس',
+    apr: 'أبريل',
+    may: 'مايو',
+    jun: 'يونيو',
+    jul: 'يوليو',
+    aug: 'أغسطس',
+    sep: 'سبتمبر',
+    oct: 'أكتوبر',
+    nov: 'نوفمبر',
+    dec: 'ديسمبر',
+
     // Week days
-    mon: 'الإثنين', tue: 'الثلاثاء', wed: 'الأربعاء', thu: 'الخميس',
-    fri: 'الجمعة', sat: 'السبت', sun: 'الأحد',
-    
+    mon: 'الإثنين',
+    tue: 'الثلاثاء',
+    wed: 'الأربعاء',
+    thu: 'الخميس',
+    fri: 'الجمعة',
+    sat: 'السبت',
+    sun: 'الأحد',
+
     // Week days full
-    monday: 'الإثنين', tuesday: 'الثلاثاء', wednesday: 'الأربعاء',
-    thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت', sunday: 'الأحد',
-  }
+    monday: 'الإثنين',
+    tuesday: 'الثلاثاء',
+    wednesday: 'الأربعاء',
+    thursday: 'الخميس',
+    friday: 'الجمعة',
+    saturday: 'السبت',
+    sunday: 'الأحد',
+  },
 };
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -327,7 +372,9 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         setLanguageState(savedLanguage as Language);
       } else {
         // Detect system language
-        const systemLanguage = Localization.locale.startsWith('ar') ? 'ar' : 'en';
+        const systemLanguage = Localization.locale.startsWith('ar')
+          ? 'ar'
+          : 'en';
         setLanguageState(systemLanguage);
       }
     } catch (error) {
