@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
-import { getPrayerLogs, getStatusStats, getCurrentStreak, getYearlyData, getMonthlyData, PrayerLog } from '../../utils/supabase';
-import { Award, Flame, Moon, ChevronRight } from 'lucide-react-native';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../hooks/useAuth';
+import React, { useEffect, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Calendar } from '../../components/Calendar';
 import { YearlyGraph } from '../../components/YearlyGraph';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  getCurrentStreak,
+  getMonthlyData,
+  getPrayerLogs,
+  getStatusStats,
+  getYearlyData,
+  PrayerLog,
+} from '../../utils/supabase';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -21,7 +28,7 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     if (authLoading) return;
-    
+
     if (!session) {
       router.replace('/(auth)/sign-in');
       return;
@@ -29,13 +36,14 @@ export default function HistoryScreen() {
 
     async function loadData() {
       try {
-        const [logsData, statsData, streakData, yearData, monthData] = await Promise.all([
-          getPrayerLogs(),
-          getStatusStats(),
-          getCurrentStreak(),
-          getYearlyData(),
-          getMonthlyData()
-        ]);
+        const [logsData, statsData, streakData, yearData, monthData] =
+          await Promise.all([
+            getPrayerLogs(),
+            getStatusStats(),
+            getCurrentStreak(),
+            getYearlyData(),
+            getMonthlyData(),
+          ]);
         setLogs(logsData);
         setStats(statsData);
         setStreak(streakData);
@@ -72,20 +80,28 @@ export default function HistoryScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+          source={{
+            uri: 'https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+          }}
           style={styles.backgroundImage}
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Prayer History</Text>
-          <Text style={styles.headerSubtitle}>Track your progress and consistency</Text>
+          <Text style={styles.headerSubtitle}>
+            Track your progress and consistency
+          </Text>
         </View>
       </View>
 
       <View style={styles.content}>
         <View style={styles.streakCard}>
           <View style={styles.streakIconContainer}>
-            <Flame size={32} color="#dc2626" />
+            <MaterialIcons
+              name="local-fire-department"
+              size={32}
+              color="#dc2626"
+            />
           </View>
           <View style={styles.streakContent}>
             <Text style={styles.streakTitle}>Current Streak</Text>
@@ -105,14 +121,23 @@ export default function HistoryScreen() {
           <Text style={styles.sectionTitle}>Prayer Status Distribution</Text>
           {stats.map((stat) => (
             <View key={stat.status} style={styles.statItem}>
-              <View style={[styles.statIconContainer, { backgroundColor: getStatusColor(stat.status) + '10' }]}>
-                <Award size={24} color={getStatusColor(stat.status)} />
+              <View
+                style={[
+                  styles.statIconContainer,
+                  { backgroundColor: getStatusColor(stat.status) + '10' },
+                ]}
+              >
+                <MaterialIcons
+                  name="military-tech"
+                  size={24}
+                  color={getStatusColor(stat.status)}
+                />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statTitle}>{stat.status}</Text>
                 <Text style={styles.statCount}>{stat.count} days</Text>
               </View>
-              <ChevronRight size={20} color="#94a3b8" />
+              <Feather name="chevron-right" size={20} color="#94a3b8" />
             </View>
           ))}
         </View>
@@ -121,17 +146,36 @@ export default function HistoryScreen() {
           <Text style={styles.sectionTitle}>Recent History</Text>
           {logs.map((log) => (
             <View key={log.id} style={styles.historyItem}>
-              <View style={[styles.historyIconContainer, { backgroundColor: getStatusColor(log.status) + '10' }]}>
-                <Moon size={20} color={getStatusColor(log.status)} />
+              <View
+                style={[
+                  styles.historyIconContainer,
+                  { backgroundColor: getStatusColor(log.status) + '10' },
+                ]}
+              >
+                <Feather
+                  name="moon"
+                  size={20}
+                  color={getStatusColor(log.status)}
+                />
               </View>
               <View style={styles.historyContent}>
-                <Text style={styles.historyDate}>{new Date(log.date).toLocaleDateString()}</Text>
-                <Text style={styles.historyRange}>
-                  {log.start_surah} {log.start_ayah} → {log.end_surah} {log.end_ayah}
+                <Text style={styles.historyDate}>
+                  {new Date(log.date).toLocaleDateString()}
                 </Text>
-                <Text style={styles.historyVerses}>{log.total_ayahs} verses</Text>
+                <Text style={styles.historyRange}>
+                  {log.start_surah} {log.start_ayah} → {log.end_surah}{' '}
+                  {log.end_ayah}
+                </Text>
+                <Text style={styles.historyVerses}>
+                  {log.total_ayahs} verses
+                </Text>
               </View>
-              <Text style={[styles.historyStatus, { color: getStatusColor(log.status) }]}>
+              <Text
+                style={[
+                  styles.historyStatus,
+                  { color: getStatusColor(log.status) },
+                ]}
+              >
                 {log.status}
               </Text>
             </View>

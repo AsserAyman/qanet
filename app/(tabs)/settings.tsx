@@ -1,33 +1,43 @@
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
-import { Moon, Award, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function SettingsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+          source={{
+            uri: 'https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+          }}
           style={styles.backgroundImage}
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>About Night Prayer</Text>
-          <Text style={styles.headerSubtitle}>Understanding prayer status levels</Text>
+          <Text style={styles.headerSubtitle}>
+            Understanding prayer status levels
+          </Text>
         </View>
       </View>
 
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIconContainer, { backgroundColor: '#fef2f2' }]}>
-              <AlertTriangle size={24} color="#dc2626" />
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: '#fef2f2' },
+              ]}
+            >
+              <MaterialIcons name="warning" size={24} color="#dc2626" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Negligent</Text>
               <Text style={styles.statusSubtitle}>Less than 10 verses</Text>
               <Text style={styles.statusDescription}>
-                Strive to read at least 10 verses to avoid being recorded among the negligent.
+                Strive to read at least 10 verses to avoid being recorded among
+                the negligent.
               </Text>
             </View>
           </View>
@@ -35,14 +45,20 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
 
           <View style={styles.statusItem}>
-            <View style={[styles.statusIconContainer, { backgroundColor: '#fef9c3' }]}>
-              <Moon size={24} color="#ca8a04" />
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: '#fef9c3' },
+              ]}
+            >
+              <Feather name="moon" size={24} color="#ca8a04" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Not Negligent</Text>
               <Text style={styles.statusSubtitle}>10-99 verses</Text>
               <Text style={styles.statusDescription}>
-                Reading 10 or more verses keeps you from being recorded among the negligent.
+                Reading 10 or more verses keeps you from being recorded among
+                the negligent.
               </Text>
             </View>
           </View>
@@ -50,14 +66,20 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
 
           <View style={styles.statusItem}>
-            <View style={[styles.statusIconContainer, { backgroundColor: '#dbeafe' }]}>
-              <Award size={24} color="#2563eb" />
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: '#dbeafe' },
+              ]}
+            >
+              <MaterialIcons name="military-tech" size={24} color="#2563eb" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Qanet</Text>
               <Text style={styles.statusSubtitle}>100-999 verses</Text>
               <Text style={styles.statusDescription}>
-                Reading 100 verses records you among those who are obedient to Allah.
+                Reading 100 verses records you among those who are obedient to
+                Allah.
               </Text>
             </View>
           </View>
@@ -65,8 +87,13 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
 
           <View style={styles.statusItem}>
-            <View style={[styles.statusIconContainer, { backgroundColor: '#dcfce7' }]}>
-              <Award size={24} color="#15803d" />
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: '#dcfce7' },
+              ]}
+            >
+              <MaterialIcons name="military-tech" size={24} color="#15803d" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Mokantar</Text>
@@ -81,7 +108,12 @@ export default function SettingsScreen() {
         <View style={styles.hadithCard}>
           <Text style={styles.hadithTitle}>Hadith</Text>
           <Text style={styles.hadithText}>
-            The Prophet (ﷺ) said: "If anyone prays at night reciting regularly ten verses, he will not be recorded among the negligent; if anyone prays at night and recites a hundred verses, he will be recorded among those who are obedient to Allah (Qanet); and if anyone prays at night reciting one thousand verses, he will be recorded among those who receive huge rewards."
+            The Prophet (ﷺ) said: "If anyone prays at night reciting regularly
+            ten verses, he will not be recorded among the negligent; if anyone
+            prays at night and recites a hundred verses, he will be recorded
+            among those who are obedient to Allah (Qanet); and if anyone prays
+            at night reciting one thousand verses, he will be recorded among
+            those who receive huge rewards."
           </Text>
         </View>
       </View>

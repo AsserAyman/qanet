@@ -1,6 +1,5 @@
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Moon, Settings, History, CirclePlus as PlusCircle } from 'lucide-react-native';
-import { View } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -34,33 +33,42 @@ export default function TabLayout() {
           color: '#1e293b',
         },
         headerShadowVisible: false,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Night Prayer',
-          tabBarIcon: ({ color, size }) => <Moon size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="moon" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="add"
         options={{
           title: 'Add Prayer',
-          tabBarIcon: ({ color, size }) => <PlusCircle size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="plus-circle" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
           title: 'History',
-          tabBarIcon: ({ color, size }) => <History size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="history" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="settings" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

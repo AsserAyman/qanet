@@ -1,56 +1,110 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { quranData, calculateVerseRange, getVerseStatus, calculateVersesBetween } from '../../utils/quranData';
-import { ArrowRight, Calculator, Moon } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {
+  calculateVerseRange,
+  calculateVersesBetween,
+  getVerseStatus,
+  quranData,
+} from '../../utils/quranData';
 
 export default function NightPrayerScreen() {
   const [mode, setMode] = useState<'target' | 'range'>('target');
   const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
   const [selectedAyah, setSelectedAyah] = useState(1);
   const [targetVerses, setTargetVerses] = useState(100);
-  
+
   const [endSurah, setEndSurah] = useState('Al-Baqara');
   const [endAyah, setEndAyah] = useState(1);
 
-  const currentSurah = quranData.find(s => s.name === selectedSurah);
-  const endCurrentSurah = quranData.find(s => s.name === endSurah);
-  
-  const range = mode === 'target' 
-    ? calculateVerseRange(selectedSurah, selectedAyah, targetVerses)
-    : { startSurah: selectedSurah, startAyah: selectedAyah, endSurah: endSurah, endAyah: endAyah, totalAyahs: calculateVersesBetween(selectedSurah, selectedAyah, endSurah, endAyah) };
-  
+  const currentSurah = quranData.find((s) => s.name === selectedSurah);
+  const endCurrentSurah = quranData.find((s) => s.name === endSurah);
+
+  const range =
+    mode === 'target'
+      ? calculateVerseRange(selectedSurah, selectedAyah, targetVerses)
+      : {
+          startSurah: selectedSurah,
+          startAyah: selectedAyah,
+          endSurah: endSurah,
+          endAyah: endAyah,
+          totalAyahs: calculateVersesBetween(
+            selectedSurah,
+            selectedAyah,
+            endSurah,
+            endAyah
+          ),
+        };
+
   const status = getVerseStatus(range.totalAyahs);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+          source={{
+            uri: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+          }}
           style={styles.backgroundImage}
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Night Prayer Calculator</Text>
-          <Text style={styles.headerSubtitle}>Calculate your night prayer verses</Text>
+          <Text style={styles.headerSubtitle}>
+            Calculate your night prayer verses
+          </Text>
         </View>
       </View>
 
       <View style={styles.content}>
         <View style={styles.modeSelector}>
           <TouchableOpacity
-            style={[styles.modeButton, mode === 'target' && styles.modeButtonActive]}
-            onPress={() => setMode('target')}>
-            <Calculator size={20} color={mode === 'target' ? '#ffffff' : '#64748b'} />
-            <Text style={[styles.modeButtonText, mode === 'target' && styles.modeButtonTextActive]}>
+            style={[
+              styles.modeButton,
+              mode === 'target' && styles.modeButtonActive,
+            ]}
+            onPress={() => setMode('target')}
+          >
+            <MaterialIcons
+              name="calculate"
+              size={20}
+              color={mode === 'target' ? '#ffffff' : '#64748b'}
+            />
+            <Text
+              style={[
+                styles.modeButtonText,
+                mode === 'target' && styles.modeButtonTextActive,
+              ]}
+            >
               Target Verses
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.modeButton, mode === 'range' && styles.modeButtonActive]}
-            onPress={() => setMode('range')}>
-            <ArrowRight size={20} color={mode === 'range' ? '#ffffff' : '#64748b'} />
-            <Text style={[styles.modeButtonText, mode === 'range' && styles.modeButtonTextActive]}>
+            style={[
+              styles.modeButton,
+              mode === 'range' && styles.modeButtonActive,
+            ]}
+            onPress={() => setMode('range')}
+          >
+            <Feather
+              name="arrow-right"
+              size={20}
+              color={mode === 'range' ? '#ffffff' : '#64748b'}
+            />
+            <Text
+              style={[
+                styles.modeButtonText,
+                mode === 'range' && styles.modeButtonTextActive,
+              ]}
+            >
               Custom Range
             </Text>
           </TouchableOpacity>
@@ -63,9 +117,14 @@ export default function NightPrayerScreen() {
               <Picker
                 selectedValue={selectedSurah}
                 onValueChange={setSelectedSurah}
-                style={styles.picker}>
-                {quranData.map(surah => (
-                  <Picker.Item key={surah.name} label={surah.name} value={surah.name} />
+                style={styles.picker}
+              >
+                {quranData.map((surah) => (
+                  <Picker.Item
+                    key={surah.name}
+                    label={surah.name}
+                    value={surah.name}
+                  />
                 ))}
               </Picker>
             </View>
@@ -77,9 +136,14 @@ export default function NightPrayerScreen() {
               <Picker
                 selectedValue={String(selectedAyah)}
                 onValueChange={(value) => setSelectedAyah(Number(value))}
-                style={styles.picker}>
+                style={styles.picker}
+              >
                 {Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => (
-                  <Picker.Item key={i + 1} label={String(i + 1)} value={String(i + 1)} />
+                  <Picker.Item
+                    key={i + 1}
+                    label={String(i + 1)}
+                    value={String(i + 1)}
+                  />
                 ))}
               </Picker>
             </View>
@@ -92,7 +156,8 @@ export default function NightPrayerScreen() {
                 <Picker
                   selectedValue={String(targetVerses)}
                   onValueChange={(value) => setTargetVerses(Number(value))}
-                  style={styles.picker}>
+                  style={styles.picker}
+                >
                   <Picker.Item label="10 verses" value="10" />
                   <Picker.Item label="100 verses" value="100" />
                   <Picker.Item label="1000 verses" value="1000" />
@@ -107,9 +172,14 @@ export default function NightPrayerScreen() {
                   <Picker
                     selectedValue={endSurah}
                     onValueChange={setEndSurah}
-                    style={styles.picker}>
-                    {quranData.map(surah => (
-                      <Picker.Item key={surah.name} label={surah.name} value={surah.name} />
+                    style={styles.picker}
+                  >
+                    {quranData.map((surah) => (
+                      <Picker.Item
+                        key={surah.name}
+                        label={surah.name}
+                        value={surah.name}
+                      />
                     ))}
                   </Picker>
                 </View>
@@ -121,10 +191,18 @@ export default function NightPrayerScreen() {
                   <Picker
                     selectedValue={String(endAyah)}
                     onValueChange={(value) => setEndAyah(Number(value))}
-                    style={styles.picker}>
-                    {Array.from({ length: endCurrentSurah?.ayahs || 0 }, (_, i) => (
-                      <Picker.Item key={i + 1} label={String(i + 1)} value={String(i + 1)} />
-                    ))}
+                    style={styles.picker}
+                  >
+                    {Array.from(
+                      { length: endCurrentSurah?.ayahs || 0 },
+                      (_, i) => (
+                        <Picker.Item
+                          key={i + 1}
+                          label={String(i + 1)}
+                          value={String(i + 1)}
+                        />
+                      )
+                    )}
                   </Picker>
                 </View>
               </View>
@@ -132,10 +210,14 @@ export default function NightPrayerScreen() {
           )}
         </View>
 
-        <View style={[styles.statusCard, { backgroundColor: status.color + '10' }]}>
+        <View
+          style={[styles.statusCard, { backgroundColor: status.color + '10' }]}
+        >
           <View style={styles.statusHeader}>
-            <Moon size={24} color={status.color} />
-            <Text style={[styles.statusTitle, { color: status.color }]}>{status.status}</Text>
+            <Feather name="moon" size={24} color={status.color} />
+            <Text style={[styles.statusTitle, { color: status.color }]}>
+              {status.status}
+            </Text>
           </View>
           <Text style={styles.statusDescription}>{status.description}</Text>
         </View>

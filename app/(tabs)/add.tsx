@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import { quranData, calculateVersesBetween, getVerseStatus } from '../../utils/quranData';
-import { savePrayerLog } from '../../utils/supabase';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Platform } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
-import { Moon, Calendar } from 'lucide-react-native';
+import {
+  calculateVersesBetween,
+  getVerseStatus,
+  quranData,
+} from '../../utils/quranData';
+import { savePrayerLog } from '../../utils/supabase';
 
 export default function AddPrayerScreen() {
   const router = useRouter();
@@ -23,16 +34,21 @@ export default function AddPrayerScreen() {
 
   React.useEffect(() => {
     if (authLoading) return;
-    
+
     if (!session) {
       router.replace('/(auth)/sign-in');
     }
   }, [session, authLoading]);
 
-  const currentSurah = quranData.find(s => s.name === selectedSurah);
-  const endCurrentSurah = quranData.find(s => s.name === endSurah);
-  
-  const totalVerses = calculateVersesBetween(selectedSurah, selectedAyah, endSurah, endAyah);
+  const currentSurah = quranData.find((s) => s.name === selectedSurah);
+  const endCurrentSurah = quranData.find((s) => s.name === endSurah);
+
+  const totalVerses = calculateVersesBetween(
+    selectedSurah,
+    selectedAyah,
+    endSurah,
+    endAyah
+  );
   const status = getVerseStatus(totalVerses);
 
   const handleSave = async () => {
@@ -77,13 +93,17 @@ export default function AddPrayerScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://images.pexels.com/photos/1850021/pexels-photo-1850021.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+          source={{
+            uri: 'https://images.pexels.com/photos/1850021/pexels-photo-1850021.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+          }}
           style={styles.backgroundImage}
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Add Prayer Record</Text>
-          <Text style={styles.headerSubtitle}>Record your night prayer progress</Text>
+          <Text style={styles.headerSubtitle}>
+            Record your night prayer progress
+          </Text>
         </View>
       </View>
 
@@ -96,7 +116,7 @@ export default function AddPrayerScreen() {
 
         <View style={styles.card}>
           <View style={styles.dateSection}>
-            <Calendar size={24} color="#64748b" />
+            <MaterialIcons name="calendar-today" size={24} color="#64748b" />
             <View style={styles.dateContent}>
               <Text style={styles.dateLabel}>Prayer Date</Text>
               {(showDatePicker || Platform.OS !== 'web') && (
@@ -118,9 +138,14 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={selectedSurah}
                 onValueChange={setSelectedSurah}
-                style={styles.picker}>
-                {quranData.map(surah => (
-                  <Picker.Item key={surah.name} label={surah.name} value={surah.name} />
+                style={styles.picker}
+              >
+                {quranData.map((surah) => (
+                  <Picker.Item
+                    key={surah.name}
+                    label={surah.name}
+                    value={surah.name}
+                  />
                 ))}
               </Picker>
             </View>
@@ -132,9 +157,14 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={String(selectedAyah)}
                 onValueChange={(value) => setSelectedAyah(Number(value))}
-                style={styles.picker}>
+                style={styles.picker}
+              >
                 {Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => (
-                  <Picker.Item key={i + 1} label={String(i + 1)} value={String(i + 1)} />
+                  <Picker.Item
+                    key={i + 1}
+                    label={String(i + 1)}
+                    value={String(i + 1)}
+                  />
                 ))}
               </Picker>
             </View>
@@ -146,9 +176,14 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={endSurah}
                 onValueChange={setEndSurah}
-                style={styles.picker}>
-                {quranData.map(surah => (
-                  <Picker.Item key={surah.name} label={surah.name} value={surah.name} />
+                style={styles.picker}
+              >
+                {quranData.map((surah) => (
+                  <Picker.Item
+                    key={surah.name}
+                    label={surah.name}
+                    value={surah.name}
+                  />
                 ))}
               </Picker>
             </View>
@@ -160,19 +195,28 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={String(endAyah)}
                 onValueChange={(value) => setEndAyah(Number(value))}
-                style={styles.picker}>
+                style={styles.picker}
+              >
                 {Array.from({ length: endCurrentSurah?.ayahs || 0 }, (_, i) => (
-                  <Picker.Item key={i + 1} label={String(i + 1)} value={String(i + 1)} />
+                  <Picker.Item
+                    key={i + 1}
+                    label={String(i + 1)}
+                    value={String(i + 1)}
+                  />
                 ))}
               </Picker>
             </View>
           </View>
         </View>
 
-        <View style={[styles.statusCard, { backgroundColor: status.color + '10' }]}>
+        <View
+          style={[styles.statusCard, { backgroundColor: status.color + '10' }]}
+        >
           <View style={styles.statusHeader}>
-            <Moon size={24} color={status.color} />
-            <Text style={[styles.statusTitle, { color: status.color }]}>{status.status}</Text>
+            <Feather name="moon" size={24} color={status.color} />
+            <Text style={[styles.statusTitle, { color: status.color }]}>
+              {status.status}
+            </Text>
           </View>
           <Text style={styles.statusDescription}>{status.description}</Text>
           <Text style={[styles.totalVerses, { color: status.color }]}>
@@ -183,7 +227,8 @@ export default function AddPrayerScreen() {
         <TouchableOpacity
           style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           onPress={handleSave}
-          disabled={loading}>
+          disabled={loading}
+        >
           <Text style={styles.saveButtonText}>
             {loading ? 'Saving...' : 'Save Prayer Record'}
           </Text>
