@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Calendar } from '../../components/Calendar';
 import { YearlyGraph } from '../../components/YearlyGraph';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
   getCurrentStreak,
@@ -13,7 +14,6 @@ import {
   getYearlyData,
   PrayerLog,
 } from '../../utils/supabase';
-import { useTheme } from '../../contexts/ThemeContext';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -27,6 +27,8 @@ export default function HistoryScreen() {
   const [monthlyData, setMonthlyData] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const styles = createStyles(theme);
 
   useEffect(() => {
     if (authLoading) return;
@@ -77,8 +79,6 @@ export default function HistoryScreen() {
       </View>
     );
   }
-
-  const styles = createStyles(theme);
 
   return (
     <ScrollView style={styles.container}>
@@ -141,7 +141,11 @@ export default function HistoryScreen() {
                 <Text style={styles.statTitle}>{stat.status}</Text>
                 <Text style={styles.statCount}>{stat.count} days</Text>
               </View>
-              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={theme.textSecondary}
+              />
             </View>
           ))}
         </View>
@@ -203,182 +207,183 @@ function getStatusColor(status: string): string {
   }
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  header: {
-    height: 200,
-    position: 'relative',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.overlay,
-  },
-  headerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#e2e8f0',
-  },
-  content: {
-    flex: 1,
-    marginTop: -24,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: theme.background,
-    padding: 24,
-  },
-  errorText: {
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  streakCard: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  streakIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.error + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  streakContent: {
-    flex: 1,
-  },
-  streakTitle: {
-    fontSize: 16,
-    color: theme.textSecondary,
-    marginBottom: 4,
-  },
-  streakCount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.text,
-  },
-  statsCard: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.text,
-    marginBottom: 16,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  statContent: {
-    flex: 1,
-  },
-  statTitle: {
-    fontSize: 16,
-    color: theme.text,
-    marginBottom: 2,
-  },
-  statCount: {
-    fontSize: 14,
-    color: theme.textSecondary,
-  },
-  historyCard: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  historyIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  historyContent: {
-    flex: 1,
-  },
-  historyDate: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    marginBottom: 2,
-  },
-  historyRange: {
-    fontSize: 16,
-    color: theme.text,
-    marginBottom: 2,
-  },
-  historyVerses: {
-    fontSize: 14,
-    color: theme.textSecondary,
-  },
-  historyStatus: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 12,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      height: 200,
+      position: 'relative',
+    },
+    backgroundImage: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.overlay,
+    },
+    headerContent: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: 24,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 8,
+    },
+    headerSubtitle: {
+      fontSize: 16,
+      color: '#e2e8f0',
+    },
+    content: {
+      flex: 1,
+      marginTop: -24,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      backgroundColor: theme.background,
+      padding: 24,
+    },
+    errorText: {
+      textAlign: 'center',
+      marginTop: 20,
+    },
+    streakCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    streakIconContainer: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: theme.error + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    streakContent: {
+      flex: 1,
+    },
+    streakTitle: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      marginBottom: 4,
+    },
+    streakCount: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.text,
+    },
+    statsCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.text,
+      marginBottom: 16,
+    },
+    statItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    statIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    statContent: {
+      flex: 1,
+    },
+    statTitle: {
+      fontSize: 16,
+      color: theme.text,
+      marginBottom: 2,
+    },
+    statCount: {
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    historyCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    historyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    historyIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    historyContent: {
+      flex: 1,
+    },
+    historyDate: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginBottom: 2,
+    },
+    historyRange: {
+      fontSize: 16,
+      color: theme.text,
+      marginBottom: 2,
+    },
+    historyVerses: {
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    historyStatus: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginLeft: 12,
+    },
+  });
