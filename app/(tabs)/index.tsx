@@ -15,6 +15,7 @@ import {
   getVerseStatus,
   quranData,
 } from '../../utils/quranData';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function NightPrayerScreen() {
   const [mode, setMode] = useState<'target' | 'range'>('target');
@@ -24,6 +25,8 @@ export default function NightPrayerScreen() {
 
   const [endSurah, setEndSurah] = useState('Al-Baqara');
   const [endAyah, setEndAyah] = useState(1);
+
+  const { theme } = useTheme();
 
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
@@ -45,6 +48,8 @@ export default function NightPrayerScreen() {
         };
 
   const status = getVerseStatus(range.totalAyahs);
+
+  const styles = createStyles(theme);
 
   return (
     <ScrollView style={styles.container}>
@@ -76,7 +81,7 @@ export default function NightPrayerScreen() {
             <MaterialIcons
               name="calculate"
               size={20}
-              color={mode === 'target' ? '#ffffff' : '#64748b'}
+              color={mode === 'target' ? '#ffffff' : theme.textSecondary}
             />
             <Text
               style={[
@@ -97,7 +102,7 @@ export default function NightPrayerScreen() {
             <Feather
               name="arrow-right"
               size={20}
-              color={mode === 'range' ? '#ffffff' : '#64748b'}
+              color={mode === 'range' ? '#ffffff' : theme.textSecondary}
             />
             <Text
               style={[
@@ -117,13 +122,15 @@ export default function NightPrayerScreen() {
               <Picker
                 selectedValue={selectedSurah}
                 onValueChange={setSelectedSurah}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.text }]}
+                dropdownIconColor={theme.textSecondary}
               >
                 {quranData.map((surah) => (
                   <Picker.Item
                     key={surah.name}
                     label={surah.name}
                     value={surah.name}
+                    color={theme.text}
                   />
                 ))}
               </Picker>
@@ -136,13 +143,15 @@ export default function NightPrayerScreen() {
               <Picker
                 selectedValue={String(selectedAyah)}
                 onValueChange={(value) => setSelectedAyah(Number(value))}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.text }]}
+                dropdownIconColor={theme.textSecondary}
               >
                 {Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => (
                   <Picker.Item
                     key={i + 1}
                     label={String(i + 1)}
                     value={String(i + 1)}
+                    color={theme.text}
                   />
                 ))}
               </Picker>
@@ -156,11 +165,12 @@ export default function NightPrayerScreen() {
                 <Picker
                   selectedValue={String(targetVerses)}
                   onValueChange={(value) => setTargetVerses(Number(value))}
-                  style={styles.picker}
+                  style={[styles.picker, { color: theme.text }]}
+                  dropdownIconColor={theme.textSecondary}
                 >
-                  <Picker.Item label="10 verses" value="10" />
-                  <Picker.Item label="100 verses" value="100" />
-                  <Picker.Item label="1000 verses" value="1000" />
+                  <Picker.Item label="10 verses" value="10" color={theme.text} />
+                  <Picker.Item label="100 verses" value="100" color={theme.text} />
+                  <Picker.Item label="1000 verses" value="1000" color={theme.text} />
                 </Picker>
               </View>
             </View>
@@ -172,13 +182,15 @@ export default function NightPrayerScreen() {
                   <Picker
                     selectedValue={endSurah}
                     onValueChange={setEndSurah}
-                    style={styles.picker}
+                    style={[styles.picker, { color: theme.text }]}
+                    dropdownIconColor={theme.textSecondary}
                   >
                     {quranData.map((surah) => (
                       <Picker.Item
                         key={surah.name}
                         label={surah.name}
                         value={surah.name}
+                        color={theme.text}
                       />
                     ))}
                   </Picker>
@@ -191,7 +203,8 @@ export default function NightPrayerScreen() {
                   <Picker
                     selectedValue={String(endAyah)}
                     onValueChange={(value) => setEndAyah(Number(value))}
-                    style={styles.picker}
+                    style={[styles.picker, { color: theme.text }]}
+                    dropdownIconColor={theme.textSecondary}
                   >
                     {Array.from(
                       { length: endCurrentSurah?.ayahs || 0 },
@@ -200,6 +213,7 @@ export default function NightPrayerScreen() {
                           key={i + 1}
                           label={String(i + 1)}
                           value={String(i + 1)}
+                          color={theme.text}
                         />
                       )
                     )}
@@ -211,7 +225,7 @@ export default function NightPrayerScreen() {
         </View>
 
         <View
-          style={[styles.statusCard, { backgroundColor: status.color + '10' }]}
+          style={[styles.statusCard, { backgroundColor: status.color + '20' }]}
         >
           <View style={styles.statusHeader}>
             <Feather name="moon" size={24} color={status.color} />
@@ -246,10 +260,10 @@ export default function NightPrayerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   header: {
     height: 200,
@@ -268,7 +282,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: theme.overlay,
   },
   headerContent: {
     flex: 1,
@@ -290,12 +304,12 @@ const styles = StyleSheet.create({
     marginTop: -24,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     padding: 24,
   },
   modeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -315,18 +329,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   modeButtonActive: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.primary,
   },
   modeButtonText: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
     fontWeight: '600',
   },
   modeButtonTextActive: {
     color: '#ffffff',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -342,16 +356,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   pickerContainer: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     borderRadius: 8,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   picker: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   statusCard: {
     padding: 20,
@@ -370,11 +386,11 @@ const styles = StyleSheet.create({
   },
   statusDescription: {
     fontSize: 16,
-    color: '#64748b',
+    color: theme.textSecondary,
     lineHeight: 24,
   },
   resultCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     padding: 20,
     borderRadius: 16,
     marginBottom: 24,
@@ -387,7 +403,7 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 16,
   },
   resultItem: {
@@ -395,28 +411,28 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   resultValue: {
     fontSize: 16,
-    color: '#1e293b',
+    color: theme.text,
     fontWeight: '500',
   },
   totalVerses: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: theme.border,
   },
   totalVersesLabel: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   totalVersesValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2563eb',
+    color: theme.primary,
   },
 });

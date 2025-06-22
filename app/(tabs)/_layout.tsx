@@ -1,16 +1,19 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function TabLayout() {
+  const { theme } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
           borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
-          backgroundColor: '#ffffff',
+          borderTopColor: theme.tabBarBorder,
+          backgroundColor: theme.tabBarBackground,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
@@ -23,14 +26,14 @@ export default function TabLayout() {
           marginBottom: -4,
         },
         headerStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: theme.headerBackground,
           borderBottomWidth: 1,
-          borderBottomColor: '#e2e8f0',
+          borderBottomColor: theme.border,
         },
         headerTitleStyle: {
           fontSize: 18,
           fontWeight: '600',
-          color: '#1e293b',
+          color: theme.text,
         },
         headerShadowVisible: false,
       }}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../utils/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { theme } = useTheme();
 
   const handleSignIn = async () => {
     try {
@@ -50,6 +52,8 @@ export default function SignInScreen() {
     }
   };
 
+  const styles = createStyles(theme);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -76,7 +80,7 @@ export default function SignInScreen() {
             value={email}
             onChangeText={setEmail}
             placeholder="Enter your email"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={theme.textSecondary}
             autoCapitalize="none"
             keyboardType="email-address"
           />
@@ -89,7 +93,7 @@ export default function SignInScreen() {
             value={password}
             onChangeText={setPassword}
             placeholder="Enter your password"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={theme.textSecondary}
             secureTextEntry
           />
         </View>
@@ -122,10 +126,10 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   header: {
     height: 240,
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(30, 41, 59, 0.7)',
+    backgroundColor: theme.overlay,
   },
   headerTitle: {
     fontSize: 32,
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -24,
@@ -173,13 +177,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   errorContainer: {
-    backgroundColor: '#fef2f2',
+    backgroundColor: theme.error + '20',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#dc2626',
+    color: theme.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -189,18 +193,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#1e293b',
+    color: theme.text,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -208,7 +214,7 @@ const styles = StyleSheet.create({
   buttonOutline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#2563eb',
+    borderColor: theme.primary,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -219,7 +225,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buttonTextOutline: {
-    color: '#2563eb',
+    color: theme.primary,
   },
   divider: {
     flexDirection: 'row',
@@ -229,10 +235,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: theme.border,
   },
   dividerText: {
-    color: '#64748b',
+    color: theme.textSecondary,
     paddingHorizontal: 16,
     fontSize: 14,
     fontWeight: '500',

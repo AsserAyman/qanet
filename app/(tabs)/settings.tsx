@@ -1,8 +1,38 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
+import { supabase } from '../../utils/supabase';
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
+  const { theme, themeMode, setThemeMode } = useTheme();
+  const router = useRouter();
+
+  const handleThemeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+  };
+
+  const handleSignOut = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.auth.signOut();
+            router.replace('/(auth)/sign-in');
+          },
+        },
+      ]
+    );
+  };
+
+  const styles = createStyles(theme);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -14,23 +44,101 @@ export default function SettingsScreen() {
         />
         <View style={styles.overlay} />
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>About Night Prayer</Text>
+          <Text style={styles.headerTitle}>Settings</Text>
           <Text style={styles.headerSubtitle}>
-            Understanding prayer status levels
+            Customize your app experience
           </Text>
         </View>
       </View>
 
       <View style={styles.content}>
+        {/* Theme Settings */}
         <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Appearance</Text>
+          <View style={styles.themeOptions}>
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                themeMode === 'light' && styles.themeOptionActive,
+              ]}
+              onPress={() => handleThemeChange('light')}
+            >
+              <Feather 
+                name="sun" 
+                size={20} 
+                color={themeMode === 'light' ? theme.primary : theme.textSecondary} 
+              />
+              <Text style={[
+                styles.themeOptionText,
+                themeMode === 'light' && styles.themeOptionTextActive,
+              ]}>
+                Light
+              </Text>
+              {themeMode === 'light' && (
+                <Feather name="check" size={16} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                themeMode === 'dark' && styles.themeOptionActive,
+              ]}
+              onPress={() => handleThemeChange('dark')}
+            >
+              <Feather 
+                name="moon" 
+                size={20} 
+                color={themeMode === 'dark' ? theme.primary : theme.textSecondary} 
+              />
+              <Text style={[
+                styles.themeOptionText,
+                themeMode === 'dark' && styles.themeOptionTextActive,
+              ]}>
+                Dark
+              </Text>
+              {themeMode === 'dark' && (
+                <Feather name="check" size={16} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                themeMode === 'system' && styles.themeOptionActive,
+              ]}
+              onPress={() => handleThemeChange('system')}
+            >
+              <Feather 
+                name="smartphone" 
+                size={20} 
+                color={themeMode === 'system' ? theme.primary : theme.textSecondary} 
+              />
+              <Text style={[
+                styles.themeOptionText,
+                themeMode === 'system' && styles.themeOptionTextActive,
+              ]}>
+                System
+              </Text>
+              {themeMode === 'system' && (
+                <Feather name="check" size={16} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Prayer Status Information */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Prayer Status Levels</Text>
+          
           <View style={styles.statusItem}>
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: '#fef2f2' },
+                { backgroundColor: theme.error + '20' },
               ]}
             >
-              <MaterialIcons name="warning" size={24} color="#dc2626" />
+              <MaterialIcons name="warning" size={24} color={theme.error} />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Negligent</Text>
@@ -48,10 +156,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: '#fef9c3' },
+                { backgroundColor: theme.warning + '20' },
               ]}
             >
-              <Feather name="moon" size={24} color="#ca8a04" />
+              <Feather name="moon" size={24} color={theme.warning} />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Not Negligent</Text>
@@ -69,10 +177,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: '#dbeafe' },
+                { backgroundColor: theme.primary + '20' },
               ]}
             >
-              <MaterialIcons name="military-tech" size={24} color="#2563eb" />
+              <MaterialIcons name="military-tech" size={24} color={theme.primary} />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Qanet</Text>
@@ -90,10 +198,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: '#dcfce7' },
+                { backgroundColor: theme.success + '20' },
               ]}
             >
-              <MaterialIcons name="military-tech" size={24} color="#15803d" />
+              <MaterialIcons name="military-tech" size={24} color={theme.success} />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>Mokantar</Text>
@@ -116,15 +224,21 @@ export default function SettingsScreen() {
             those who receive huge rewards."
           </Text>
         </View>
+
+        {/* Sign Out Button */}
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+          <Feather name="log-out" size={20} color={theme.error} />
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   header: {
     height: 200,
@@ -143,7 +257,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: theme.overlay,
   },
   headerContent: {
     flex: 1,
@@ -165,11 +279,11 @@ const styles = StyleSheet.create({
     marginTop: -24,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     padding: 24,
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -178,6 +292,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.text,
+    marginBottom: 16,
+  },
+  themeOptions: {
+    gap: 12,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: theme.background,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  themeOptionActive: {
+    borderColor: theme.primary,
+    backgroundColor: theme.primary + '10',
+  },
+  themeOptionText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
+    color: theme.text,
+    fontWeight: '500',
+  },
+  themeOptionTextActive: {
+    color: theme.primary,
   },
   statusItem: {
     flexDirection: 'row',
@@ -198,26 +344,26 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 4,
   },
   statusSubtitle: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   statusDescription: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
     lineHeight: 20,
   },
   divider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: theme.border,
     marginVertical: 12,
   },
   hadithCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -230,13 +376,30 @@ const styles = StyleSheet.create({
   hadithTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 16,
   },
   hadithText: {
     fontSize: 16,
-    color: '#334155',
+    color: theme.text,
     lineHeight: 24,
     fontFamily: 'NotoNaskhArabic-Regular',
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: theme.error + '30',
+    gap: 12,
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.error,
   },
 });

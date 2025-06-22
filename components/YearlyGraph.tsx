@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface YearlyGraphProps {
   data: { [key: string]: number }; // date string -> verse count
 }
 
 export function YearlyGraph({ data }: YearlyGraphProps) {
+  const { theme } = useTheme();
   const maxValue = Math.max(...Object.values(data));
   const weeks = 52;
   const days = 7;
@@ -15,14 +17,16 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
     if (value >= 100) return '#2563eb';
     if (value >= 10) return '#ca8a04';
     if (value > 0) return '#dc2626';
-    return '#f1f5f9';
+    return theme.border;
   };
 
   const getOpacity = (value: number) => {
-    if (value === 0) return 0.1;
+    if (value === 0) return 0.3;
     const normalized = Math.min(Math.log10(value) / Math.log10(maxValue), 1);
-    return 0.2 + (normalized * 0.8);
+    return 0.4 + (normalized * 0.6);
   };
+
+  const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
@@ -65,17 +69,22 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 16,
   },
   graph: {
@@ -105,6 +114,6 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#64748b',
+    color: theme.textSecondary,
   },
 });

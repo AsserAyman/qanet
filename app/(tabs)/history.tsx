@@ -13,10 +13,12 @@ import {
   getYearlyData,
   PrayerLog,
 } from '../../utils/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function HistoryScreen() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
+  const { theme } = useTheme();
   const [logs, setLogs] = useState<PrayerLog[]>([]);
   const [stats, setStats] = useState<{ status: string; count: number }[]>([]);
   const [streak, setStreak] = useState(0);
@@ -62,19 +64,21 @@ export default function HistoryScreen() {
 
   if (authLoading || loading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={{ color: theme.text }}>Loading...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
       </View>
     );
   }
+
+  const styles = createStyles(theme);
 
   return (
     <ScrollView style={styles.container}>
@@ -100,7 +104,7 @@ export default function HistoryScreen() {
             <MaterialIcons
               name="local-fire-department"
               size={32}
-              color="#dc2626"
+              color={theme.error}
             />
           </View>
           <View style={styles.streakContent}>
@@ -124,7 +128,7 @@ export default function HistoryScreen() {
               <View
                 style={[
                   styles.statIconContainer,
-                  { backgroundColor: getStatusColor(stat.status) + '10' },
+                  { backgroundColor: getStatusColor(stat.status) + '20' },
                 ]}
               >
                 <MaterialIcons
@@ -137,7 +141,7 @@ export default function HistoryScreen() {
                 <Text style={styles.statTitle}>{stat.status}</Text>
                 <Text style={styles.statCount}>{stat.count} days</Text>
               </View>
-              <Feather name="chevron-right" size={20} color="#94a3b8" />
+              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
             </View>
           ))}
         </View>
@@ -149,7 +153,7 @@ export default function HistoryScreen() {
               <View
                 style={[
                   styles.historyIconContainer,
-                  { backgroundColor: getStatusColor(log.status) + '10' },
+                  { backgroundColor: getStatusColor(log.status) + '20' },
                 ]}
               >
                 <Feather
@@ -199,10 +203,10 @@ function getStatusColor(status: string): string {
   }
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   header: {
     height: 200,
@@ -221,7 +225,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: theme.overlay,
   },
   headerContent: {
     flex: 1,
@@ -243,16 +247,15 @@ const styles = StyleSheet.create({
     marginTop: -24,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     padding: 24,
   },
   errorText: {
-    color: '#dc2626',
     textAlign: 'center',
     marginTop: 20,
   },
   streakCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
@@ -268,7 +271,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#fef2f2',
+    backgroundColor: theme.error + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -278,16 +281,16 @@ const styles = StyleSheet.create({
   },
   streakTitle: {
     fontSize: 16,
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   streakCount: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
   },
   statsCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 16,
   },
   statItem: {
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: theme.border,
   },
   statIconContainer: {
     width: 40,
@@ -323,15 +326,15 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: 16,
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 2,
   },
   statCount: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
   },
   historyCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -346,7 +349,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: theme.border,
   },
   historyIconContainer: {
     width: 40,
@@ -361,17 +364,17 @@ const styles = StyleSheet.create({
   },
   historyDate: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 2,
   },
   historyRange: {
     fontSize: 16,
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 2,
   },
   historyVerses: {
     fontSize: 14,
-    color: '#64748b',
+    color: theme.textSecondary,
   },
   historyStatus: {
     fontSize: 14,

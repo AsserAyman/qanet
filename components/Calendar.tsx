@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CalendarProps {
   date: Date;
@@ -9,6 +10,7 @@ interface CalendarProps {
 }
 
 export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
+  const { theme } = useTheme();
   const start = startOfMonth(date);
   const end = endOfMonth(date);
   const days = eachDayOfInterval({ start, end });
@@ -25,6 +27,8 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
         return '#dc2626';
     }
   };
+
+  const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
@@ -72,17 +76,22 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   header: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: theme.text,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -93,7 +102,7 @@ const styles = StyleSheet.create({
   weekDay: {
     flex: 1,
     textAlign: 'center',
-    color: '#64748b',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
   dates: {
@@ -113,17 +122,17 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: '#1e293b',
+    color: theme.text,
     fontWeight: '500',
   },
   today: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: theme.primary + '20',
   },
   otherMonth: {
     opacity: 0.5,
   },
   otherMonthText: {
-    color: '#94a3b8',
+    color: theme.textSecondary,
   },
   dot: {
     width: 4,

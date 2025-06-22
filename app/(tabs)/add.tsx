@@ -19,10 +19,12 @@ import {
   quranData,
 } from '../../utils/quranData';
 import { savePrayerLog } from '../../utils/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function AddPrayerScreen() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
+  const { theme } = useTheme();
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
@@ -83,11 +85,13 @@ export default function AddPrayerScreen() {
 
   if (authLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={{ color: theme.text }}>Loading...</Text>
       </View>
     );
   }
+
+  const styles = createStyles(theme);
 
   return (
     <ScrollView style={styles.container}>
@@ -116,7 +120,7 @@ export default function AddPrayerScreen() {
 
         <View style={styles.card}>
           <View style={styles.dateSection}>
-            <MaterialIcons name="calendar-today" size={24} color="#64748b" />
+            <MaterialIcons name="calendar-today" size={24} color={theme.textSecondary} />
             <View style={styles.dateContent}>
               <Text style={styles.dateLabel}>Prayer Date</Text>
               {(showDatePicker || Platform.OS !== 'web') && (
@@ -138,13 +142,15 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={selectedSurah}
                 onValueChange={setSelectedSurah}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.text }]}
+                dropdownIconColor={theme.textSecondary}
               >
                 {quranData.map((surah) => (
                   <Picker.Item
                     key={surah.name}
                     label={surah.name}
                     value={surah.name}
+                    color={theme.text}
                   />
                 ))}
               </Picker>
@@ -157,13 +163,15 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={String(selectedAyah)}
                 onValueChange={(value) => setSelectedAyah(Number(value))}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.text }]}
+                dropdownIconColor={theme.textSecondary}
               >
                 {Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => (
                   <Picker.Item
                     key={i + 1}
                     label={String(i + 1)}
                     value={String(i + 1)}
+                    color={theme.text}
                   />
                 ))}
               </Picker>
@@ -176,13 +184,15 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={endSurah}
                 onValueChange={setEndSurah}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.text }]}
+                dropdownIconColor={theme.textSecondary}
               >
                 {quranData.map((surah) => (
                   <Picker.Item
                     key={surah.name}
                     label={surah.name}
                     value={surah.name}
+                    color={theme.text}
                   />
                 ))}
               </Picker>
@@ -195,13 +205,15 @@ export default function AddPrayerScreen() {
               <Picker
                 selectedValue={String(endAyah)}
                 onValueChange={(value) => setEndAyah(Number(value))}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.text }]}
+                dropdownIconColor={theme.textSecondary}
               >
                 {Array.from({ length: endCurrentSurah?.ayahs || 0 }, (_, i) => (
                   <Picker.Item
                     key={i + 1}
                     label={String(i + 1)}
                     value={String(i + 1)}
+                    color={theme.text}
                   />
                 ))}
               </Picker>
@@ -210,7 +222,7 @@ export default function AddPrayerScreen() {
         </View>
 
         <View
-          style={[styles.statusCard, { backgroundColor: status.color + '10' }]}
+          style={[styles.statusCard, { backgroundColor: status.color + '20' }]}
         >
           <View style={styles.statusHeader}>
             <Feather name="moon" size={24} color={status.color} />
@@ -238,10 +250,10 @@ export default function AddPrayerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   header: {
     height: 200,
@@ -260,7 +272,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: theme.overlay,
   },
   headerContent: {
     flex: 1,
@@ -282,22 +294,22 @@ const styles = StyleSheet.create({
     marginTop: -24,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     padding: 24,
   },
   errorContainer: {
-    backgroundColor: '#fef2f2',
+    backgroundColor: theme.error + '20',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
   errorText: {
-    color: '#dc2626',
+    color: theme.error,
     fontSize: 14,
     textAlign: 'center',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -318,7 +330,7 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   datePicker: {
@@ -326,7 +338,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: theme.border,
     marginVertical: 20,
   },
   inputGroup: {
@@ -335,16 +347,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   pickerContainer: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
     borderRadius: 8,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   picker: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.background,
   },
   statusCard: {
     padding: 20,
@@ -363,7 +377,7 @@ const styles = StyleSheet.create({
   },
   statusDescription: {
     fontSize: 16,
-    color: '#64748b',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   totalVerses: {
@@ -371,7 +385,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.primary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

@@ -5,11 +5,12 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import { supabase } from '../utils/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { View, ActivityIndicator } from 'react-native';
 
-export default function RootLayout() {
-  useFrameworkReady();
+function AppContent() {
   const { session, loading } = useAuth();
+  const { theme, isDark } = useTheme();
 
   const [fontsLoaded] = useFonts({
     'NotoNaskhArabic-Regular': NotoNaskhArabic_400Regular,
@@ -19,8 +20,13 @@ export default function RootLayout() {
   // Show loading indicator while fonts are loading or auth state is being determined
   if (!fontsLoaded || loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        backgroundColor: theme.background
+      }}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -36,7 +42,17 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         )}
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? "light" : "dark"} />
     </>
+  );
+}
+
+export default function RootLayout() {
+  useFrameworkReady();
+
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
