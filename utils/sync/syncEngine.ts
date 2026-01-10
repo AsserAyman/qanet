@@ -47,8 +47,8 @@ class SyncEngine {
       await this.performSync();
       // Silent success - data synced in background
     } catch (error: any) {
-      // Silent failure - data is safe locally, will retry later
-      // No user-facing errors for offline-first apps
+      // Log for debugging but don't surface to user - data is safe locally
+      console.warn('[Sync] Background sync failed, will retry:', error?.message);
     } finally {
       this.isSyncing = false;
     }
@@ -218,9 +218,10 @@ class SyncEngine {
 
   private async syncUpdateOperation(operation: SyncOperation): Promise<void> {
     const localLog = operation.data as Partial<LocalPrayerLog>;
-    
+
     // Get the current local record to find server_id
-    const logs = await sqliteManager.getPrayerLogs(localLog.user_id!, 1000);
+    const userId = await this.getCurrentUserId();
+    const logs = await sqliteManager.getPrayerLogs(userId, 1000);
     const currentLog = logs.find(log => log.local_id === operation.local_id);
     
     if (!currentLog?.server_id) {
@@ -251,11 +252,9 @@ class SyncEngine {
   }
 
   private async syncDeleteOperation(operation: SyncOperation): Promise<void> {
-    // Get the current local record to find server_id
-    const userId = await this.getCurrentUserId();
-    const logs = await sqliteManager.getPrayerLogs(userId, 1000);
-    const currentLog = logs.find(log => log.local_id === operation.local_id);
-    
+    // Get the current local record to find server_id (including deleted records)
+    const currentLog = await sqliteManager.getPrayerLogByLocalId(operation.local_id);
+
     if (currentLog?.server_id) {
       // Delete from server
       const { error } = await supabase
@@ -285,7 +284,7 @@ class SyncEngine {
     const { data: serverLogs, error } = await supabase
       .from('prayer_logs')
       .select('*')
-      .eq('user_id', userId)
+      .eq('custom_user_id', userId)
       .gte('updated_at', lastSync)
       .order('updated_at', { ascending: true });
 
@@ -333,7 +332,7 @@ class SyncEngine {
       // New record from server, insert locally
       await sqliteManager.insertPrayerLog({
         server_id: serverLog.id,
-        user_id: serverLog.user_id,
+        user_id: serverLog.custom_user_id || userId,
         date: serverLog.date,
         start_surah: serverLog.start_surah,
         start_ayah: serverLog.start_ayah,

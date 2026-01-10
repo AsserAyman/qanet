@@ -119,7 +119,8 @@ class AnonymousAuthManager {
         }
       }
     } catch (error) {
-      // Silent failure - app continues working offline
+      // Log for debugging but continue - app works offline
+      console.warn('[Auth] Anonymous session creation failed:', error);
     }
   }
 

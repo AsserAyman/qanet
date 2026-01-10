@@ -86,7 +86,7 @@ export function usePrayerLogs(limit: number = 30) {
   }, []);
 
   const refresh = useCallback(() => {
-    loadLogs();
+    return loadLogs();
   }, [loadLogs]);
 
   return {

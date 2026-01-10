@@ -1,6 +1,18 @@
 import * as SQLite from 'expo-sqlite';
 import { LocalPrayerLog, SyncMetadata, SyncOperation, TABLES } from './schema';
 
+// Column whitelists for SQL injection protection
+const PRAYER_LOG_COLUMNS = [
+  'server_id', 'user_id', 'date', 'start_surah', 'start_ayah',
+  'end_surah', 'end_ayah', 'total_ayahs', 'status', 'updated_at',
+  'sync_status', 'last_synced', 'is_deleted'
+] as const;
+
+const SYNC_OPERATION_COLUMNS = [
+  'table_name', 'operation', 'local_id', 'data',
+  'retry_count', 'error_message'
+] as const;
+
 class SQLiteManager {
   private db: SQLite.SQLiteDatabase | null = null;
   private isInitialized = false;
@@ -123,14 +135,25 @@ class SQLiteManager {
     if (!this.db) throw new Error('Database not initialized');
 
     const result = await this.db.getAllAsync(
-      `SELECT * FROM ${TABLES.PRAYER_LOGS} 
-       WHERE user_id = ? AND is_deleted = 0 
-       ORDER BY date DESC, created_at DESC 
+      `SELECT * FROM ${TABLES.PRAYER_LOGS}
+       WHERE user_id = ? AND is_deleted = 0
+       ORDER BY date DESC, created_at DESC
        LIMIT ?`,
       [userId, limit]
     );
 
     return result.map(this.mapRowToPrayerLog);
+  }
+
+  async getPrayerLogByLocalId(localId: string): Promise<LocalPrayerLog | null> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.getFirstAsync(
+      `SELECT * FROM ${TABLES.PRAYER_LOGS} WHERE local_id = ?`,
+      [localId]
+    );
+
+    return result ? this.mapRowToPrayerLog(result) : null;
   }
 
   async updatePrayerLog(
@@ -139,11 +162,15 @@ class SQLiteManager {
   ): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const setClause = Object.keys(updates)
-      .map((key) => `${key} = ?`)
-      .join(', ');
+    // Validate column names against whitelist
+    const validKeys = Object.keys(updates).filter(key =>
+      PRAYER_LOG_COLUMNS.includes(key as any)
+    );
 
-    const values = Object.values(updates);
+    if (validKeys.length === 0) return;
+
+    const setClause = validKeys.map((key) => `${key} = ?`).join(', ');
+    const values = validKeys.map(key => updates[key as keyof LocalPrayerLog]);
     values.push(localId);
 
     await this.db.runAsync(
@@ -216,18 +243,19 @@ class SQLiteManager {
   ): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const setClause = Object.keys(updates)
-      .filter((key) => key !== 'id')
-      .map((key) => `${key} = ?`)
-      .join(', ');
+    // Validate column names against whitelist
+    const validKeys = Object.keys(updates)
+      .filter((key) => key !== 'id' && SYNC_OPERATION_COLUMNS.includes(key as any));
 
-    const values = Object.keys(updates)
-      .filter((key) => key !== 'id')
-      .map((key) =>
-        key === 'data'
-          ? JSON.stringify(updates[key as keyof SyncOperation])
-          : updates[key as keyof SyncOperation]
-      );
+    if (validKeys.length === 0) return;
+
+    const setClause = validKeys.map((key) => `${key} = ?`).join(', ');
+
+    const values = validKeys.map((key) =>
+      key === 'data'
+        ? JSON.stringify(updates[key as keyof SyncOperation])
+        : updates[key as keyof SyncOperation]
+    );
     values.push(id);
 
     await this.db.runAsync(
