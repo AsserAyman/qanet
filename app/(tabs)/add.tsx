@@ -17,12 +17,12 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
+import { usePrayerLogs, useOfflineData } from '../../hooks/useOfflineData';
 import {
   calculateVersesBetween,
   getVerseStatus,
   quranData,
 } from '../../utils/quranData';
-import { savePrayerLog } from '../../utils/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -31,6 +31,8 @@ export default function AddPrayerScreen() {
   const { session, loading: authLoading } = useAuth();
   const { theme } = useTheme();
   const { t, isRTL } = useI18n();
+  const { isInitialized } = useOfflineData();
+  const { createLog } = usePrayerLogs();
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
@@ -42,13 +44,6 @@ export default function AddPrayerScreen() {
 
   const styles = createStyles(theme, isRTL);
 
-  React.useEffect(() => {
-    if (authLoading) return;
-
-    if (!session) {
-      router.replace('/(auth)/sign-in');
-    }
-  }, [session, authLoading]);
 
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
@@ -66,15 +61,15 @@ export default function AddPrayerScreen() {
       setLoading(true);
       setError(null);
 
-      await savePrayerLog(
-        selectedSurah,
-        selectedAyah,
-        endSurah,
-        endAyah,
-        totalVerses,
-        status.status,
-        date
-      );
+      await createLog({
+        start_surah: selectedSurah,
+        start_ayah: selectedAyah,
+        end_surah: endSurah,
+        end_ayah: endAyah,
+        total_ayahs: totalVerses,
+        status: status.status,
+        date: date,
+      });
 
       router.push('/(tabs)/history');
     } catch (err: any) {
@@ -91,7 +86,7 @@ export default function AddPrayerScreen() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || !isInitialized) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.loadingContainer}>

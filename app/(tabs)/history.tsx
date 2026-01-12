@@ -1,78 +1,54 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
 import { DailyBreakdownChart } from '../../components/DailyBreakdownChart';
 import { StatsOverview } from '../../components/StatsOverview';
 import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
+
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
-import {
-  getCurrentStreak,
-  getMonthlyData,
-  getPrayerLogs,
-  getStatusStats,
-  getYearlyData,
-  PrayerLog,
-} from '../../utils/supabase';
+import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useOfflineData';
 
 export default function HistoryScreen() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
   const { theme } = useTheme();
   const { t, isRTL } = useI18n();
-  const [logs, setLogs] = useState<PrayerLog[]>([]);
-  const [stats, setStats] = useState<{ status: string; count: number }[]>([]);
-  const [streak, setStreak] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [yearlyData, setYearlyData] = useState<{
-    [key: string]: { verses: number; status: string };
-  }>({});
-  const [monthlyData, setMonthlyData] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isInitialized } = useOfflineData();
+  const { logs, loading: logsLoading, refresh: refreshLogs } = usePrayerLogs();
+  const { 
+    stats, 
+    streak, 
+    yearlyData, 
+    monthlyData, 
+    loading: statsLoading, 
+    error: statsError,
+    refresh: refreshStats 
+  } = useOfflineStats();
+  
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const styles = createStyles(theme, isRTL);
 
-  useEffect(() => {
-    if (authLoading) return;
 
-    if (!session) {
-      router.replace('/(auth)/sign-in');
-      return;
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshLogs(), refreshStats()]);
+    } catch (error) {
+      console.error('Refresh failed:', error);
+    } finally {
+      setRefreshing(false);
     }
+  }, [refreshLogs, refreshStats]);
 
-    async function loadData() {
-      try {
-        const [logsData, statsData, streakData, yearData, monthData] =
-          await Promise.all([
-            getPrayerLogs(),
-            getStatusStats(),
-            getCurrentStreak(),
-            getYearlyData(),
-            getMonthlyData(),
-          ]);
-        setLogs(logsData);
-        setStats(statsData);
-        setStreak(streakData);
-        setYearlyData(yearData);
-        setMonthlyData(monthData);
-      } catch (err: any) {
-        setError(err.message);
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, [session, authLoading]);
-
-  if (authLoading || loading) {
+  if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text style={{ color: theme.text, fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
@@ -82,11 +58,11 @@ export default function HistoryScreen() {
     );
   }
 
-  if (error) {
+  if (statsError) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text style={[styles.errorText, { color: theme.error, fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }]}>
-          {error}
+          {statsError}
         </Text>
       </View>
     );
@@ -95,7 +71,18 @@ export default function HistoryScreen() {
   const totalNights = logs.length;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          tintColor={theme.primary}
+          colors={[theme.primary]}
+        />
+      }
+    >
+      
       <View style={styles.header}>
         <Image
           source={{
@@ -156,7 +143,7 @@ export default function HistoryScreen() {
         <View style={styles.historyCard}>
           <Text style={styles.sectionTitle}>{t('recentHistory')}</Text>
           {logs.map((log) => (
-            <View key={log.id} style={styles.historyItem}>
+            <View key={log.local_id} style={styles.historyItem}>
               <View
                 style={[
                   styles.historyIconContainer,
@@ -181,14 +168,19 @@ export default function HistoryScreen() {
                   {log.total_ayahs} {t('verses')}
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.historyStatus,
-                  { color: getStatusColor(log.status) },
-                ]}
-              >
-                {t(log.status.toLowerCase().replace(' ', ''))}
-              </Text>
+              <View style={styles.syncStatusContainer}>
+                <Text
+                  style={[
+                    styles.historyStatus,
+                    { color: getStatusColor(log.status) },
+                  ]}
+                >
+                  {t(log.status.toLowerCase().replace(' ', ''))}
+                </Text>
+                {log.sync_status !== 'synced' && (
+                  <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor(log.sync_status) }]} />
+                )}
+              </View>
             </View>
           ))}
         </View>
@@ -207,6 +199,19 @@ function getStatusColor(status: string): string {
       return '#ca8a04';
     default:
       return '#dc2626';
+  }
+}
+
+function getSyncStatusColor(syncStatus: string): string {
+  switch (syncStatus) {
+    case 'pending':
+      return '#ca8a04';
+    case 'error':
+      return '#dc2626';
+    case 'conflict':
+      return '#f97316';
+    default:
+      return '#22c55e';
   }
 }
 
@@ -324,11 +329,20 @@ const createStyles = (theme: any, isRTL: boolean) =>
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
+    syncStatusContainer: {
+      alignItems: 'flex-end',
+      gap: 4,
+    },
     historyStatus: {
       fontSize: 14,
       fontWeight: '600',
       marginLeft: isRTL ? 0 : 12,
       marginRight: isRTL ? 12 : 0,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    syncIndicator: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
     },
   });

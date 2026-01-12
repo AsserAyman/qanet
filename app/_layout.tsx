@@ -7,19 +7,21 @@ import { supabase } from '../utils/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { I18nProvider } from '../contexts/I18nContext';
+import { useOfflineData } from '../hooks/useOfflineData';
 import { View, ActivityIndicator } from 'react-native';
 
 function AppContent() {
-  const { session, loading } = useAuth();
+  const { loading } = useAuth();
   const { theme, isDark } = useTheme();
+  const { isInitialized, isLoading: offlineLoading } = useOfflineData();
 
   const [fontsLoaded] = useFonts({
     'NotoNaskhArabic-Regular': NotoNaskhArabic_400Regular,
     'NotoNaskhArabic-Bold': NotoNaskhArabic_700Bold,
   });
 
-  // Show loading indicator while fonts are loading or auth state is being determined
-  if (!fontsLoaded || loading) {
+  // Show loading indicator while fonts are loading, auth state is being determined, or offline data is initializing
+  if (!fontsLoaded || loading || offlineLoading || !isInitialized) {
     return (
       <View style={{ 
         flex: 1, 
@@ -35,13 +37,9 @@ function AppContent() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        {!session ? (
-          // If no session, show auth screens and prevent access to tabs
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        ) : (
-          // If authenticated, show tabs and prevent access to auth screens
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        )}
+        {/* Offline-first: Always show tabs, auth is optional */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={isDark ? "light" : "dark"} />
     </>
