@@ -34,6 +34,11 @@ export default function NightPrayerScreen() {
 
   const { t, isRTL } = useI18n();
 
+  const getSurahName = (name: string) => {
+    const surah = quranData.find(s => s.name === name);
+    return isRTL ? surah?.nameAr || name : name;
+  };
+
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
 
@@ -104,12 +109,12 @@ export default function NightPrayerScreen() {
         <View style={styles.rangeDisplayCard}>
           <View style={styles.rangeRow}>
             <View style={styles.rangeItem}>
-              <Text style={styles.rangeSurah}>{range.startSurah}</Text>
+              <Text style={styles.rangeSurah}>{getSurahName(range.startSurah)}</Text>
               <Text style={styles.rangeAyah}>{t('ayah')} {range.startAyah}</Text>
             </View>
             <Feather name={isRTL ? "arrow-left" : "arrow-right"} size={20} color="#ffffff" style={{ opacity: 0.5 }} />
             <View style={styles.rangeItem}>
-              <Text style={styles.rangeSurah}>{range.endSurah}</Text>
+              <Text style={styles.rangeSurah}>{getSurahName(range.endSurah)}</Text>
               <Text style={styles.rangeAyah}>{t('ayah')} {range.endAyah}</Text>
             </View>
           </View>
@@ -201,7 +206,7 @@ export default function NightPrayerScreen() {
                     {quranData.map((surah) => (
                       <Picker.Item
                         key={surah.name}
-                        label={surah.name}
+                        label={isRTL ? surah.nameAr : surah.name}
                         value={surah.name}
                         color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
                       />
@@ -249,7 +254,7 @@ export default function NightPrayerScreen() {
                       {quranData.map((surah) => (
                         <Picker.Item
                           key={surah.name}
-                          label={surah.name}
+                          label={isRTL ? surah.nameAr : surah.name}
                           value={surah.name}
                           color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
                         />

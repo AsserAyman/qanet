@@ -14,6 +14,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
 import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useOfflineData';
+import { quranData } from '../../utils/quranData';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -36,6 +37,11 @@ export default function HistoryScreen() {
 
   // Force dark styles
   const styles = createStyles(isRTL);
+
+  const getSurahName = (name: string) => {
+    const surah = quranData.find(s => s.name === name);
+    return isRTL ? surah?.nameAr || name : name;
+  };
 
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -166,7 +172,7 @@ export default function HistoryScreen() {
                   {new Date(log.date).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
                 </Text>
                 <Text style={styles.historyRange}>
-                  {log.start_surah} {log.start_ayah} → {log.end_surah}{' '}
+                  {getSurahName(log.start_surah)} {log.start_ayah} → {getSurahName(log.end_surah)}{' '}
                   {log.end_ayah}
                 </Text>
                 <Text style={styles.historyVerses}>

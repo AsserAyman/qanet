@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import { arSA, enUS } from 'date-fns/locale';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../contexts/I18nContext';
 
 interface CalendarProps {
   date: Date;
@@ -11,6 +13,9 @@ interface CalendarProps {
 
 export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
   const { theme } = useTheme();
+  const { isRTL } = useI18n();
+  const locale = isRTL ? arSA : enUS;
+
   const start = startOfMonth(date);
   const end = endOfMonth(date);
   const days = eachDayOfInterval({ start, end });
@@ -28,19 +33,38 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
     }
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
+  
+  // Localized week days
+  const weekDays = isRTL 
+    ? ['أ', 'إ', 'ث', 'أ', 'خ', 'ج', 'س'] // Sun (Ahad) to Sat (Sabt)
+    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>{format(date, 'MMMM yyyy')}</Text>
+      <Text style={styles.header}>{format(date, 'MMMM yyyy', { locale })}</Text>
       <View style={styles.weekDays}>
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+        {weekDays.map((day, index) => (
           <Text key={index} style={styles.weekDay}>
             {day}
           </Text>
         ))}
       </View>
       <View style={styles.dates}>
+        {/* Alignment spacer for start of month */}
+        {/* For RTL, if we reverse the array, we need to adjust spacers or just let flex-wrap handle it naturally? 
+            If direction is row-reverse, the first item is on the right.
+            Standard calendar grid:
+            Sun Mon Tue Wed Thu Fri Sat
+            
+            RTL Calendar grid:
+            Sat Fri Thu Wed Tue Mon Sun (Reading right to left)
+            OR
+            Sun Mon Tue Wed Thu Fri Sat (Reading right to left)
+            
+            Usually Arabic calendars still start with Sunday or Saturday on the Right.
+            If we use row-reverse, index 0 (Sunday) will be on the Right.
+        */}
         {Array.from({ length: start.getDay() }).map((_, index) => (
           <View key={`empty-${index}`} style={styles.emptyDate} />
         ))}
@@ -65,7 +89,7 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
                   !isCurrentMonth && styles.otherMonthText,
                   status && { color: getStatusColor(status) },
                 ]}>
-                {format(day, 'd')}
+                {format(day, 'd', { locale })}
               </Text>
               {status && <View style={[styles.dot, { backgroundColor: getStatusColor(status) }]} />}
             </TouchableOpacity>
@@ -76,7 +100,7 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
   );
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
+const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   container: {
     backgroundColor: theme.card,
     borderRadius: 16,
@@ -94,9 +118,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.text,
     marginBottom: 16,
     textAlign: 'center',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   weekDays: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     marginBottom: 8,
   },
   weekDay: {
@@ -104,9 +129,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
     color: theme.textSecondary,
     fontWeight: '500',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   dates: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     flexWrap: 'wrap',
   },
   date: {
@@ -124,6 +150,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.text,
     fontWeight: '500',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   today: {
     backgroundColor: theme.primary + '20',

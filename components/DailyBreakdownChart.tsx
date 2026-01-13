@@ -1,4 +1,5 @@
 import { format, subDays } from 'date-fns';
+import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import {
@@ -11,6 +12,7 @@ import {
   Svg,
 } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../contexts/I18nContext';
 
 interface DailyBreakdownChartProps {
   data: { [key: string]: number }; // date string -> verse count
@@ -26,7 +28,9 @@ interface DayData {
 
 export function DailyBreakdownChart({ data }: DailyBreakdownChartProps) {
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
   const { width } = Dimensions.get('window');
+  const locale = isRTL ? arSA : enUS;
 
   // Get last 7 days of data
   const days: DayData[] = [];
@@ -37,8 +41,8 @@ export function DailyBreakdownChart({ data }: DailyBreakdownChartProps) {
     const dateKey = format(date, 'yyyy-MM-dd');
     days.push({
       date: dateKey,
-      label: format(date, 'EEE'),
-      timeLabel: format(date, 'MMM d'),
+      label: format(date, 'EEE', { locale }),
+      timeLabel: format(date, 'MMM d', { locale }),
       value: data[dateKey] || 0,
       isToday: i === 0,
     });
@@ -94,16 +98,16 @@ export function DailyBreakdownChart({ data }: DailyBreakdownChartProps) {
     return `${linePath} L ${endX} ${baseY} L ${padding} ${baseY} Z`;
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Daily Breakdown</Text>
+        <Text style={styles.title}>{t('dailyBreakdown')}</Text>
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Verses Recited</Text>
+          <Text style={styles.totalLabel}>{t('versesRecited')}</Text>
           <Text style={styles.totalValue}>{todayValue}</Text>
-          <Text style={styles.periodLabel}>Today</Text>
+          <Text style={styles.periodLabel}>{t('today')}</Text>
           <Text
             style={[
               styles.changeText,
@@ -173,7 +177,7 @@ export function DailyBreakdownChart({ data }: DailyBreakdownChartProps) {
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       backgroundColor: theme.card,
@@ -188,20 +192,25 @@ const createStyles = (theme: any) =>
     },
     header: {
       marginBottom: 24,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     title: {
       fontSize: 16,
       fontWeight: '600',
       color: theme.text,
       marginBottom: 16,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     totalContainer: {
-      alignItems: 'flex-start',
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     totalLabel: {
       fontSize: 14,
       color: theme.textSecondary,
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     totalValue: {
       fontSize: 32,
@@ -213,17 +222,20 @@ const createStyles = (theme: any) =>
       fontSize: 14,
       color: theme.textSecondary,
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     changeText: {
       fontSize: 14,
       fontWeight: '600',
+      textAlign: isRTL ? 'right' : 'left',
     },
     chartContainer: {
       alignItems: 'center',
       marginBottom: 16,
     },
     timeLabels: {
-      flexDirection: 'row',
+      flexDirection: 'row', // Keep row to match LTR chart
       justifyContent: 'space-between',
       paddingHorizontal: 20,
       borderTopWidth: 1,

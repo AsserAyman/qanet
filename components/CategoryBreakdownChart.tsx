@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../contexts/I18nContext';
 
 interface CategoryBreakdownChartProps {
   stats: { status: string; count: number }[];
@@ -9,6 +10,7 @@ interface CategoryBreakdownChartProps {
 
 export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
   const { width } = Dimensions.get('window');
 
   const totalCount = stats.reduce((sum, stat) => sum + stat.count, 0);
@@ -18,49 +20,49 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
     switch (status) {
       case 'Mokantar':
         return {
-          title: 'Moqantar',
+          title: t('mokantar'),
           icon: 'star',
           color: '#15803d',
-          description: 'Consistent & Complete',
+          description: t('consistentAndComplete'),
         };
       case 'Qanet':
         return {
-          title: 'Qanet',
+          title: t('qanet'),
           icon: 'check-circle',
           color: '#2563eb',
-          description: 'Regular Practice',
+          description: t('regularPractice'),
         };
       case 'Not Negligent':
         return {
-          title: 'Not Negligent',
+          title: t('notNegligent'),
           icon: 'clock',
           color: '#ca8a04',
-          description: 'Occasional Gaps',
+          description: t('occasionalGaps'),
         };
       case 'Negligent':
         return {
-          title: 'Negligent',
+          title: t('negligent'),
           icon: 'alert-circle',
           color: '#dc2626',
-          description: 'Irregular Practice',
+          description: t('irregularPractice'),
         };
       default:
         return {
-          title: status,
+          title: t('unknownStatus'),
           icon: 'circle',
           color: theme.textSecondary,
-          description: 'Unknown Status',
+          description: t('unknownStatus'),
         };
     }
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Category Breakdown</Text>
-        <Text style={styles.subtitle}>Prayer consistency analysis</Text>
+        <Text style={styles.title}>{t('categoryBreakdown')}</Text>
+        <Text style={styles.subtitle}>{t('prayerConsistencyAnalysis')}</Text>
       </View>
 
       <View style={styles.grid}>
@@ -68,8 +70,7 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
           const config = getStatusConfig(stat.status);
           const percentage =
             totalCount > 0 ? Math.round((stat.count / totalCount) * 100) : 0;
-          const barWidth = Math.max(percentage * 0.8, 8); // Minimum width for visibility
-
+          
           return (
             <View key={stat.status} style={styles.card}>
               <View style={styles.cardHeader}>
@@ -89,7 +90,7 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
               </View>
 
               <Text style={styles.percentage}>{percentage}%</Text>
-              <Text style={styles.count}>{stat.count} days</Text>
+              <Text style={styles.count}>{stat.count} {t('days')}</Text>
               <Text style={styles.description}>{config.description}</Text>
 
               <View style={styles.barContainer}>
@@ -127,14 +128,14 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Based on {totalCount} total prayer sessions
+          {t('basedOnTotalPrayerSessions', { count: totalCount })}
         </Text>
       </View>
     </View>
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       backgroundColor: theme.card,
@@ -149,19 +150,24 @@ const createStyles = (theme: any) =>
     },
     header: {
       marginBottom: 20,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     title: {
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     subtitle: {
       fontSize: 14,
       color: theme.textSecondary,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     grid: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       flexWrap: 'wrap',
       gap: 12,
     },
@@ -175,7 +181,7 @@ const createStyles = (theme: any) =>
       borderColor: theme.border,
     },
     cardHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       marginBottom: 12,
     },
@@ -185,32 +191,40 @@ const createStyles = (theme: any) =>
       borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
     },
     cardTitle: {
       fontSize: 14,
       fontWeight: '600',
       color: theme.text,
       flex: 1,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     percentage: {
       fontSize: 28,
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
     },
     count: {
       fontSize: 12,
       color: theme.textSecondary,
       marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     description: {
       fontSize: 11,
       color: theme.textSecondary,
       marginBottom: 12,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     barContainer: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 8,
     },
@@ -220,13 +234,14 @@ const createStyles = (theme: any) =>
       backgroundColor: theme.border,
       borderRadius: 2,
       overflow: 'hidden',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
     },
     barFill: {
       height: '100%',
       borderRadius: 2,
     },
     barIndicators: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 2,
     },
     barIndicator: {
@@ -244,5 +259,6 @@ const createStyles = (theme: any) =>
     footerText: {
       fontSize: 12,
       color: theme.textSecondary,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

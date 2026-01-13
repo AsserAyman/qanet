@@ -1,8 +1,10 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { format, subDays } from 'date-fns';
+import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../contexts/I18nContext';
 
 interface StatsOverviewProps {
   streak: number;
@@ -18,15 +20,19 @@ export function StatsOverview({
   stats,
 }: StatsOverviewProps) {
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
+  const locale = isRTL ? arSA : enUS;
 
   // Calculate average verses per night (last 7 days)
   const last7Days: number[] = [];
+  const labels: string[] = [];
   const today = new Date();
 
   for (let i = 6; i >= 0; i--) {
     const date = subDays(today, i);
     const dateKey = format(date, 'yyyy-MM-dd');
     last7Days.push(data[dateKey] || 0);
+    labels.push(format(date, 'EEE', { locale }));
   }
 
   const totalLast7Days = last7Days.reduce((sum, val) => sum + val, 0);
@@ -38,11 +44,11 @@ export function StatsOverview({
         )
       : 0;
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isRTL);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tracker Overview</Text>
+      <Text style={styles.title}>{t('trackerOverview')}</Text>
 
       <View style={styles.metricsRow}>
         <View style={styles.metricCard}>
@@ -53,7 +59,7 @@ export function StatsOverview({
               color="#ef4444"
             />
           </View>
-          <Text style={styles.metricTitle}>Current Streak</Text>
+          <Text style={styles.metricTitle}>{t('currentStreak')}</Text>
           <Text style={styles.metricValue}>{streak}</Text>
         </View>
 
@@ -61,16 +67,16 @@ export function StatsOverview({
           <View style={styles.metricHeader}>
             <Feather name="moon" size={24} color="#3b82f6" />
           </View>
-          <Text style={styles.metricTitle}>Total Nights</Text>
+          <Text style={styles.metricTitle}>{t('totalNights')}</Text>
           <Text style={styles.metricValue}>{totalNights}</Text>
         </View>
       </View>
 
       <View style={styles.largeMetricCard}>
         <View style={styles.largeMetricHeader}>
-          <Text style={styles.largeMetricTitle}>Verses Recited Per Night</Text>
+          <Text style={styles.largeMetricTitle}>{t('versesRecitedPerNight')}</Text>
           <View style={styles.changeContainer}>
-            <Text style={styles.changeLabel}>Last 7 Nights</Text>
+            <Text style={styles.changeLabel}>{t('lastNights')}</Text>
             <Text
               style={[
                 styles.changeText,
@@ -110,9 +116,9 @@ export function StatsOverview({
         </View>
 
         <View style={styles.miniChartLabels}>
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(
+          {labels.map(
             (day, index) => (
-              <Text key={day} style={styles.miniChartLabel}>
+              <Text key={index} style={styles.miniChartLabel}>
                 {day}
               </Text>
             )
@@ -123,7 +129,7 @@ export function StatsOverview({
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       marginBottom: 24,
@@ -133,9 +139,11 @@ const createStyles = (theme: any) =>
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     metricsRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 16,
       marginBottom: 16,
     },
@@ -152,16 +160,20 @@ const createStyles = (theme: any) =>
     },
     metricHeader: {
       marginBottom: 16,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     metricTitle: {
       fontSize: 14,
       color: theme.textSecondary,
       marginBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     metricValue: {
       fontSize: 32,
       fontWeight: 'bold',
       color: theme.text,
+      textAlign: isRTL ? 'right' : 'left',
     },
     largeMetricCard: {
       backgroundColor: theme.card,
@@ -174,7 +186,7 @@ const createStyles = (theme: any) =>
       elevation: 4,
     },
     largeMetricHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
       marginBottom: 16,
@@ -184,14 +196,17 @@ const createStyles = (theme: any) =>
       fontWeight: '600',
       color: theme.text,
       flex: 1,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     changeContainer: {
-      alignItems: 'flex-end',
+      alignItems: isRTL ? 'flex-start' : 'flex-end',
     },
     changeLabel: {
       fontSize: 12,
       color: theme.textSecondary,
       marginBottom: 4,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     changeText: {
       fontSize: 14,
@@ -202,9 +217,10 @@ const createStyles = (theme: any) =>
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
     },
     miniChart: {
-      flexDirection: 'row',
+      flexDirection: 'row', // Always LTR for time series
       justifyContent: 'space-between',
       alignItems: 'flex-end',
       height: 50,
@@ -222,7 +238,7 @@ const createStyles = (theme: any) =>
       minHeight: 2,
     },
     miniChartLabels: {
-      flexDirection: 'row',
+      flexDirection: 'row', // Match chart
       justifyContent: 'space-between',
       paddingHorizontal: 4,
     },
@@ -231,5 +247,6 @@ const createStyles = (theme: any) =>
       color: theme.textSecondary,
       textAlign: 'center',
       flex: 1,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

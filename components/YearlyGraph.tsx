@@ -1,4 +1,5 @@
-import { differenceInDays, format, startOfYear } from 'date-fns';
+import { differenceInDays, format, startOfYear, addMonths } from 'date-fns';
+import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import {
   Dimensions,
@@ -9,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../contexts/I18nContext';
 
 interface YearlyGraphProps {
   data: { [key: string]: { verses: number; status: string } }; // date string -> { verses, status }
@@ -16,7 +18,9 @@ interface YearlyGraphProps {
 
 export function YearlyGraph({ data }: YearlyGraphProps) {
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
   const { width } = Dimensions.get('window');
+  const locale = isRTL ? arSA : enUS;
 
   // Calculate available width considering padding and gaps
   const containerPadding = 48; // 24px * 2
@@ -100,44 +104,47 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
     return grid;
   };
 
-  const styles = createStyles(theme, cellSize);
+  // Generate month labels
+  const monthLabels = [];
+  for (let i = 0; i < 12; i++) {
+    const date = addMonths(yearStart, i);
+    monthLabels.push(format(date, 'MMM', { locale }));
+  }
+  
+  // Day labels
+  const dayLabels = isRTL 
+    ? ['أ', 'إ', 'ث', 'أ', 'خ', 'ج', 'س'] // Sun-Sat approx
+    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+  const styles = createStyles(theme, cellSize, isRTL);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Prayer Activity</Text>
+        <Text style={styles.title}>{t('prayerActivity')}</Text>
         <Text style={styles.subtitle}>
-          {Object.values(data).reduce(
+          {t('versesThisYear').replace('verses', Object.values(data).reduce(
             (sum, dayData) => sum + dayData.verses,
             0
-          )}{' '}
-          verses this year
+          ).toString())}
         </Text>
       </View>
 
       <View style={styles.graphContainer}>
         <View style={styles.monthLabels}>
-          {[
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ].map((month, index) => {
+          {monthLabels.map((month, index) => {
             // Use container width instead of graph width to prevent overflow
             const containerWidth = availableWidth - 20; // Available width minus some padding
             const monthPosition = (index / 11) * Math.max(containerWidth, 0); // Spread across container width
+            
+            const positionStyle = isRTL 
+              ? { right: monthPosition }
+              : { left: monthPosition };
+
             return (
               <Text
-                key={month}
-                style={[styles.monthLabel, { left: monthPosition }]}
+                key={index}
+                style={[styles.monthLabel, positionStyle]}
               >
                 {month}
               </Text>
@@ -147,7 +154,7 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
 
         <View style={styles.graphWrapper}>
           <View style={styles.dayLabels}>
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+            {dayLabels.map((day, index) => (
               <Text
                 key={index}
                 style={[styles.dayLabel, { height: cellSize - 2 }]}
@@ -157,14 +164,14 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
             ))}
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={isRTL ? { flexDirection: 'row-reverse' } : {}}>
             <View style={styles.graph}>{renderGrid()}</View>
           </ScrollView>
         </View>
       </View>
 
       <View style={styles.legend}>
-        <Text style={styles.legendText}>Less</Text>
+        <Text style={styles.legendText}>{t('less')}</Text>
         <View style={styles.legendItems}>
           <View
             style={[
@@ -207,13 +214,13 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
             ]}
           />
         </View>
-        <Text style={styles.legendText}>More</Text>
+        <Text style={styles.legendText}>{t('more')}</Text>
       </View>
     </View>
   );
 }
 
-const createStyles = (theme: any, cellSize: number) =>
+const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       backgroundColor: theme.card,
@@ -228,16 +235,21 @@ const createStyles = (theme: any, cellSize: number) =>
     },
     header: {
       marginBottom: 24,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     title: {
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.text,
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     subtitle: {
       fontSize: 14,
       color: theme.textSecondary,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     graphContainer: {
       marginBottom: 16,
@@ -247,17 +259,20 @@ const createStyles = (theme: any, cellSize: number) =>
       height: 20,
       marginBottom: 8,
       position: 'relative',
+      width: '100%',
     },
     monthLabel: {
       fontSize: 10,
       color: theme.textSecondary,
       position: 'absolute',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     graphWrapper: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
     },
     dayLabels: {
-      marginRight: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
       justifyContent: 'space-between',
     },
     dayLabel: {
@@ -265,9 +280,10 @@ const createStyles = (theme: any, cellSize: number) =>
       color: theme.textSecondary,
       textAlign: 'center',
       lineHeight: cellSize - 2,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     graph: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row', // Reverse grid for RTL
       gap: 4,
     },
     week: {
@@ -277,7 +293,7 @@ const createStyles = (theme: any, cellSize: number) =>
       borderRadius: 4,
     },
     legend: {
-      flexDirection: 'row',
+      flexDirection: 'row', // Keep LTR for scale
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -294,5 +310,6 @@ const createStyles = (theme: any, cellSize: number) =>
     legendText: {
       fontSize: 12,
       color: theme.textSecondary,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

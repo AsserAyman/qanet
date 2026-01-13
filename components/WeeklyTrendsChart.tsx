@@ -1,7 +1,9 @@
-import { endOfWeek, format, startOfWeek, subDays } from 'date-fns';
+import { addDays, endOfWeek, format, startOfWeek, subDays } from 'date-fns';
+import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../contexts/I18nContext';
 
 interface WeeklyTrendsChartProps {
   data: { [key: string]: number }; // date string -> verse count
@@ -9,7 +11,9 @@ interface WeeklyTrendsChartProps {
 
 export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
   const { theme } = useTheme();
+  const { t, isRTL } = useI18n();
   const { width } = Dimensions.get('window');
+  const locale = isRTL ? arSA : enUS;
 
   // Get last 7 weeks of data
   const weeks = [];
@@ -30,7 +34,7 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
     }
 
     weeks.push({
-      label: format(weekStart, 'MMM d'),
+      label: format(weekStart, 'MMM d', { locale }),
       value: weekTotal,
       isCurrentWeek: i === 0,
     });
@@ -47,14 +51,21 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
   const barWidth = (width - 120) / 7;
   const maxBarHeight = 120;
 
-  const styles = createStyles(theme);
+  // Generate localized day labels (Mon-Sun)
+  const dayLabels = [];
+  const startDay = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+  for (let i = 0; i < 7; i++) {
+    dayLabels.push(format(addDays(startDay, i), 'EEE', { locale }));
+  }
+
+  const styles = createStyles(theme, isRTL);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Weekly Trends</Text>
+        <Text style={styles.title}>{t('weeklyTrends')}</Text>
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total Verses (7d)</Text>
+          <Text style={styles.totalLabel}>{t('totalVerses7d')}</Text>
           <Text style={styles.totalValue}>{currentWeekValue}</Text>
           <Text
             style={[
@@ -95,8 +106,8 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
       </View>
 
       <View style={styles.daysContainer}>
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-          <Text key={day} style={styles.dayLabel}>
+        {dayLabels.map((day, index) => (
+          <Text key={index} style={styles.dayLabel}>
             {day}
           </Text>
         ))}
@@ -105,7 +116,7 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
   );
 }
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
       backgroundColor: theme.card,
@@ -120,20 +131,25 @@ const createStyles = (theme: any) =>
     },
     header: {
       marginBottom: 24,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     title: {
       fontSize: 16,
       fontWeight: '600',
       color: theme.text,
       marginBottom: 16,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     totalContainer: {
-      alignItems: 'flex-start',
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     totalLabel: {
       fontSize: 14,
       color: theme.textSecondary,
       marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     totalValue: {
       fontSize: 32,
@@ -144,12 +160,13 @@ const createStyles = (theme: any) =>
     changeText: {
       fontSize: 14,
       fontWeight: '600',
+      textAlign: isRTL ? 'right' : 'left',
     },
     chartContainer: {
       marginBottom: 16,
     },
     barsContainer: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
       height: 140,
@@ -166,6 +183,7 @@ const createStyles = (theme: any) =>
       fontSize: 12,
       color: theme.textSecondary,
       marginBottom: 2,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     barValue: {
       fontSize: 12,
@@ -173,7 +191,7 @@ const createStyles = (theme: any) =>
       color: theme.text,
     },
     daysContainer: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       paddingHorizontal: 4,
       borderTopWidth: 1,
@@ -184,5 +202,6 @@ const createStyles = (theme: any) =>
       fontSize: 12,
       color: theme.textSecondary,
       textAlign: 'center',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

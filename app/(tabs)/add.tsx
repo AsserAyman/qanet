@@ -210,7 +210,7 @@ export default function AddPrayerScreen() {
                     {quranData.map((surah) => (
                       <Picker.Item
                         key={surah.name}
-                        label={surah.name}
+                        label={isRTL ? surah.nameAr : surah.name}
                         value={surah.name}
                         color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
                       />
@@ -268,7 +268,7 @@ export default function AddPrayerScreen() {
                     {quranData.map((surah) => (
                       <Picker.Item
                         key={surah.name}
-                        label={surah.name}
+                        label={isRTL ? surah.nameAr : surah.name}
                         value={surah.name}
                         color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
                       />
