@@ -3,7 +3,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dimensions,
   Image,
@@ -55,6 +55,17 @@ export default function AddPrayerScreen() {
   );
   const status = getVerseStatus(totalVerses);
 
+  const gradientColors = useMemo(() => {
+    if (totalVerses >= 1000) {
+      return ['#492d52', '#210e2b', '#000000'];
+    } else if (totalVerses >= 100) {
+      return ['#114a28', '#052b14', '#000000'];
+    } else if (totalVerses >= 10) {
+      return ['#0e2a4a', '#05122b', '#000000'];
+    }
+    return ['#4a0e0e', '#2b0505', '#000000'];
+  }, [totalVerses]);
+
   const handleSave = async () => {
     try {
       setLoading(true);
@@ -89,7 +100,7 @@ export default function AddPrayerScreen() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <LinearGradient
-          colors={['#4a0e0e', '#2b0505', '#000000']}
+          colors={gradientColors}
           style={styles.background}
         />
         <MaterialIcons name="book" size={32} color="#ffffff" />
@@ -103,7 +114,7 @@ export default function AddPrayerScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#4a0e0e', '#2b0505', '#000000']}
+        colors={gradientColors}
         style={styles.background}
       />
 
