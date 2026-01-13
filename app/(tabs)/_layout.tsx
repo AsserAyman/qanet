@@ -1,30 +1,19 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { NativeTabs, Icon, Label, VectorIcon } from 'expo-router/unstable-native-tabs';
-import { DynamicColorIOS, Platform } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
+import { Platform } from 'react-native';
 import { useI18n } from '../../contexts/I18nContext';
 
 export default function TabLayout() {
-  const { theme } = useTheme();
   const { t } = useI18n();
-
-  // Dynamic colors for liquid glass on iOS
-  const textColor = DynamicColorIOS({
-    dark: 'white',
-    light: 'black',
-  });
-
-  const tintColor = DynamicColorIOS({
-    dark: 'white',
-    light: theme.primary,
-  });
 
   return (
     <NativeTabs
       labelStyle={{
-        color: textColor,
+        color: 'white',
       }}
-      tintColor={tintColor}
+      tintColor='white'
+      // minimizeBehavior="onScrollDown"
+      disableTransparentOnScrollEdge={false}  // Allows transparency
     >
       <NativeTabs.Trigger name="index">
         <Label>{t('nightPrayer')}</Label>

@@ -7,13 +7,9 @@ import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
-  const { theme, themeMode, setThemeMode } = useTheme();
+  const { theme } = useTheme();
   const { t, language, setLanguage, isRTL } = useI18n();
   const router = useRouter();
-
-  const handleThemeChange = (mode: ThemeMode) => {
-    setThemeMode(mode);
-  };
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
@@ -58,81 +54,6 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.content}>
-        {/* Appearance Settings */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t('appearance')}</Text>
-          <View style={styles.themeOptions}>
-            <TouchableOpacity
-              style={[
-                styles.themeOption,
-                themeMode === 'light' && styles.themeOptionActive,
-              ]}
-              onPress={() => handleThemeChange('light')}
-            >
-              <Feather 
-                name="sun" 
-                size={20} 
-                color={themeMode === 'light' ? theme.primary : theme.textSecondary} 
-              />
-              <Text style={[
-                styles.themeOptionText,
-                themeMode === 'light' && styles.themeOptionTextActive,
-              ]}>
-                {t('light')}
-              </Text>
-              {themeMode === 'light' && (
-                <Feather name="check" size={16} color={theme.primary} />
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.themeOption,
-                themeMode === 'dark' && styles.themeOptionActive,
-              ]}
-              onPress={() => handleThemeChange('dark')}
-            >
-              <Feather 
-                name="moon" 
-                size={20} 
-                color={themeMode === 'dark' ? theme.primary : theme.textSecondary} 
-              />
-              <Text style={[
-                styles.themeOptionText,
-                themeMode === 'dark' && styles.themeOptionTextActive,
-              ]}>
-                {t('dark')}
-              </Text>
-              {themeMode === 'dark' && (
-                <Feather name="check" size={16} color={theme.primary} />
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.themeOption,
-                themeMode === 'system' && styles.themeOptionActive,
-              ]}
-              onPress={() => handleThemeChange('system')}
-            >
-              <Feather 
-                name="smartphone" 
-                size={20} 
-                color={themeMode === 'system' ? theme.primary : theme.textSecondary} 
-              />
-              <Text style={[
-                styles.themeOptionText,
-                themeMode === 'system' && styles.themeOptionTextActive,
-              ]}>
-                {t('system')}
-              </Text>
-              {themeMode === 'system' && (
-                <Feather name="check" size={16} color={theme.primary} />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Language Settings */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('language')}</Text>
@@ -346,35 +267,6 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
     marginBottom: 16,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  themeOptions: {
-    gap: 12,
-  },
-  themeOption: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: theme.background,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  themeOptionActive: {
-    borderColor: theme.primary,
-    backgroundColor: theme.primary + '10',
-  },
-  themeOptionText: {
-    flex: 1,
-    marginLeft: isRTL ? 0 : 12,
-    marginRight: isRTL ? 12 : 0,
-    fontSize: 16,
-    color: theme.text,
-    fontWeight: '500',
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  themeOptionTextActive: {
-    color: theme.primary,
   },
   languageOptions: {
     gap: 12,
