@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
 import { DailyBreakdownChart } from '../../components/DailyBreakdownChart';
@@ -17,7 +18,6 @@ import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useO
 export default function HistoryScreen() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
-  const { theme } = useTheme();
   const { t, isRTL } = useI18n();
   const { isInitialized } = useOfflineData();
   const { logs, loading: logsLoading, refresh: refreshLogs } = usePrayerLogs();
@@ -34,8 +34,8 @@ export default function HistoryScreen() {
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [refreshing, setRefreshing] = React.useState(false);
 
-  const styles = createStyles(theme, isRTL);
-
+  // Force dark styles
+  const styles = createStyles(isRTL);
 
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -50,8 +50,12 @@ export default function HistoryScreen() {
 
   if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={{ color: theme.text, fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <LinearGradient
+          colors={['#4a0e0e', '#2b0505', '#000000']}
+          style={styles.background}
+        />
+        <Text style={{ color: '#ffffff', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
           {t('loading')}
         </Text>
       </View>
@@ -60,8 +64,12 @@ export default function HistoryScreen() {
 
   if (statsError) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.errorText, { color: theme.error, fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <LinearGradient
+          colors={['#4a0e0e', '#2b0505', '#000000']}
+          style={styles.background}
+        />
+        <Text style={[styles.errorText, { color: '#ff6b6b', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }]}>
           {statsError}
         </Text>
       </View>
@@ -71,35 +79,32 @@ export default function HistoryScreen() {
   const totalNights = logs.length;
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor={theme.primary}
-          colors={[theme.primary]}
-        />
-      }
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#4a0e0e', '#2b0505', '#000000']}
+        style={styles.background}
+      />
       
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-          }}
-          style={styles.backgroundImage}
-        />
-        <View style={styles.overlay} />
-        <View style={styles.headerContent}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#ffffff"
+            colors={['#ffffff']}
+          />
+        }
+      >
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('prayerHistory')}</Text>
           <Text style={styles.headerSubtitle}>
             {t('trackYourProgressAndConsistency')}
           </Text>
         </View>
-      </View>
 
-      <View style={styles.content}>
         <StatsOverview
           streak={streak}
           totalNights={totalNights}
@@ -184,30 +189,31 @@ export default function HistoryScreen() {
             </View>
           ))}
         </View>
-      </View>
-    </ScrollView>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 function getStatusColor(status: string): string {
   switch (status) {
     case 'Mokantar':
-      return '#15803d';
+      return '#22c55e'; // Brighter green for dark theme
     case 'Qanet':
-      return '#2563eb';
+      return '#3b82f6'; // Brighter blue
     case 'Not Negligent':
-      return '#ca8a04';
+      return '#eab308'; // Brighter yellow
     default:
-      return '#dc2626';
+      return '#ef4444'; // Brighter red
   }
 }
 
 function getSyncStatusColor(syncStatus: string): string {
   switch (syncStatus) {
     case 'pending':
-      return '#ca8a04';
+      return '#eab308';
     case 'error':
-      return '#dc2626';
+      return '#ef4444';
     case 'conflict':
       return '#f97316';
     default:
@@ -215,123 +221,106 @@ function getSyncStatusColor(syncStatus: string): string {
   }
 }
 
-const createStyles = (theme: any, isRTL: boolean) =>
+const createStyles = (isRTL: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: '#000',
+    },
+    background: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      height: '100%',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 24,
+      paddingTop: 60,
     },
     header: {
-      height: 200,
-      position: 'relative',
-    },
-    backgroundImage: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-    },
-    overlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: theme.overlay,
-    },
-    headerContent: {
-      flex: 1,
-      justifyContent: 'center',
-      padding: 24,
+      marginBottom: 32,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     headerTitle: {
-      fontSize: 28,
+      fontSize: 32,
       fontWeight: 'bold',
       color: '#ffffff',
-      marginBottom: 8,
-      textAlign: isRTL ? 'right' : 'left',
+      marginBottom: 4,
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     headerSubtitle: {
       fontSize: 16,
-      color: '#e2e8f0',
-      textAlign: isRTL ? 'right' : 'left',
+      color: 'rgba(255,255,255,0.7)',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-    },
-    content: {
-      flex: 1,
-      marginTop: -24,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      backgroundColor: theme.background,
-      padding: 24,
     },
     errorText: {
       textAlign: 'center',
       marginTop: 20,
+      fontSize: 16,
     },
     historyCard: {
-      backgroundColor: theme.card,
-      borderRadius: 16,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: 24,
       padding: 20,
       marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 4,
-      elevation: 2,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: 'bold',
-      color: theme.text,
-      marginBottom: 16,
+      color: '#ffffff',
+      marginBottom: 20,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     historyItem: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      paddingVertical: 12,
+      paddingVertical: 16,
       borderBottomWidth: 1,
-      borderBottomColor: theme.border,
+      borderBottomColor: 'rgba(255,255,255,0.1)',
     },
     historyIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: isRTL ? 0 : 12,
-      marginLeft: isRTL ? 12 : 0,
+      marginRight: isRTL ? 0 : 16,
+      marginLeft: isRTL ? 16 : 0,
     },
     historyContent: {
       flex: 1,
     },
     historyDate: {
       fontSize: 14,
-      color: theme.textSecondary,
-      marginBottom: 2,
+      color: 'rgba(255,255,255,0.6)',
+      marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyRange: {
       fontSize: 16,
-      color: theme.text,
+      fontWeight: '600',
+      color: '#ffffff',
       marginBottom: 2,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyVerses: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     syncStatusContainer: {
       alignItems: 'flex-end',
-      gap: 4,
+      gap: 6,
     },
     historyStatus: {
       fontSize: 14,

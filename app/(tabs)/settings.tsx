@@ -1,13 +1,13 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
 import { useI18n, Language } from '../../contexts/I18nContext';
 import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
-  const { theme } = useTheme();
   const { t, language, setLanguage, isRTL } = useI18n();
   const router = useRouter();
 
@@ -33,27 +33,28 @@ export default function SettingsScreen() {
     );
   };
 
-  const styles = createStyles(theme, isRTL);
+  // Force dark styles
+  const styles = createStyles(isRTL);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-          }}
-          style={styles.backgroundImage}
-        />
-        <View style={styles.overlay} />
-        <View style={styles.headerContent}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#4a0e0e', '#2b0505', '#000000']}
+        style={styles.background}
+      />
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('settings')}</Text>
           <Text style={styles.headerSubtitle}>
             {t('customizeYourAppExperience')}
           </Text>
         </View>
-      </View>
 
-      <View style={styles.content}>
         {/* Language Settings */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('language')}</Text>
@@ -73,7 +74,7 @@ export default function SettingsScreen() {
                 {t('english')}
               </Text>
               {language === 'en' && (
-                <Feather name="check" size={16} color={theme.primary} />
+                <Feather name="check" size={16} color="#ffffff" />
               )}
             </TouchableOpacity>
 
@@ -92,7 +93,7 @@ export default function SettingsScreen() {
                 {t('arabic')}
               </Text>
               {language === 'ar' && (
-                <Feather name="check" size={16} color={theme.primary} />
+                <Feather name="check" size={16} color="#ffffff" />
               )}
             </TouchableOpacity>
           </View>
@@ -106,10 +107,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: theme.error + '20' },
+                { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
               ]}
             >
-              <MaterialIcons name="warning" size={24} color={theme.error} />
+              <MaterialIcons name="warning" size={24} color="#ef4444" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('negligent')}</Text>
@@ -126,10 +127,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: theme.warning + '20' },
+                { backgroundColor: 'rgba(234, 179, 8, 0.2)' },
               ]}
             >
-              <Feather name="moon" size={24} color={theme.warning} />
+              <Feather name="moon" size={24} color="#eab308" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('notNegligent')}</Text>
@@ -146,10 +147,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: theme.primary + '20' },
+                { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
               ]}
             >
-              <MaterialIcons name="military-tech" size={24} color={theme.primary} />
+              <MaterialIcons name="military-tech" size={24} color="#3b82f6" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('qanet')}</Text>
@@ -166,10 +167,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: theme.success + '20' },
+                { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
               ]}
             >
-              <MaterialIcons name="military-tech" size={24} color={theme.success} />
+              <MaterialIcons name="military-tech" size={24} color="#22c55e" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('mokantar')}</Text>
@@ -190,81 +191,64 @@ export default function SettingsScreen() {
 
         {/* Sign Out Button */}
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Feather name="log-out" size={20} color={theme.error} />
+          <Feather name="log-out" size={20} color="#ef4444" />
           <Text style={styles.signOutText}>{t('signOut')}</Text>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+        
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </View>
   );
 }
 
-const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
+const createStyles = (isRTL: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: '#000',
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '100%',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 24,
+    paddingTop: 60,
   },
   header: {
-    height: 200,
-    position: 'relative',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.overlay,
-  },
-  headerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
+    marginBottom: 32,
+    alignItems: isRTL ? 'flex-end' : 'flex-start',
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 8,
-    textAlign: isRTL ? 'right' : 'left',
+    marginBottom: 4,
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#e2e8f0',
-    textAlign: isRTL ? 'right' : 'left',
+    color: 'rgba(255,255,255,0.7)',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
-  content: {
-    flex: 1,
-    marginTop: -24,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: theme.background,
-    padding: 24,
-  },
   card: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 24,
+    padding: 24,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: theme.text,
-    marginBottom: 16,
+    color: '#ffffff',
+    marginBottom: 20,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
@@ -275,30 +259,31 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
     flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 12,
-    backgroundColor: theme.background,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: theme.border,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   languageOptionActive: {
-    borderColor: theme.primary,
-    backgroundColor: theme.primary + '10',
+    borderColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   languageFlag: {
-    fontSize: 20,
-    marginRight: isRTL ? 0 : 12,
-    marginLeft: isRTL ? 12 : 0,
+    fontSize: 24,
+    marginRight: isRTL ? 0 : 16,
+    marginLeft: isRTL ? 16 : 0,
   },
   languageOptionText: {
     flex: 1,
     fontSize: 16,
-    color: theme.text,
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '500',
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   languageOptionTextActive: {
-    color: theme.primary,
+    color: '#ffffff',
+    fontWeight: '700',
   },
   statusItem: {
     flexDirection: isRTL ? 'row-reverse' : 'row',
@@ -320,53 +305,50 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   statusTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.text,
+    color: '#ffffff',
     marginBottom: 4,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   statusSubtitle: {
     fontSize: 14,
-    color: theme.textSecondary,
-    marginBottom: 8,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 6,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   statusDescription: {
     fontSize: 14,
-    color: theme.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     lineHeight: 20,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   divider: {
     height: 1,
-    backgroundColor: theme.border,
-    marginVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginVertical: 16,
   },
   hadithCard: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 24,
+    padding: 24,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   hadithTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: theme.text,
+    color: '#ffffff',
     marginBottom: 16,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   hadithText: {
     fontSize: 16,
-    color: theme.text,
-    lineHeight: 24,
+    color: 'rgba(255,255,255,0.9)',
+    lineHeight: 26,
     fontFamily: 'NotoNaskhArabic-Regular',
     textAlign: isRTL ? 'right' : 'left',
   },
@@ -374,18 +356,18 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
     flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.card,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: theme.error + '30',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
     gap: 12,
   },
   signOutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.error,
+    color: '#ef4444',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
 });
