@@ -1,5 +1,6 @@
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
   Image,
@@ -8,6 +9,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import {
   calculateVerseRange,
@@ -18,16 +21,17 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
 
+const { width } = Dimensions.get('window');
+
 export default function NightPrayerScreen() {
   const [mode, setMode] = useState<'target' | 'range'>('target');
   const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
   const [selectedAyah, setSelectedAyah] = useState(1);
-  const [targetVerses, setTargetVerses] = useState(100);
+  const [targetVerses, setTargetVerses] = useState(10);
 
   const [endSurah, setEndSurah] = useState('Al-Baqara');
   const [endAyah, setEndAyah] = useState(1);
 
-  const { theme } = useTheme();
   const { t, isRTL } = useI18n();
 
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
@@ -51,409 +55,457 @@ export default function NightPrayerScreen() {
 
   const status = getVerseStatus(range.totalAyahs);
 
-  const styles = createStyles(theme, isRTL);
+  // Force dark theme styles for this specific design
+  const styles = createStyles(isRTL);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-          }}
-          style={styles.backgroundImage}
-        />
-        <View style={styles.overlay} />
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{t('nightPrayerCalculator')}</Text>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#4a0e0e', '#2b0505', '#000000']}
+        style={styles.background}
+      />
+      
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Qanet</Text>
           <Text style={styles.headerSubtitle}>
             {t('calculateYourNightPrayerVerses')}
           </Text>
         </View>
-      </View>
 
-      <View style={styles.content}>
-        <View style={styles.modeSelector}>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              mode === 'target' && styles.modeButtonActive,
-            ]}
-            onPress={() => setMode('target')}
-          >
-            <MaterialIcons
-              name="calculate"
-              size={20}
-              color={mode === 'target' ? '#ffffff' : theme.textSecondary}
+        {/* Status Card */}
+        <View style={styles.statusCard}>
+          <View style={styles.statusRow}>
+            <Image
+              source={require('../../assets/images/moon-image.png')}
+              style={styles.moonImage}
             />
-            <Text
-              style={[
-                styles.modeButtonText,
-                mode === 'target' && styles.modeButtonTextActive,
-              ]}
-            >
-              {t('targetVerses')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              mode === 'range' && styles.modeButtonActive,
-            ]}
-            onPress={() => setMode('range')}
-          >
-            <Feather
-              name="arrow-right"
-              size={20}
-              color={mode === 'range' ? '#ffffff' : theme.textSecondary}
-            />
-            <Text
-              style={[
-                styles.modeButtonText,
-                mode === 'range' && styles.modeButtonTextActive,
-              ]}
-            >
-              {t('customRange')}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.statusTextContainer}>
+              <Text style={styles.statusTitle}>
+                {t(status.status.toLowerCase().replace(/\s+/g, ''))}
+              </Text>
+              <Text style={styles.statusDescription}>
+                {status.description}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.totalVersesContainer}>
+            <Text style={styles.totalVersesNumber}>{range.totalAyahs}</Text>
+            <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
+          </View>
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('startingSurah')}</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedSurah}
-                onValueChange={setSelectedSurah}
-                style={[styles.picker, { color: theme.text }]}
-                dropdownIconColor={theme.textSecondary}
-              >
-                {quranData.map((surah) => (
-                  <Picker.Item
-                    key={surah.name}
-                    label={surah.name}
-                    value={surah.name}
-                    color={theme.text}
-                  />
-                ))}
-              </Picker>
+        {/* Range Display */}
+        <View style={styles.rangeDisplayCard}>
+          <View style={styles.rangeRow}>
+            <View style={styles.rangeItem}>
+              <Text style={styles.rangeSurah}>{range.startSurah}</Text>
+              <Text style={styles.rangeAyah}>{t('ayah')} {range.startAyah}</Text>
+            </View>
+            <Feather name={isRTL ? "arrow-left" : "arrow-right"} size={20} color="#ffffff" style={{ opacity: 0.5 }} />
+            <View style={styles.rangeItem}>
+              <Text style={styles.rangeSurah}>{range.endSurah}</Text>
+              <Text style={styles.rangeAyah}>{t('ayah')} {range.endAyah}</Text>
             </View>
           </View>
+        </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('startingAyah')}</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={String(selectedAyah)}
-                onValueChange={(value) => setSelectedAyah(Number(value))}
-                style={[styles.picker, { color: theme.text }]}
-                dropdownIconColor={theme.textSecondary}
+        {/* Controls Container */}
+        <View style={styles.controlsContainer}>
+          {/* Toggle */}
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                mode === 'target' && styles.toggleButtonActive,
+              ]}
+              onPress={() => setMode('target')}
+            >
+              <Text
+                style={[
+                  styles.toggleText,
+                  mode === 'target' && styles.toggleTextActive,
+                ]}
               >
-                {Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => (
-                  <Picker.Item
-                    key={i + 1}
-                    label={String(i + 1)}
-                    value={String(i + 1)}
-                    color={theme.text}
-                  />
-                ))}
-              </Picker>
-            </View>
+                {t('targetVerses')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                mode === 'range' && styles.toggleButtonActive,
+              ]}
+              onPress={() => setMode('range')}
+            >
+              <Text
+                style={[
+                  styles.toggleText,
+                  mode === 'range' && styles.toggleTextActive,
+                ]}
+              >
+                {t('customRange')}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {mode === 'target' ? (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('targetVerses')}</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={String(targetVerses)}
-                  onValueChange={(value) => setTargetVerses(Number(value))}
-                  style={[styles.picker, { color: theme.text }]}
-                  dropdownIconColor={theme.textSecondary}
-                >
-                  <Picker.Item label="10 verses" value="10" color={theme.text} />
-                  <Picker.Item label="100 verses" value="100" color={theme.text} />
-                  <Picker.Item label="1000 verses" value="1000" color={theme.text} />
-                </Picker>
+          {/* Inputs */}
+          {mode === 'target' && (
+            <View style={styles.targetOptions}>
+              <Text style={styles.sectionLabel}>{t('targetVerses')}</Text>
+              <View style={styles.targetButtonsRow}>
+                {[10, 100, 1000].map((val) => (
+                  <TouchableOpacity
+                    key={val}
+                    style={[
+                      styles.targetButton,
+                      targetVerses === val && styles.targetButtonActive,
+                    ]}
+                    onPress={() => setTargetVerses(val)}
+                  >
+                    <Text
+                      style={[
+                        styles.targetButtonText,
+                        targetVerses === val && styles.targetButtonTextActive,
+                      ]}
+                    >
+                      {val}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          ) : (
-            <>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>{t('endingSurah')}</Text>
+          )}
+
+          <View style={styles.pickersSection}>
+            <Text style={styles.sectionLabel}>
+              {mode === 'target' ? t('startingPoint') : t('readingRange')}
+            </Text>
+            
+            {/* Start Picker */}
+            <View style={styles.pickerRow}>
+              <View style={styles.pickerWrapper}>
+                <Text style={styles.pickerLabel}>{t('startingSurah')}</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={endSurah}
-                    onValueChange={setEndSurah}
-                    style={[styles.picker, { color: theme.text }]}
-                    dropdownIconColor={theme.textSecondary}
+                    selectedValue={selectedSurah}
+                    onValueChange={setSelectedSurah}
+                    style={styles.picker}
+                    dropdownIconColor="#ffffff"
+                    itemStyle={{ color: '#ffffff' }}
                   >
                     {quranData.map((surah) => (
                       <Picker.Item
                         key={surah.name}
                         label={surah.name}
                         value={surah.name}
-                        color={theme.text}
+                        color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
                       />
                     ))}
                   </Picker>
                 </View>
               </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>{t('endingAyah')}</Text>
+              
+              <View style={styles.pickerWrapper}>
+                <Text style={styles.pickerLabel}>{t('ayah')}</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={String(endAyah)}
-                    onValueChange={(value) => setEndAyah(Number(value))}
-                    style={[styles.picker, { color: theme.text }]}
-                    dropdownIconColor={theme.textSecondary}
+                    selectedValue={String(selectedAyah)}
+                    onValueChange={(value) => setSelectedAyah(Number(value))}
+                    style={styles.picker}
+                    dropdownIconColor="#ffffff"
+                    itemStyle={{ color: '#ffffff' }}
                   >
-                    {Array.from(
-                      { length: endCurrentSurah?.ayahs || 0 },
-                      (_, i) => (
-                        <Picker.Item
-                          key={i + 1}
-                          label={String(i + 1)}
-                          value={String(i + 1)}
-                          color={theme.text}
-                        />
-                      )
-                    )}
+                    {Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => (
+                      <Picker.Item
+                        key={i + 1}
+                        label={String(i + 1)}
+                        value={String(i + 1)}
+                        color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
+                      />
+                    ))}
                   </Picker>
                 </View>
               </View>
-            </>
-          )}
-        </View>
+            </View>
 
-        <View
-          style={[styles.statusCard, { backgroundColor: status.color + '20' }]}
-        >
-          <View style={styles.statusHeader}>
-            <Feather name="moon" size={24} color={status.color} />
-            <Text style={[styles.statusTitle, { color: status.color }]}>
-              {t(status.status.toLowerCase().replace(' ', ''))}
-            </Text>
+            {/* End Picker (Range Mode Only) */}
+            {mode === 'range' && (
+              <View style={[styles.pickerRow, { marginTop: 16 }]}>
+                <View style={styles.pickerWrapper}>
+                  <Text style={styles.pickerLabel}>{t('endingSurah')}</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={endSurah}
+                      onValueChange={setEndSurah}
+                      style={styles.picker}
+                      dropdownIconColor="#ffffff"
+                      itemStyle={{ color: '#ffffff' }}
+                    >
+                      {quranData.map((surah) => (
+                        <Picker.Item
+                          key={surah.name}
+                          label={surah.name}
+                          value={surah.name}
+                          color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+                
+                <View style={styles.pickerWrapper}>
+                  <Text style={styles.pickerLabel}>{t('ayah')}</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={String(endAyah)}
+                      onValueChange={(value) => setEndAyah(Number(value))}
+                      style={styles.picker}
+                      dropdownIconColor="#ffffff"
+                      itemStyle={{ color: '#ffffff' }}
+                    >
+                      {Array.from(
+                        { length: endCurrentSurah?.ayahs || 0 },
+                        (_, i) => (
+                          <Picker.Item
+                            key={i + 1}
+                            label={String(i + 1)}
+                            value={String(i + 1)}
+                            color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
+                          />
+                        )
+                      )}
+                    </Picker>
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
-          <Text style={styles.statusDescription}>{status.description}</Text>
-        </View>
 
-        <View style={styles.resultCard}>
-          <Text style={styles.resultTitle}>{t('readingRange')}</Text>
-          <View style={styles.resultItem}>
-            <Text style={styles.resultLabel}>{t('start')}</Text>
-            <Text style={styles.resultValue}>
-              {range.startSurah} - {t('ayah')} {range.startAyah}
-            </Text>
-          </View>
-          <View style={styles.resultItem}>
-            <Text style={styles.resultLabel}>{t('end')}</Text>
-            <Text style={styles.resultValue}>
-              {range.endSurah} - {t('ayah')} {range.endAyah}
-            </Text>
-          </View>
-          <View style={styles.totalVerses}>
-            <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
-            <Text style={styles.totalVersesValue}>{range.totalAyahs}</Text>
-          </View>
         </View>
-      </View>
-    </ScrollView>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </View>
   );
 }
 
-const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
+const createStyles = (isRTL: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: '#000',
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '100%',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 24,
+    paddingTop: 60,
   },
   header: {
-    height: 200,
-    position: 'relative',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.overlay,
-  },
-  headerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
+    marginBottom: 32,
+    alignItems: isRTL ? 'flex-end' : 'flex-start',
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 8,
-    textAlign: isRTL ? 'right' : 'left',
+    marginBottom: 4,
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#e2e8f0',
+    color: 'rgba(255,255,255,0.7)',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  statusCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  statusRow: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 16,
+  },
+  moonImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  statusTextContainer: {
+    flex: 1,
+  },
+  statusTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 4,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+  },
+  statusDescription: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
-  content: {
-    flex: 1,
-    marginTop: -24,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: theme.background,
-    padding: 24,
-  },
-  modeSelector: {
-    flexDirection: 'row',
-    backgroundColor: theme.card,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  modeButton: {
-    flex: 1,
-    flexDirection: 'row',
+  totalVersesContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    paddingTop: 16,
   },
-  modeButtonActive: {
-    backgroundColor: theme.primary,
+  totalVersesNumber: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    lineHeight: 56,
   },
-  modeButtonText: {
+  totalVersesLabel: {
     fontSize: 14,
-    color: theme.textSecondary,
-    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
-  modeButtonTextActive: {
-    color: '#ffffff',
-  },
-  card: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
+  rangeDisplayCard: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 20,
     padding: 20,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  inputGroup: {
-    marginBottom: 16,
+  rangeRow: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  label: {
+  rangeItem: {
+    alignItems: isRTL ? 'flex-end' : 'flex-start',
+    flex: 1,
+  },
+  rangeSurah: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 4,
+    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+  },
+  rangeAyah: {
     fontSize: 14,
-    fontWeight: '500',
-    color: theme.textSecondary,
-    marginBottom: 8,
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  controlsContainer: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 16,
+    padding: 4,
+    marginBottom: 24,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  toggleButtonActive: {
+    backgroundColor: '#ffffff',
+  },
+  toggleText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  toggleTextActive: {
+    color: '#000000',
+  },
+  targetOptions: {
+    marginBottom: 24,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 12,
+    marginLeft: 4,
+    textAlign: isRTL ? 'right' : 'left',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  targetButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  targetButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  targetButtonActive: {
+    borderColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  targetButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  targetButtonTextActive: {
+    fontWeight: '700',
+  },
+  pickersSection: {
+    gap: 16,
+  },
+  pickerRow: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    gap: 12,
+  },
+  pickerWrapper: {
+    flex: 1,
+  },
+  pickerLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginBottom: 6,
+    marginLeft: 4,
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   pickerContainer: {
-    backgroundColor: theme.background,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: theme.border,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 16,
+    overflow: 'hidden', // Crucial for iOS rounded corners
   },
   picker: {
-    backgroundColor: theme.background,
-  },
-  statusCard: {
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-  },
-  statusHeader: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 12,
-  },
-  statusTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  statusDescription: {
-    fontSize: 16,
-    color: theme.textSecondary,
-    lineHeight: 24,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  resultCard: {
-    backgroundColor: theme.card,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  resultTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.text,
-    marginBottom: 16,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  resultItem: {
-    marginBottom: 12,
-  },
-  resultLabel: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    marginBottom: 4,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  resultValue: {
-    fontSize: 16,
-    color: theme.text,
-    fontWeight: '500',
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  totalVerses: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: theme.border,
-  },
-  totalVersesLabel: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    marginBottom: 4,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  totalVersesValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.primary,
-    textAlign: isRTL ? 'right' : 'left',
+    color: '#ffffff',
+    height: Platform.OS === 'android' ? 50 : undefined,
   },
 });
