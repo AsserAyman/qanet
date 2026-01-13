@@ -20,7 +20,7 @@ export function StatsOverview({
   const { theme } = useTheme();
 
   // Calculate average verses per night (last 7 days)
-  const last7Days = [];
+  const last7Days: number[] = [];
   const today = new Date();
 
   for (let i = 6; i >= 0; i--) {

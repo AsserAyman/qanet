@@ -170,7 +170,10 @@ class SQLiteManager {
     if (validKeys.length === 0) return;
 
     const setClause = validKeys.map((key) => `${key} = ?`).join(', ');
-    const values = validKeys.map(key => updates[key as keyof LocalPrayerLog]);
+    const values = validKeys.map(key => {
+      const val = updates[key as keyof LocalPrayerLog];
+      return val === undefined ? null : val;
+    }) as SQLite.SQLiteBindValue[];
     values.push(localId);
 
     await this.db.runAsync(
@@ -216,7 +219,7 @@ class SQLiteManager {
       `SELECT * FROM ${TABLES.SYNC_OPERATIONS} ORDER BY created_at ASC`
     );
 
-    return result.map((row) => ({
+    return result.map((row: any) => ({
       id: row.id as string,
       table_name: row.table_name as string,
       operation: row.operation as 'create' | 'update' | 'delete',
@@ -270,7 +273,7 @@ class SQLiteManager {
     const result = await this.db.getFirstAsync(
       `SELECT * FROM ${TABLES.SYNC_METADATA} WHERE table_name = ?`,
       [tableName]
-    );
+    ) as any;
 
     if (!result) return null;
 

@@ -372,7 +372,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         setLanguageState(savedLanguage as Language);
       } else {
         // Detect system language
-        const systemLanguage = Localization.locale.startsWith('ar')
+        const locales = Localization.getLocales();
+        const systemLanguage = locales[0]?.languageCode?.startsWith('ar')
           ? 'ar'
           : 'en';
         setLanguageState(systemLanguage);
