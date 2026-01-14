@@ -1,7 +1,7 @@
 import { sqliteManager } from '../database/sqlite';
 import { supabase } from '../supabase';
 import { networkManager } from '../network/networkManager';
-import { LocalPrayerLog, SyncOperation, TABLES, SYNC_STATUS } from '../database/schema';
+import { SyncOperation, TABLES, SYNC_STATUS } from '../database/schema';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
@@ -162,8 +162,6 @@ class SyncEngine {
   }
 
   private async processSyncOperation(operation: SyncOperation): Promise<void> {
-    const userId = await this.getCurrentUserId();
-
     switch (operation.operation) {
       case 'create':
         await this.syncCreateOperation(operation);
@@ -180,24 +178,38 @@ class SyncEngine {
   }
 
   private async syncCreateOperation(operation: SyncOperation): Promise<void> {
-    const localLog = operation.data as LocalPrayerLog;
+    // Read the LATEST data from database instead of using potentially stale operation.data
+    // This ensures any updates made after the CREATE was queued are included
+    const currentLog = await sqliteManager.getPrayerLogByLocalId(operation.local_id);
+
+    if (!currentLog) {
+      // Record was deleted before sync completed - skip this operation
+      console.log(`[Sync] Skipping CREATE for ${operation.local_id} - record no longer exists`);
+      return;
+    }
+
+    if (currentLog.is_deleted) {
+      // Record was deleted before sync completed - skip this operation
+      console.log(`[Sync] Skipping CREATE for ${operation.local_id} - record is deleted`);
+      return;
+    }
 
     try {
       // Ensure we have custom user ID
       const customUserId = await this.ensureCustomUserExists();
 
-      // Create on server with custom_user_id
+      // Create on server with custom_user_id using latest local data
       const { data, error } = await supabase
         .from('prayer_logs')
         .insert({
-          custom_user_id: customUserId,  // ← Changed from user_id
-          date: localLog.date,
-          start_surah: localLog.start_surah,
-          start_ayah: localLog.start_ayah,
-          end_surah: localLog.end_surah,
-          end_ayah: localLog.end_ayah,
-          total_ayahs: localLog.total_ayahs,
-          status: localLog.status,
+          custom_user_id: customUserId,
+          date: currentLog.date,
+          start_surah: currentLog.start_surah,
+          start_ayah: currentLog.start_ayah,
+          end_surah: currentLog.end_surah,
+          end_ayah: currentLog.end_ayah,
+          total_ayahs: currentLog.total_ayahs,
+          status: currentLog.status,
         })
         .select()
         .single();
@@ -217,28 +229,47 @@ class SyncEngine {
   }
 
   private async syncUpdateOperation(operation: SyncOperation): Promise<void> {
-    const localLog = operation.data as Partial<LocalPrayerLog>;
-
     // Get the current local record to find server_id
-    const userId = await this.getCurrentUserId();
-    const logs = await sqliteManager.getPrayerLogs(userId, 1000);
-    const currentLog = logs.find(log => log.local_id === operation.local_id);
-    
-    if (!currentLog?.server_id) {
-      throw new Error('Cannot update: no server ID found');
+    const currentLog = await sqliteManager.getPrayerLogByLocalId(operation.local_id);
+
+    if (!currentLog) {
+      // Record was deleted before sync completed - skip this operation
+      console.log(`[Sync] Skipping UPDATE for ${operation.local_id} - record no longer exists`);
+      return;
     }
 
-    // Update on server
+    if (!currentLog.server_id) {
+      // No server_id yet - this means the CREATE operation hasn't completed
+      // Check if there's a pending CREATE operation for this record
+      const pendingOps = await sqliteManager.getPendingSyncOperations();
+      const hasPendingCreate = pendingOps.some(
+        op => op.local_id === operation.local_id && op.operation === 'create'
+      );
+
+      if (hasPendingCreate) {
+        // CREATE is still pending - skip this UPDATE since CREATE will use latest data
+        console.log(`[Sync] Skipping UPDATE for ${operation.local_id} - pending CREATE will include latest data`);
+        return;
+      }
+
+      // No pending CREATE and no server_id - this is a stale operation
+      // The CREATE likely already completed but failed to set server_id, or this is legacy data
+      // Skip this operation gracefully instead of failing repeatedly
+      console.log(`[Sync] Skipping stale UPDATE for ${operation.local_id} - no server_id and no pending CREATE`);
+      return;
+    }
+
+    // Read the latest data from database to ensure we sync the most recent version
     const { error } = await supabase
       .from('prayer_logs')
       .update({
-        date: localLog.date,
-        start_surah: localLog.start_surah,
-        start_ayah: localLog.start_ayah,
-        end_surah: localLog.end_surah,
-        end_ayah: localLog.end_ayah,
-        total_ayahs: localLog.total_ayahs,
-        status: localLog.status,
+        date: currentLog.date,
+        start_surah: currentLog.start_surah,
+        start_ayah: currentLog.start_ayah,
+        end_surah: currentLog.end_surah,
+        end_ayah: currentLog.end_ayah,
+        total_ayahs: currentLog.total_ayahs,
+        status: currentLog.status,
       })
       .eq('id', currentLog.server_id);
 
