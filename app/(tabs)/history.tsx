@@ -1,14 +1,16 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
+import React from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
 import { DailyBreakdownChart } from '../../components/DailyBreakdownChart';
+import { EditPrayerLogModal } from '../../components/EditPrayerLogModal';
 import { StatsOverview } from '../../components/StatsOverview';
 import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
+import { LocalPrayerLog } from '../../utils/database/schema';
 
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
@@ -21,19 +23,21 @@ export default function HistoryScreen() {
   const { session, loading: authLoading } = useAuth();
   const { t, isRTL } = useI18n();
   const { isInitialized } = useOfflineData();
-  const { logs, loading: logsLoading, refresh: refreshLogs } = usePrayerLogs();
-  const { 
-    stats, 
-    streak, 
-    yearlyData, 
-    monthlyData, 
-    loading: statsLoading, 
+  const { logs, loading: logsLoading, refresh: refreshLogs, deleteLog, updateLog } = usePrayerLogs();
+  const {
+    stats,
+    streak,
+    yearlyData,
+    monthlyData,
+    loading: statsLoading,
     error: statsError,
-    refresh: refreshStats 
+    refresh: refreshStats
   } = useOfflineStats();
-  
+
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [refreshing, setRefreshing] = React.useState(false);
+  const [selectedLog, setSelectedLog] = React.useState<LocalPrayerLog | null>(null);
+  const [showEditModal, setShowEditModal] = React.useState(false);
 
   // Force dark styles
   const styles = createStyles(isRTL);
@@ -53,6 +57,38 @@ export default function HistoryScreen() {
       setRefreshing(false);
     }
   }, [refreshLogs, refreshStats]);
+
+  const handleDelete = React.useCallback((log: LocalPrayerLog) => {
+    Alert.alert(
+      t('confirmDelete'),
+      t('deleteConfirmMessage'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteLog(log.local_id);
+              await refreshStats();
+            } catch (error) {
+              console.error('Delete failed:', error);
+            }
+          },
+        },
+      ]
+    );
+  }, [deleteLog, refreshStats, t]);
+
+  const handleEdit = React.useCallback((log: LocalPrayerLog) => {
+    setSelectedLog(log);
+    setShowEditModal(true);
+  }, []);
+
+  const handleSaveEdit = React.useCallback(async (localId: string, updates: Partial<LocalPrayerLog>) => {
+    await updateLog(localId, updates);
+    await refreshStats();
+  }, [updateLog, refreshStats]);
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
   const gradientColors = React.useMemo(() => {
@@ -185,24 +221,52 @@ export default function HistoryScreen() {
                   {log.total_ayahs} {t('verses')}
                 </Text>
               </View>
-              <View style={styles.syncStatusContainer}>
-                <Text
-                  style={[
-                    styles.historyStatus,
-                    { color: getStatusColor(log.status) },
-                  ]}
-                >
-                  {t(log.status.toLowerCase().replace(' ', ''))}
-                </Text>
-                {log.sync_status !== 'synced' && (
-                  <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor(log.sync_status) }]} />
-                )}
+              <View style={styles.rightContainer}>
+                <View style={styles.syncStatusContainer}>
+                  <Text
+                    style={[
+                      styles.historyStatus,
+                      { color: getStatusColor(log.status) },
+                    ]}
+                  >
+                    {t(log.status.toLowerCase().replace(' ', ''))}
+                  </Text>
+                  {log.sync_status !== 'synced' && (
+                    <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor(log.sync_status) }]} />
+                  )}
+                </View>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleEdit(log)}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="edit-2" size={16} color="rgba(255,255,255,0.6)" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleDelete(log)}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="trash-2" size={16} color="rgba(239,68,68,0.8)" />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           ))}
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      <EditPrayerLogModal
+        visible={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedLog(null);
+        }}
+        log={selectedLog}
+        onSave={handleSaveEdit}
+      />
     </View>
   );
 }
@@ -330,8 +394,12 @@ const createStyles = (isRTL: boolean) =>
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
+    rightContainer: {
+      alignItems: isRTL ? 'flex-start' : 'flex-end',
+      gap: 8,
+    },
     syncStatusContainer: {
-      alignItems: 'flex-end',
+      alignItems: isRTL ? 'flex-start' : 'flex-end',
       gap: 6,
     },
     historyStatus: {
@@ -345,5 +413,17 @@ const createStyles = (isRTL: boolean) =>
       width: 8,
       height: 8,
       borderRadius: 4,
+    },
+    actionButtons: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      gap: 8,
+    },
+    actionButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });

@@ -117,6 +117,13 @@ export const translations = {
     confirm: 'Confirm',
     error: 'Error',
     success: 'Success',
+    edit: 'Edit',
+    delete: 'Delete',
+    confirmDelete: 'Delete Prayer Log',
+    deleteConfirmMessage: 'Are you sure you want to delete this prayer log? This action cannot be undone.',
+    editPrayerLog: 'Edit Prayer Log',
+    updating: 'Updating...',
+    update: 'Update',
 
     // Status messages
     hugeRewardsAwaitYou: 'Huge rewards await you!',
@@ -283,6 +290,13 @@ export const translations = {
     confirm: 'تأكيد',
     error: 'خطأ',
     success: 'نجح',
+    edit: 'تعديل',
+    delete: 'حذف',
+    confirmDelete: 'حذف سجل الصلاة',
+    deleteConfirmMessage: 'هل أنت متأكد من حذف سجل الصلاة هذا؟ لا يمكن التراجع عن هذا الإجراء.',
+    editPrayerLog: 'تعديل سجل الصلاة',
+    updating: 'جاري التحديث...',
+    update: 'تحديث',
 
     // Status messages
     hugeRewardsAwaitYou: 'أجر عظيم في انتظارك!',
