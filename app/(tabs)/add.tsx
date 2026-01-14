@@ -1,6 +1,5 @@
-import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState, useMemo } from 'react';
@@ -14,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
 import { usePrayerLogs, useOfflineData } from '../../hooks/useOfflineData';
@@ -23,6 +21,8 @@ import {
   getVerseStatus,
   quranData,
 } from '../../utils/quranData';
+import { SelectField } from '../../components/SelectField';
+import { PickerModal, PickerOption } from '../../components/PickerModal';
 
 const { width } = Dimensions.get('window');
 
@@ -41,11 +41,50 @@ export default function AddPrayerScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Modal visibility states
+  const [showStartSurahPicker, setShowStartSurahPicker] = useState(false);
+  const [showStartAyahPicker, setShowStartAyahPicker] = useState(false);
+  const [showEndSurahPicker, setShowEndSurahPicker] = useState(false);
+  const [showEndAyahPicker, setShowEndAyahPicker] = useState(false);
+
   // Force dark theme styles
   const styles = createStyles(isRTL);
 
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
+
+  const getSurahName = (name: string) => {
+    const surah = quranData.find(s => s.name === name);
+    return isRTL ? surah?.nameAr || name : name;
+  };
+
+  // Surah picker options
+  const surahOptions: PickerOption[] = useMemo(() =>
+    quranData.map((surah) => ({
+      label: isRTL ? surah.nameAr : surah.name,
+      value: surah.name,
+      searchTerms: `${surah.name} ${surah.nameAr}`,
+    })),
+    [isRTL]
+  );
+
+  // Ayah picker options for start surah
+  const startAyahOptions: PickerOption[] = useMemo(() =>
+    Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => ({
+      label: String(i + 1),
+      value: String(i + 1),
+    })),
+    [currentSurah]
+  );
+
+  // Ayah picker options for end surah
+  const endAyahOptions: PickerOption[] = useMemo(() =>
+    Array.from({ length: endCurrentSurah?.ayahs || 0 }, (_, i) => ({
+      label: String(i + 1),
+      value: String(i + 1),
+    })),
+    [endCurrentSurah]
+  );
 
   const totalVerses = calculateVersesBetween(
     selectedSurah,
@@ -204,55 +243,18 @@ export default function AddPrayerScreen() {
 
           <View style={styles.pickersSection}>
             {/* Start Point */}
-            <View style={styles.rangeLabelRow}>
-              <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
-            </View>
+            <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
             <View style={styles.pickerRow}>
-              <View style={styles.pickerWrapper}>
-                <Text style={styles.pickerLabel}>{t('surah')}</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={selectedSurah}
-                    onValueChange={setSelectedSurah}
-                    style={styles.picker}
-                    dropdownIconColor="#ffffff"
-                    itemStyle={{ color: '#ffffff' }}
-                  >
-                    {quranData.map((surah) => (
-                      <Picker.Item
-                        key={surah.name}
-                        label={isRTL ? surah.nameAr : surah.name}
-                        value={surah.name}
-                        color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-              <View style={styles.pickerWrapper}>
-                <Text style={styles.pickerLabel}>{t('ayah')}</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={String(selectedAyah)}
-                    onValueChange={(value) => setSelectedAyah(Number(value))}
-                    style={styles.picker}
-                    dropdownIconColor="#ffffff"
-                    itemStyle={{ color: '#ffffff' }}
-                  >
-                    {Array.from(
-                      { length: currentSurah?.ayahs || 0 },
-                      (_, i) => (
-                        <Picker.Item
-                          key={i + 1}
-                          label={String(i + 1)}
-                          value={String(i + 1)}
-                          color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
-                        />
-                      )
-                    )}
-                  </Picker>
-                </View>
-              </View>
+              <SelectField
+                label={t('surah')}
+                value={getSurahName(selectedSurah)}
+                onPress={() => setShowStartSurahPicker(true)}
+              />
+              <SelectField
+                label={t('ayah')}
+                value={String(selectedAyah)}
+                onPress={() => setShowStartAyahPicker(true)}
+              />
             </View>
 
             <View style={styles.rangeDivider}>
@@ -262,55 +264,18 @@ export default function AddPrayerScreen() {
             </View>
 
             {/* End Point */}
-            <View style={styles.rangeLabelRow}>
-              <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
-            </View>
+            <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
             <View style={styles.pickerRow}>
-              <View style={styles.pickerWrapper}>
-                <Text style={styles.pickerLabel}>{t('surah')}</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={endSurah}
-                    onValueChange={setEndSurah}
-                    style={styles.picker}
-                    dropdownIconColor="#ffffff"
-                    itemStyle={{ color: '#ffffff' }}
-                  >
-                    {quranData.map((surah) => (
-                      <Picker.Item
-                        key={surah.name}
-                        label={isRTL ? surah.nameAr : surah.name}
-                        value={surah.name}
-                        color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-              <View style={styles.pickerWrapper}>
-                <Text style={styles.pickerLabel}>{t('ayah')}</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={String(endAyah)}
-                    onValueChange={(value) => setEndAyah(Number(value))}
-                    style={styles.picker}
-                    dropdownIconColor="#ffffff"
-                    itemStyle={{ color: '#ffffff' }}
-                  >
-                    {Array.from(
-                      { length: endCurrentSurah?.ayahs || 0 },
-                      (_, i) => (
-                        <Picker.Item
-                          key={i + 1}
-                          label={String(i + 1)}
-                          value={String(i + 1)}
-                          color={Platform.OS === 'android' ? '#000000' : '#ffffff'}
-                        />
-                      )
-                    )}
-                  </Picker>
-                </View>
-              </View>
+              <SelectField
+                label={t('surah')}
+                value={getSurahName(endSurah)}
+                onPress={() => setShowEndSurahPicker(true)}
+              />
+              <SelectField
+                label={t('ayah')}
+                value={String(endAyah)}
+                onPress={() => setShowEndAyahPicker(true)}
+              />
             </View>
           </View>
         </View>
@@ -339,6 +304,59 @@ export default function AddPrayerScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Picker Modals */}
+      <PickerModal
+        visible={showStartSurahPicker}
+        onClose={() => setShowStartSurahPicker(false)}
+        onSelect={(value) => {
+          setSelectedSurah(value);
+          const newSurah = quranData.find((s) => s.name === value);
+          if (newSurah && selectedAyah > newSurah.ayahs) {
+            setSelectedAyah(1);
+          }
+        }}
+        options={surahOptions}
+        selectedValue={selectedSurah}
+        title={t('startingSurah')}
+        searchPlaceholder={t('surah')}
+      />
+
+      <PickerModal
+        visible={showStartAyahPicker}
+        onClose={() => setShowStartAyahPicker(false)}
+        onSelect={(value) => setSelectedAyah(Number(value))}
+        options={startAyahOptions}
+        selectedValue={String(selectedAyah)}
+        title={t('ayah')}
+        showSearch={false}
+      />
+
+      <PickerModal
+        visible={showEndSurahPicker}
+        onClose={() => setShowEndSurahPicker(false)}
+        onSelect={(value) => {
+          setEndSurah(value);
+          const newSurah = quranData.find((s) => s.name === value);
+          if (newSurah && endAyah > newSurah.ayahs) {
+            setEndAyah(1);
+          }
+        }}
+        options={surahOptions}
+        selectedValue={endSurah}
+        title={t('endingSurah')}
+        searchPlaceholder={t('surah')}
+      />
+
+      <PickerModal
+        visible={showEndAyahPicker}
+        onClose={() => setShowEndAyahPicker(false)}
+        onSelect={(value) => setEndAyah(Number(value))}
+        options={endAyahOptions}
+        selectedValue={String(endAyah)}
+        title={t('ayah')}
+        showSearch={false}
+      />
     </View>
   );
 }
@@ -502,41 +520,18 @@ const createStyles = (isRTL: boolean) => StyleSheet.create({
     marginTop: 12,
   },
   pickersSection: {
-    gap: 16,
-  },
-  rangeLabelRow: {
-    marginBottom: 4,
-    marginTop: 8,
+    gap: 12,
   },
   sectionLabel: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.5)',
     textAlign: isRTL ? 'right' : 'left',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    marginBottom: 4,
   },
   pickerRow: {
     flexDirection: isRTL ? 'row-reverse' : 'row',
     gap: 12,
-  },
-  pickerWrapper: {
-    flex: 1,
-  },
-  pickerLabel: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.4)',
-    marginBottom: 6,
-    marginLeft: 4,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  pickerContainer: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  picker: {
-    color: '#ffffff',
-    height: Platform.OS === 'android' ? 50 : undefined,
   },
   rangeDivider: {
     flexDirection: 'row',
