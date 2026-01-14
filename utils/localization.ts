@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     // Navigation
-    nightPrayer: 'Night Prayer',
+    nightPrayer: 'Home',
     addPrayer: 'Add Prayer',
     history: 'History',
     settings: 'Settings',
@@ -108,9 +108,10 @@ export const translations = {
     lastNight: 'Last Night',
     bestNight: 'Best Night',
     average: 'Average',
-    verseCalculator: 'Verse Calculator',
+    verseCalculator: 'Calculator',
 
     // Common
+    seeAll: 'See All',
     loading: 'Loading...',
     save: 'Save',
     cancel: 'Cancel',
@@ -120,7 +121,8 @@ export const translations = {
     edit: 'Edit',
     delete: 'Delete',
     confirmDelete: 'Delete Prayer Log',
-    deleteConfirmMessage: 'Are you sure you want to delete this prayer log? This action cannot be undone.',
+    deleteConfirmMessage:
+      'Are you sure you want to delete this prayer log? This action cannot be undone.',
     editPrayerLog: 'Edit Prayer Log',
     updating: 'Updating...',
     update: 'Update',
@@ -284,6 +286,7 @@ export const translations = {
     verseCalculator: 'حاسبة الآيات',
 
     // Common
+    seeAll: 'عرض الكل',
     loading: 'جاري التحميل...',
     save: 'حفظ',
     cancel: 'إلغاء',
@@ -293,7 +296,8 @@ export const translations = {
     edit: 'تعديل',
     delete: 'حذف',
     confirmDelete: 'حذف سجل الصلاة',
-    deleteConfirmMessage: 'هل أنت متأكد من حذف سجل الصلاة هذا؟ لا يمكن التراجع عن هذا الإجراء.',
+    deleteConfirmMessage:
+      'هل أنت متأكد من حذف سجل الصلاة هذا؟ لا يمكن التراجع عن هذا الإجراء.',
     editPrayerLog: 'تعديل سجل الصلاة',
     updating: 'جاري التحديث...',
     update: 'تحديث',

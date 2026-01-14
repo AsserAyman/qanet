@@ -55,6 +55,12 @@ function AppContent() {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="all-history"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
       <StatusBar style={isDark ? "light" : "dark"} />
     </>
