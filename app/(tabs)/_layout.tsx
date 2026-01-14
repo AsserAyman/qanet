@@ -1,6 +1,9 @@
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { NativeTabs, Icon, Label, VectorIcon } from 'expo-router/unstable-native-tabs';
-import { Platform } from 'react-native';
+import { useState } from 'react';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AddPrayerModal } from '../../components/AddPrayerModal';
 import { useI18n } from '../../contexts/I18nContext';
 
 type TabWithPlatformIcons = {
@@ -24,6 +27,8 @@ function hasVectorIcon(tab: Tab): tab is TabWithVectorIcon {
 
 export default function TabLayout() {
   const { t, isRTL } = useI18n();
+  const insets = useSafeAreaInsets();
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const tabs: Tab[] = [
     {
@@ -31,12 +36,6 @@ export default function TabLayout() {
       label: t('nightPrayer'),
       iosIcon: { default: 'moon', selected: 'moon.fill' },
       androidIcon: { family: Feather, name: 'moon' },
-    },
-    {
-      name: 'add',
-      label: t('addPrayer'),
-      iosIcon: { default: 'plus.circle', selected: 'plus.circle.fill' },
-      androidIcon: { family: Feather, name: 'plus-circle' },
     },
     {
       name: 'calculator',
@@ -71,19 +70,63 @@ export default function TabLayout() {
   };
 
   return (
-    <NativeTabs
-      labelStyle={{
-        color: 'white',
-      }}
-      tintColor='white'
-      disableTransparentOnScrollEdge={false}
-    >
-      {orderedTabs.map((tab) => (
-        <NativeTabs.Trigger key={tab.name} name={tab.name}>
-          <Label>{tab.label}</Label>
-          {renderIcon(tab)}
-        </NativeTabs.Trigger>
-      ))}
-    </NativeTabs>
+    <View style={styles.container}>
+      <NativeTabs
+        labelStyle={{
+          color: 'white',
+        }}
+        tintColor='white'
+        disableTransparentOnScrollEdge={false}
+      >
+        {orderedTabs.map((tab) => (
+          <NativeTabs.Trigger key={tab.name} name={tab.name}>
+            <Label>{tab.label}</Label>
+            {renderIcon(tab)}
+          </NativeTabs.Trigger>
+        ))}
+      </NativeTabs>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={[
+          styles.fab,
+          {
+            bottom: insets.bottom + 70,
+            right: isRTL ? undefined : 20,
+            left: isRTL ? 20 : undefined,
+          },
+        ]}
+        onPress={() => setShowAddModal(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={28} color="#ffffff" />
+      </TouchableOpacity>
+
+      {/* Add Prayer Modal */}
+      <AddPrayerModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#6366f1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+});
