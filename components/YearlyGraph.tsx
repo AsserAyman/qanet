@@ -223,15 +223,12 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
 const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
   StyleSheet.create({
     container: {
-      backgroundColor: theme.card,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 16,
       padding: 24,
       marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     header: {
       marginBottom: 24,
@@ -240,14 +237,14 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
     title: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     subtitle: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
@@ -263,7 +260,7 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
     },
     monthLabel: {
       fontSize: 10,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       position: 'absolute',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
@@ -277,7 +274,7 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
     },
     dayLabel: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       textAlign: 'center',
       lineHeight: cellSize - 2,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -309,7 +306,7 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
     },
     legendText: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

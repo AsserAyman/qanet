@@ -102,20 +102,17 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
 
 const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   container: {
-    backgroundColor: theme.card,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   header: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.text,
+    color: '#ffffff',
     marginBottom: 16,
     textAlign: 'center',
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
@@ -127,7 +124,7 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   weekDay: {
     flex: 1,
     textAlign: 'center',
-    color: theme.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '500',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
@@ -148,7 +145,7 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: theme.text,
+    color: '#ffffff',
     fontWeight: '500',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
@@ -159,7 +156,7 @@ const createStyles = (theme: any, isRTL: boolean) => StyleSheet.create({
     opacity: 0.5,
   },
   otherMonthText: {
-    color: theme.textSecondary,
+    color: 'rgba(255,255,255,0.4)',
   },
   dot: {
     width: 4,

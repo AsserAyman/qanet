@@ -180,15 +180,12 @@ export function DailyBreakdownChart({ data }: DailyBreakdownChartProps) {
 const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
-      backgroundColor: theme.card,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 16,
       padding: 20,
       marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     header: {
       marginBottom: 24,
@@ -197,7 +194,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     title: {
       fontSize: 16,
       fontWeight: '600',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 16,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -207,7 +204,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     totalLabel: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -215,12 +212,12 @@ const createStyles = (theme: any, isRTL: boolean) =>
     totalValue: {
       fontSize: 32,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 4,
     },
     periodLabel: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -244,6 +241,6 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     timeLabel: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
     },
   });

@@ -137,7 +137,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     title: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 20,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
@@ -149,14 +149,11 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     metricCard: {
       flex: 1,
-      backgroundColor: theme.card,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 16,
       padding: 20,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     metricHeader: {
       marginBottom: 16,
@@ -164,7 +161,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     metricTitle: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 8,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -172,18 +169,15 @@ const createStyles = (theme: any, isRTL: boolean) =>
     metricValue: {
       fontSize: 32,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       textAlign: isRTL ? 'right' : 'left',
     },
     largeMetricCard: {
-      backgroundColor: theme.card,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 16,
       padding: 20,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     largeMetricHeader: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
@@ -194,7 +188,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     largeMetricTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: theme.text,
+      color: '#ffffff',
       flex: 1,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
@@ -204,7 +198,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     changeLabel: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 4,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
@@ -215,7 +209,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     largeMetricValue: {
       fontSize: 48,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 20,
       textAlign: isRTL ? 'right' : 'left',
     },
@@ -244,7 +238,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     miniChartLabel: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       textAlign: 'center',
       flex: 1,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,

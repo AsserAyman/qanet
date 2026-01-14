@@ -138,15 +138,12 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
 const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
-      backgroundColor: theme.card,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 16,
       padding: 20,
       marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     header: {
       marginBottom: 20,
@@ -155,14 +152,14 @@ const createStyles = (theme: any, isRTL: boolean) =>
     title: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     subtitle: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
@@ -172,13 +169,13 @@ const createStyles = (theme: any, isRTL: boolean) =>
       gap: 12,
     },
     card: {
-      backgroundColor: theme.background,
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
       borderRadius: 12,
       padding: 16,
       width: '48%',
       minHeight: 140,
       borderWidth: 1,
-      borderColor: theme.border,
+      borderColor: 'rgba(255,255,255,0.05)',
     },
     cardHeader: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
@@ -197,7 +194,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     cardTitle: {
       fontSize: 14,
       fontWeight: '600',
-      color: theme.text,
+      color: '#ffffff',
       flex: 1,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -205,20 +202,20 @@ const createStyles = (theme: any, isRTL: boolean) =>
     percentage: {
       fontSize: 28,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
     },
     count: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 8,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     description: {
       fontSize: 11,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 12,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -258,7 +255,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     footerText: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

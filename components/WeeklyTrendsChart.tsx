@@ -93,7 +93,7 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
                       width: barWidth - 8,
                       backgroundColor: week.isCurrentWeek
                         ? '#3b82f6'
-                        : '#e2e8f0',
+                        : 'rgba(255,255,255,0.1)',
                     },
                   ]}
                 />
@@ -119,15 +119,12 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
 const createStyles = (theme: any, isRTL: boolean) =>
   StyleSheet.create({
     container: {
-      backgroundColor: theme.card,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 16,
       padding: 20,
       marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     header: {
       marginBottom: 24,
@@ -136,7 +133,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     title: {
       fontSize: 16,
       fontWeight: '600',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 16,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -146,7 +143,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     totalLabel: {
       fontSize: 14,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -154,7 +151,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     totalValue: {
       fontSize: 32,
       fontWeight: 'bold',
-      color: theme.text,
+      color: '#ffffff',
       marginBottom: 4,
     },
     changeText: {
@@ -181,14 +178,14 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     barLabel: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       marginBottom: 2,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     barValue: {
       fontSize: 12,
       fontWeight: '600',
-      color: theme.text,
+      color: '#ffffff',
     },
     daysContainer: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
@@ -200,7 +197,7 @@ const createStyles = (theme: any, isRTL: boolean) =>
     },
     dayLabel: {
       fontSize: 12,
-      color: theme.textSecondary,
+      color: 'rgba(255,255,255,0.6)',
       textAlign: 'center',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
