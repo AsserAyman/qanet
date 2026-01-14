@@ -20,6 +20,7 @@ import {
 } from '../../utils/quranData';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
+import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useOfflineData';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +34,20 @@ export default function NightPrayerScreen() {
   const [endAyah, setEndAyah] = useState(1);
 
   const { t, isRTL } = useI18n();
+  const { isInitialized } = useOfflineData();
+  const { logs } = usePrayerLogs();
+  const { streak, yearlyData } = useOfflineStats();
+
+  const lastEntry = logs.length > 0 ? logs[0] : null;
+
+  // Calculate stats from yearlyData
+  const computedStats = React.useMemo(() => {
+    const values = Object.values(yearlyData).map((d) => d.verses);
+    const totalAyahs = values.reduce((sum, v) => sum + v, 0);
+    const bestNight = values.length > 0 ? Math.max(...values) : 0;
+    const averageAyahs = values.length > 0 ? Math.round(totalAyahs / values.length) : 0;
+    return { totalAyahs, bestNight, averageAyahs };
+  }, [yearlyData]);
 
   const getSurahName = (name: string) => {
     const surah = quranData.find(s => s.name === name);
@@ -70,58 +85,75 @@ export default function NightPrayerScreen() {
         style={styles.background}
       />
       
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Qanet</Text>
-          <Text style={styles.headerSubtitle}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <Image
+            source={require('../../assets/images/moon-image.png')}
+            style={styles.heroMoonImage}
+          />
+          <Text style={styles.heroTitle}>Qanet</Text>
+          <Text style={styles.heroSubtitle}>
             {t('calculateYourNightPrayerVerses')}
           </Text>
         </View>
 
-        {/* Status Card */}
-        <View style={styles.statusCard}>
-          <View style={styles.statusRow}>
-            <Image
-              source={require('../../assets/images/moon-image.png')}
-              style={styles.moonImage}
-            />
-            <View style={styles.statusTextContainer}>
-              <Text style={styles.statusTitle}>
-                {t(status.status.toLowerCase().replace(/\s+/g, ''))}
-              </Text>
-              <Text style={styles.statusDescription}>
-                {status.description}
-              </Text>
+        {/* Streak & Last Entry Card */}
+        <View style={styles.dashboardCard}>
+          <View style={styles.dashboardRow}>
+            <View style={styles.dashboardItem}>
+              <View style={styles.streakContainer}>
+                <Text style={styles.streakNumber}>{streak}</Text>
+                <Text style={styles.streakEmoji}>🔥</Text>
+              </View>
+              <Text style={styles.dashboardLabel}>{t('currentStreak')}</Text>
             </View>
-          </View>
-          
-          <View style={styles.totalVersesContainer}>
-            <Text style={styles.totalVersesNumber}>{range.totalAyahs}</Text>
-            <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
-          </View>
-        </View>
 
-        {/* Range Display */}
-        <View style={styles.rangeDisplayCard}>
-          <View style={styles.rangeRow}>
-            <View style={styles.rangeItem}>
-              <Text style={styles.rangeSurah}>{getSurahName(range.startSurah)}</Text>
-              <Text style={styles.rangeAyah}>{t('ayah')} {range.startAyah}</Text>
-            </View>
-            <Feather name={isRTL ? "arrow-left" : "arrow-right"} size={20} color="#ffffff" style={{ opacity: 0.5 }} />
-            <View style={styles.rangeItem}>
-              <Text style={styles.rangeSurah}>{getSurahName(range.endSurah)}</Text>
-              <Text style={styles.rangeAyah}>{t('ayah')} {range.endAyah}</Text>
+            <View style={styles.dashboardDivider} />
+
+            <View style={styles.dashboardItem}>
+              {lastEntry ? (
+                <>
+                  <Text style={styles.lastEntryNumber}>{lastEntry.total_ayahs}</Text>
+                  <Text style={styles.dashboardLabel}>{t('lastNight')}</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.lastEntryNumber}>—</Text>
+                  <Text style={styles.dashboardLabel}>{t('lastNight')}</Text>
+                </>
+              )}
             </View>
           </View>
         </View>
 
-        {/* Controls Container */}
-        <View style={styles.controlsContainer}>
+        {/* Quick Stats */}
+        <View style={styles.quickStatsRow}>
+          <View style={styles.quickStatCard}>
+            <Text style={styles.quickStatNumber}>{computedStats.totalAyahs.toLocaleString()}</Text>
+            <Text style={styles.quickStatLabel}>{t('totalVerses')}</Text>
+          </View>
+          <View style={styles.quickStatCard}>
+            <Text style={styles.quickStatNumber}>{computedStats.bestNight}</Text>
+            <Text style={styles.quickStatLabel}>{t('bestNight')}</Text>
+          </View>
+          <View style={styles.quickStatCard}>
+            <Text style={styles.quickStatNumber}>{computedStats.averageAyahs}</Text>
+            <Text style={styles.quickStatLabel}>{t('average')}</Text>
+          </View>
+        </View>
+
+        {/* Calculator Section Header */}
+        <View style={styles.sectionHeader}>
+          <Ionicons name="calculator-outline" size={20} color="rgba(255,255,255,0.6)" />
+          <Text style={styles.sectionHeaderText}>{t('verseCalculator')}</Text>
+        </View>
+{/* Controls Container */}
+<View style={styles.controlsContainer}>
           {/* Toggle */}
           <View style={styles.toggleContainer}>
             <TouchableOpacity
@@ -292,6 +324,26 @@ export default function NightPrayerScreen() {
           </View>
 
         </View>
+        {/* Range Display */}
+        <View style={styles.rangeDisplayCard}>
+          <View style={styles.rangeRow}>
+            <View style={styles.rangeItem}>
+              <Text style={styles.rangeSurah}>{getSurahName(range.startSurah)}</Text>
+              <Text style={styles.rangeAyah}>{t('ayah')} {range.startAyah}</Text>
+            </View>
+            <Feather name={isRTL ? "arrow-left" : "arrow-right"} size={20} color="#ffffff" style={{ opacity: 0.5 }} />
+            <View style={styles.rangeItem}>
+              <Text style={styles.rangeSurah}>{getSurahName(range.endSurah)}</Text>
+              <Text style={styles.rangeAyah}>{t('ayah')} {range.endAyah}</Text>
+            </View>
+          </View>
+          <View style={styles.rangeResultContainer}>
+            <Text style={styles.rangeResultNumber}>{range.totalAyahs}</Text>
+            <Text style={styles.rangeResultLabel}>{t('verses')}</Text>
+          </View>
+        </View>
+
+        
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -317,83 +369,124 @@ const createStyles = (isRTL: boolean) => StyleSheet.create({
     padding: 24,
     paddingTop: 60,
   },
-  header: {
+  // Hero Section
+  heroSection: {
+    alignItems: 'center',
     marginBottom: 32,
-    alignItems: isRTL ? 'flex-end' : 'flex-start',
   },
-  headerTitle: {
-    fontSize: 32,
+  heroMoonImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    marginBottom: 20,
+  },
+  heroTitle: {
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 4,
+    marginBottom: 8,
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
-  headerSubtitle: {
+  heroSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
-  statusCard: {
+  // Dashboard Card
+  dashboardCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 24,
     padding: 24,
-    marginBottom: 24,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  statusRow: {
+  dashboardRow: {
     flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    gap: 16,
   },
-  moonImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-  },
-  statusTextContainer: {
+  dashboardItem: {
     flex: 1,
+    alignItems: 'center',
   },
-  statusTitle: {
-    fontSize: 24,
+  dashboardDivider: {
+    width: 1,
+    height: 60,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginHorizontal: 20,
+  },
+  streakContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  streakNumber: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  streakEmoji: {
+    fontSize: 28,
+  },
+  lastEntryNumber: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  dashboardLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  // Quick Stats
+  quickStatsRow: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    gap: 12,
+    marginBottom: 32,
+  },
+  quickStatCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  quickStatNumber: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 4,
-    textAlign: isRTL ? 'right' : 'left',
+  },
+  quickStatLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  // Section Header
+  sectionHeader: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  sectionHeaderText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
     fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
   },
-  statusDescription: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  totalVersesContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-    paddingTop: 16,
-  },
-  totalVersesNumber: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    lineHeight: 56,
-  },
-  totalVersesLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
+  // Range Display
   rangeDisplayCard: {
     backgroundColor: '#0f0f0f',
     borderRadius: 20,
     padding: 20,
-    marginBottom: 24,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
@@ -416,6 +509,26 @@ const createStyles = (isRTL: boolean) => StyleSheet.create({
   rangeAyah: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.6)',
+    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+  },
+  rangeResultContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    gap: 8,
+  },
+  rangeResultNumber: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  rangeResultLabel: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.5)',
     fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
   },
   controlsContainer: {

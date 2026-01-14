@@ -104,6 +104,12 @@ export const translations = {
     creatingAccount: 'Creating account...',
     createAccount: 'Create Account',
 
+    // Dashboard
+    lastNight: 'Last Night',
+    bestNight: 'Best Night',
+    average: 'Average',
+    verseCalculator: 'Verse Calculator',
+
     // Common
     loading: 'Loading...',
     save: 'Save',
@@ -263,6 +269,12 @@ export const translations = {
     or: 'أو',
     creatingAccount: 'جاري إنشاء الحساب...',
     createAccount: 'إنشاء حساب',
+
+    // Dashboard
+    lastNight: 'الليلة الماضية',
+    bestNight: 'أفضل ليلة',
+    average: 'المتوسط',
+    verseCalculator: 'حاسبة الآيات',
 
     // Common
     loading: 'جاري التحميل...',
