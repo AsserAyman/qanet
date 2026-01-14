@@ -1,9 +1,8 @@
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { NativeTabs, Icon, Label, VectorIcon } from 'expo-router/unstable-native-tabs';
-import { useState } from 'react';
+import { router } from 'expo-router';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AddPrayerModal } from '../../components/AddPrayerModal';
 import { useI18n } from '../../contexts/I18nContext';
 
 type TabWithPlatformIcons = {
@@ -28,7 +27,6 @@ function hasVectorIcon(tab: Tab): tab is TabWithVectorIcon {
 export default function TabLayout() {
   const { t, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
-  const [showAddModal, setShowAddModal] = useState(false);
 
   const tabs: Tab[] = [
     {
@@ -96,17 +94,11 @@ export default function TabLayout() {
             left: isRTL ? 20 : undefined,
           },
         ]}
-        onPress={() => setShowAddModal(true)}
+        onPress={() => router.push('/add-prayer')}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color="#ffffff" />
       </TouchableOpacity>
-
-      {/* Add Prayer Modal */}
-      <AddPrayerModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
     </View>
   );
 }

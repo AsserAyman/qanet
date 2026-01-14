@@ -1,12 +1,11 @@
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
 import { DailyBreakdownChart } from '../../components/DailyBreakdownChart';
-import { EditPrayerLogModal } from '../../components/EditPrayerLogModal';
 import { StatsOverview } from '../../components/StatsOverview';
 import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
@@ -19,11 +18,10 @@ import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useO
 import { quranData, getGradientColors } from '../../utils/quranData';
 
 export default function HistoryScreen() {
-  const router = useRouter();
   const { session, loading: authLoading } = useAuth();
   const { t, isRTL } = useI18n();
   const { isInitialized } = useOfflineData();
-  const { logs, loading: logsLoading, refresh: refreshLogs, deleteLog, updateLog } = usePrayerLogs();
+  const { logs, loading: logsLoading, refresh: refreshLogs, deleteLog } = usePrayerLogs();
   const {
     stats,
     streak,
@@ -36,8 +34,6 @@ export default function HistoryScreen() {
 
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [refreshing, setRefreshing] = React.useState(false);
-  const [selectedLog, setSelectedLog] = React.useState<LocalPrayerLog | null>(null);
-  const [showEditModal, setShowEditModal] = React.useState(false);
 
   // Force dark styles
   const styles = createStyles(isRTL);
@@ -81,14 +77,8 @@ export default function HistoryScreen() {
   }, [deleteLog, refreshStats, t]);
 
   const handleEdit = React.useCallback((log: LocalPrayerLog) => {
-    setSelectedLog(log);
-    setShowEditModal(true);
+    router.push(`/edit-prayer/${log.local_id}`);
   }, []);
-
-  const handleSaveEdit = React.useCallback(async (localId: string, updates: Partial<LocalPrayerLog>) => {
-    await updateLog(localId, updates);
-    await refreshStats();
-  }, [updateLog, refreshStats]);
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
   const gradientColors = React.useMemo(() => {
@@ -257,16 +247,6 @@ export default function HistoryScreen() {
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
-
-      <EditPrayerLogModal
-        visible={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedLog(null);
-        }}
-        log={selectedLog}
-        onSave={handleSaveEdit}
-      />
     </View>
   );
 }

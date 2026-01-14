@@ -1,42 +1,39 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useState, useMemo } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   ScrollView,
-  Image,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useI18n } from '../contexts/I18nContext';
-import { usePrayerLogs } from '../hooks/useOfflineData';
-import { PickerModal, PickerOption } from './PickerModal';
-import { SelectField } from './SelectField';
+import { StatusBar } from 'expo-status-bar';
+import { useI18n } from '../../contexts/I18nContext';
+import { usePrayerLogs, useOfflineStats } from '../../hooks/useOfflineData';
+import { PickerModal, PickerOption } from '../../components/PickerModal';
+import { SelectField } from '../../components/SelectField';
 import {
   calculateVersesBetween,
   getVerseStatus,
   getGradientColors,
   quranData,
-} from '../utils/quranData';
+} from '../../utils/quranData';
 
-interface AddPrayerModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
-
-export function AddPrayerModal({
-  visible,
-  onClose,
-  onSuccess,
-}: AddPrayerModalProps) {
+export default function EditPrayerScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { isRTL, t } = useI18n();
   const insets = useSafeAreaInsets();
-  const { createLog } = usePrayerLogs();
+  const { logs, updateLog } = usePrayerLogs();
+  const { refresh: refreshStats } = useOfflineStats();
+
+  // Find the log by local_id
+  const log = useMemo(() => logs.find((l) => l.local_id === id), [logs, id]);
 
   // Form state
   const [date, setDate] = useState(new Date());
@@ -46,7 +43,6 @@ export function AddPrayerModal({
   const [endSurah, setEndSurah] = useState('Al-Baqara');
   const [endAyah, setEndAyah] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Modal visibility states
   const [showStartSurahPicker, setShowStartSurahPicker] = useState(false);
@@ -55,6 +51,17 @@ export function AddPrayerModal({
   const [showEndAyahPicker, setShowEndAyahPicker] = useState(false);
 
   const styles = createStyles(isRTL);
+
+  // Initialize form with log data when log is found
+  useEffect(() => {
+    if (log) {
+      setDate(new Date(log.date));
+      setSelectedSurah(log.start_surah);
+      setSelectedAyah(log.start_ayah);
+      setEndSurah(log.end_surah);
+      setEndAyah(log.end_ayah);
+    }
+  }, [log]);
 
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
@@ -107,35 +114,26 @@ export function AddPrayerModal({
     [totalVerses]
   );
 
-  const resetForm = () => {
-    setDate(new Date());
-    setSelectedSurah('Al-Baqara');
-    setSelectedAyah(1);
-    setEndSurah('Al-Baqara');
-    setEndAyah(1);
-    setError(null);
-  };
-
   const handleSave = async () => {
+    if (!log) return;
+
     try {
       setLoading(true);
-      setError(null);
 
-      await createLog({
+      await updateLog(log.local_id, {
+        date: date.toISOString().split('T')[0],
         start_surah: selectedSurah,
         start_ayah: selectedAyah,
         end_surah: endSurah,
         end_ayah: endAyah,
         total_ayahs: totalVerses,
         status: status.status,
-        date: date,
       });
 
-      resetForm();
-      onSuccess?.();
-      onClose();
-    } catch (err: any) {
-      setError(err.message);
+      await refreshStats();
+      router.back();
+    } catch (error) {
+      console.error('Failed to update prayer log:', error);
     } finally {
       setLoading(false);
     }
@@ -150,209 +148,191 @@ export function AddPrayerModal({
 
   const handleClose = () => {
     if (!loading) {
-      resetForm();
-      onClose();
+      router.back();
     }
   };
 
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={handleClose}
-    >
-      <View style={styles.overlay}>
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={handleClose}
-        />
-        <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
-          <LinearGradient colors={gradientColors} style={styles.gradient} />
-
-          {/* Handle */}
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} />
-          </View>
-
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('nightPrayer')}</Text>
-            <TouchableOpacity
-              onPress={handleClose}
-              style={styles.closeButton}
-              disabled={loading}
-            >
-              <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {error && (
-              <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={20} color="#ff6b6b" />
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            {/* Status Card */}
-            <View style={styles.statusCard}>
-              <View style={styles.statusRow}>
-                <Image
-                  source={require('../assets/images/moon-image.png')}
-                  style={styles.moonImage}
-                />
-                <View style={styles.statusTextContainer}>
-                  <Text style={styles.statusTitle}>
-                    {t(status.status.toLowerCase().replace(/\s+/g, ''))}
-                  </Text>
-                  <Text style={styles.statusDescription}>
-                    {status.description}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.totalVersesContainer}>
-                <Text style={styles.totalVersesNumber}>{totalVerses}</Text>
-                <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
-              </View>
-            </View>
-
-            {/* Date Selection */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <MaterialIcons
-                  name="calendar-today"
-                  size={20}
-                  color="rgba(255,255,255,0.7)"
-                />
-                <Text style={styles.cardTitle}>{t('prayerDate')}</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.dateDisplay}
-                onPress={() => setShowDatePicker(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.dateText}>
-                  {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <MaterialIcons
-                  name="edit"
-                  size={16}
-                  color="rgba(255,255,255,0.5)"
-                />
-              </TouchableOpacity>
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={date}
-                  mode="date"
-                  onChange={onDateChange}
-                  style={styles.datePicker}
-                  textColor="#ffffff"
-                  themeVariant="dark"
-                />
-              )}
-            </View>
-
-            {/* Reading Range Inputs */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons
-                  name="book-outline"
-                  size={20}
-                  color="rgba(255,255,255,0.7)"
-                />
-                <Text style={styles.cardTitle}>{t('readingRange')}</Text>
-              </View>
-
-              <View style={styles.pickersSection}>
-                {/* Start Point */}
-                <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
-                <View style={styles.pickerRow}>
-                  <SelectField
-                    label={t('surah')}
-                    value={getSurahName(selectedSurah)}
-                    onPress={() => setShowStartSurahPicker(true)}
-                  />
-                  <SelectField
-                    label={t('ayah')}
-                    value={String(selectedAyah)}
-                    onPress={() => setShowStartAyahPicker(true)}
-                  />
-                </View>
-
-                <View style={styles.rangeDivider}>
-                  <View style={styles.rangeLine} />
-                  <Ionicons
-                    name="arrow-down"
-                    size={16}
-                    color="rgba(255,255,255,0.3)"
-                  />
-                  <View style={styles.rangeLine} />
-                </View>
-
-                {/* End Point */}
-                <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
-                <View style={styles.pickerRow}>
-                  <SelectField
-                    label={t('surah')}
-                    value={getSurahName(endSurah)}
-                    onPress={() => setShowEndSurahPicker(true)}
-                  />
-                  <SelectField
-                    label={t('ayah')}
-                    value={String(endAyah)}
-                    onPress={() => setShowEndAyahPicker(true)}
-                  />
-                </View>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleClose}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-                onPress={handleSave}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <MaterialIcons
-                    name="hourglass-empty"
-                    size={20}
-                    color="#ffffff"
-                  />
-                ) : (
-                  <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
-                )}
-                <Text style={styles.saveButtonText}>
-                  {loading ? t('savingPrayerRecord') : t('savePrayerRecord')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </View>
+  // Show loading state while finding the log
+  if (!log) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#ffffff" />
       </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <LinearGradient colors={gradientColors} style={styles.gradient} />
+      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+
+      {/* Handle */}
+      <View style={styles.handleContainer}>
+        <View style={styles.handle} />
+      </View>
+
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top > 20 ? 0 : 8 }]}>
+        <Text style={styles.title}>{t('editPrayerLog')}</Text>
+        <TouchableOpacity
+          onPress={handleClose}
+          style={styles.closeButton}
+          disabled={loading}
+        >
+          <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Status Card */}
+        <View style={styles.statusCard}>
+          <View style={styles.statusRow}>
+            <View style={styles.statusTextContainer}>
+              <Text style={styles.statusTitle}>
+                {t(status.status.toLowerCase().replace(/\s+/g, ''))}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.totalVersesContainer}>
+            <Text style={styles.totalVersesNumber}>{totalVerses}</Text>
+            <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
+          </View>
+        </View>
+
+        {/* Date Selection */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialIcons
+              name="calendar-today"
+              size={20}
+              color="rgba(255,255,255,0.7)"
+            />
+            <Text style={styles.cardTitle}>{t('prayerDate')}</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.dateDisplay}
+            onPress={() => setShowDatePicker(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.dateText}>
+              {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </Text>
+            <MaterialIcons
+              name="edit"
+              size={16}
+              color="rgba(255,255,255,0.5)"
+            />
+          </TouchableOpacity>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              onChange={onDateChange}
+              style={styles.datePicker}
+              textColor="#ffffff"
+              themeVariant="dark"
+            />
+          )}
+        </View>
+
+        {/* Reading Range Inputs */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons
+              name="book-outline"
+              size={20}
+              color="rgba(255,255,255,0.7)"
+            />
+            <Text style={styles.cardTitle}>{t('readingRange')}</Text>
+          </View>
+
+          <View style={styles.pickersSection}>
+            {/* Start Point */}
+            <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
+            <View style={styles.pickerRow}>
+              <SelectField
+                label={t('surah')}
+                value={getSurahName(selectedSurah)}
+                onPress={() => setShowStartSurahPicker(true)}
+              />
+              <SelectField
+                label={t('ayah')}
+                value={String(selectedAyah)}
+                onPress={() => setShowStartAyahPicker(true)}
+              />
+            </View>
+
+            <View style={styles.rangeDivider}>
+              <View style={styles.rangeLine} />
+              <Ionicons
+                name="arrow-down"
+                size={16}
+                color="rgba(255,255,255,0.3)"
+              />
+              <View style={styles.rangeLine} />
+            </View>
+
+            {/* End Point */}
+            <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
+            <View style={styles.pickerRow}>
+              <SelectField
+                label={t('surah')}
+                value={getSurahName(endSurah)}
+                onPress={() => setShowEndSurahPicker(true)}
+              />
+              <SelectField
+                label={t('ayah')}
+                value={String(endAyah)}
+                onPress={() => setShowEndAyahPicker(true)}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={handleClose}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <MaterialIcons
+                name="hourglass-empty"
+                size={20}
+                color="#ffffff"
+              />
+            ) : (
+              <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
+            )}
+            <Text style={styles.saveButtonText}>
+              {loading ? t('updating') : t('update')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       {/* Picker Modals */}
       <PickerModal
@@ -406,26 +386,19 @@ export function AddPrayerModal({
         title={t('ayah')}
         showSearch={false}
       />
-    </Modal>
+    </View>
   );
 }
 
 const createStyles = (isRTL: boolean) =>
   StyleSheet.create({
-    overlay: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-    backdrop: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.6)',
-    },
     container: {
+      flex: 1,
       backgroundColor: '#1a1a1a',
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      maxHeight: '90%',
-      overflow: 'hidden',
+    },
+    centered: {
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     gradient: {
       position: 'absolute',
@@ -463,26 +436,8 @@ const createStyles = (isRTL: boolean) =>
       padding: 4,
     },
     scrollView: {
-      paddingHorizontal: 20,
-    },
-    errorContainer: {
-      backgroundColor: 'rgba(255, 107, 107, 0.2)',
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 16,
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      alignItems: 'center',
-      gap: 12,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 107, 107, 0.3)',
-    },
-    errorText: {
-      color: '#ff6b6b',
-      fontSize: 14,
       flex: 1,
-      fontWeight: '500',
-      textAlign: isRTL ? 'right' : 'left',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+      paddingHorizontal: 20,
     },
     statusCard: {
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -496,12 +451,6 @@ const createStyles = (isRTL: boolean) =>
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       marginBottom: 16,
-      gap: 16,
-    },
-    moonImage: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
     },
     statusTextContainer: {
       flex: 1,
@@ -510,15 +459,8 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 20,
       fontWeight: 'bold',
       color: '#ffffff',
-      marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-    },
-    statusDescription: {
-      fontSize: 13,
-      color: 'rgba(255,255,255,0.6)',
-      textAlign: isRTL ? 'right' : 'left',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     totalVersesContainer: {
       alignItems: 'center',

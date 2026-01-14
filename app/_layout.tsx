@@ -40,6 +40,21 @@ function AppContent() {
         {/* Offline-first: Always show tabs, auth is optional */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        {/* Modal routes - swipeable on iOS */}
+        <Stack.Screen
+          name="add-prayer"
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="edit-prayer/[id]"
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+          }}
+        />
       </Stack>
       <StatusBar style={isDark ? "light" : "dark"} />
     </>
