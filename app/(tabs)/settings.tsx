@@ -151,10 +151,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: 'rgba(234, 179, 8, 0.2)' },
+                { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
               ]}
             >
-              <Feather name="moon" size={24} color="#eab308" />
+              <Feather name="moon" size={24} color="#3b82f6" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('notNegligent')}</Text>
@@ -171,10 +171,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
+                { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
               ]}
             >
-              <MaterialIcons name="military-tech" size={24} color="#3b82f6" />
+              <MaterialIcons name="military-tech" size={24} color="#22c55e" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('qanet')}</Text>
@@ -191,10 +191,10 @@ export default function SettingsScreen() {
             <View
               style={[
                 styles.statusIconContainer,
-                { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
+                { backgroundColor: 'rgba(168, 85, 247, 0.2)' },
               ]}
             >
-              <MaterialIcons name="military-tech" size={24} color="#22c55e" />
+              <MaterialIcons name="military-tech" size={24} color="#a855f7" />
             </View>
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('mokantar')}</Text>

@@ -210,13 +210,13 @@ export default function HistoryScreen() {
 function getStatusColor(status: string): string {
   switch (status) {
     case 'Mokantar':
-      return '#22c55e'; // Brighter green for dark theme
+      return '#a855f7';
     case 'Qanet':
-      return '#3b82f6'; // Brighter blue
+      return '#22c55e';
     case 'Not Negligent':
-      return '#eab308'; // Brighter yellow
+      return '#3b82f6';
     default:
-      return '#ef4444'; // Brighter red
+      return '#ef4444';
   }
 }
 

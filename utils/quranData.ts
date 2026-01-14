@@ -198,25 +198,25 @@ export function getVerseStatus(verseCount: number): {
   if (verseCount >= 1000) {
     return {
       status: 'Mokantar',
-      color: '#15803d',
+      color: '#a855f7',
       description: 'Huge rewards await you!',
     };
   } else if (verseCount >= 100) {
     return {
       status: 'Qanet',
-      color: '#2563eb',
+      color: '#22c55e',
       description: 'Among those who are obedient to Allah',
     };
   } else if (verseCount >= 10) {
     return {
-      status: 'Non Negligent',
-      color: '#ca8a04',
+      status: 'Not Negligent',
+      color: '#3b82f6',
       description: 'You are not among the negligent',
     };
   } else {
     return {
       status: 'Negligent',
-      color: '#dc2626',
+      color: '#ef4444',
       description: 'Strive to read at least 10 verses',
     };
   }

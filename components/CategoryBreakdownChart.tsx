@@ -22,28 +22,28 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
         return {
           title: t('mokantar'),
           icon: 'star',
-          color: '#15803d',
+          color: '#a855f7',
           description: t('consistentAndComplete'),
         };
       case 'Qanet':
         return {
           title: t('qanet'),
           icon: 'check-circle',
-          color: '#2563eb',
+          color: '#22c55e',
           description: t('regularPractice'),
         };
       case 'Not Negligent':
         return {
           title: t('notNegligent'),
           icon: 'clock',
-          color: '#ca8a04',
+          color: '#3b82f6',
           description: t('occasionalGaps'),
         };
       case 'Negligent':
         return {
           title: t('negligent'),
           icon: 'alert-circle',
-          color: '#dc2626',
+          color: '#ef4444',
           description: t('irregularPractice'),
         };
       default:
