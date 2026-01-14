@@ -14,7 +14,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
 import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useOfflineData';
-import { quranData } from '../../utils/quranData';
+import { quranData, getGradientColors } from '../../utils/quranData';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -54,11 +54,17 @@ export default function HistoryScreen() {
     }
   }, [refreshLogs, refreshStats]);
 
+  const lastEntry = logs.length > 0 ? logs[0] : null;
+  const gradientColors = React.useMemo(() => {
+    const totalVerses = lastEntry?.total_ayahs || 0;
+    return getGradientColors(totalVerses);
+  }, [lastEntry]);
+
   if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <LinearGradient
-          colors={['#4a0e0e', '#2b0505', '#000000']}
+          colors={gradientColors}
           style={styles.background}
         />
         <Text style={{ color: '#ffffff', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
@@ -72,7 +78,7 @@ export default function HistoryScreen() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <LinearGradient
-          colors={['#4a0e0e', '#2b0505', '#000000']}
+          colors={gradientColors}
           style={styles.background}
         />
         <Text style={[styles.errorText, { color: '#ff6b6b', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }]}>
@@ -87,7 +93,7 @@ export default function HistoryScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#4a0e0e', '#2b0505', '#000000']}
+        colors={gradientColors}
         style={styles.background}
       />
       

@@ -221,3 +221,14 @@ export function getVerseStatus(verseCount: number): {
     };
   }
 }
+
+export function getGradientColors(verseCount: number): readonly [string, string, string] {
+  if (verseCount >= 1000) {
+    return ['#492d52', '#210e2b', '#000000'];
+  } else if (verseCount >= 100) {
+    return ['#114a28', '#052b14', '#000000'];
+  } else if (verseCount >= 10) {
+    return ['#0e2a4a', '#05122b', '#000000'];
+  }
+  return ['#4a0e0e', '#2b0505', '#000000'];
+}

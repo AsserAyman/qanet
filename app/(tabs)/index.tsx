@@ -14,6 +14,7 @@ import {
   calculateVerseRange,
   calculateVersesBetween,
   getVerseStatus,
+  getGradientColors,
   quranData,
 } from '../../utils/quranData';
 import { useI18n } from '../../contexts/I18nContext';
@@ -44,6 +45,11 @@ export default function NightPrayerScreen() {
   const { streak, yearlyData } = useOfflineStats();
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
+
+  const gradientColors = useMemo(() => {
+    const totalVerses = lastEntry?.total_ayahs || 0;
+    return getGradientColors(totalVerses);
+  }, [lastEntry]);
 
   // Calculate stats from yearlyData
   const computedStats = React.useMemo(() => {
@@ -114,7 +120,7 @@ export default function NightPrayerScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#4a0e0e', '#2b0505', '#000000']}
+        colors={gradientColors}
         style={styles.background}
       />
       

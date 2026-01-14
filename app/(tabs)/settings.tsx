@@ -6,10 +6,20 @@ import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
 import { useI18n, Language } from '../../contexts/I18nContext';
 import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
+import { usePrayerLogs, useOfflineData } from '../../hooks/useOfflineData';
+import { getGradientColors } from '../../utils/quranData';
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
   const router = useRouter();
+  const { isInitialized } = useOfflineData();
+  const { logs, loading: logsLoading } = usePrayerLogs();
+
+  const lastEntry = logs.length > 0 ? logs[0] : null;
+  const gradientColors = React.useMemo(() => {
+    const totalVerses = lastEntry?.total_ayahs || 0;
+    return getGradientColors(totalVerses);
+  }, [lastEntry]);
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
@@ -36,10 +46,24 @@ export default function SettingsScreen() {
   // Force dark styles
   const styles = createStyles(isRTL);
 
+  if (!isInitialized || logsLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <LinearGradient
+          colors={gradientColors}
+          style={styles.background}
+        />
+        <Text style={{ color: '#ffffff', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
+          {t('loading')}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#4a0e0e', '#2b0505', '#000000']}
+        colors={gradientColors}
         style={styles.background}
       />
       
