@@ -1,26 +1,30 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Dimensions,
   Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
+import { PickerModal, PickerOption } from '../../components/PickerModal';
+import { SelectField } from '../../components/SelectField';
+import { useI18n } from '../../contexts/I18nContext';
+import {
+  useOfflineData,
+  useOfflineStats,
+  usePrayerLogs,
+} from '../../hooks/useOfflineData';
 import {
   calculateVerseRange,
   calculateVersesBetween,
-  getVerseStatus,
   getGradientColors,
+  getVerseStatus,
   quranData,
 } from '../../utils/quranData';
-import { useI18n } from '../../contexts/I18nContext';
-import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useOfflineData';
-import { SelectField } from '../../components/SelectField';
-import { PickerModal, PickerOption } from '../../components/PickerModal';
 
 const { width } = Dimensions.get('window');
 
@@ -28,7 +32,7 @@ export default function NightPrayerScreen() {
   const [mode, setMode] = useState<'target' | 'range'>('target');
   const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
   const [selectedAyah, setSelectedAyah] = useState(1);
-  const [targetVerses, setTargetVerses] = useState(10);
+  const [targetVerses, setTargetVerses] = useState(100);
 
   const [endSurah, setEndSurah] = useState('Al-Baqara');
   const [endAyah, setEndAyah] = useState(1);
@@ -46,6 +50,31 @@ export default function NightPrayerScreen() {
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
 
+  // Set default starting point based on last entry's end point
+  useEffect(() => {
+    if (lastEntry) {
+      const endSurahData = quranData.find(
+        (s) => s.name === lastEntry.end_surah
+      );
+      if (endSurahData) {
+        // Check if we need to move to the next surah
+        if (lastEntry.end_ayah >= endSurahData.ayahs) {
+          // Move to the next surah
+          const currentIndex = quranData.findIndex(
+            (s) => s.name === lastEntry.end_surah
+          );
+          const nextIndex = (currentIndex + 1) % quranData.length;
+          setSelectedSurah(quranData[nextIndex].name);
+          setSelectedAyah(1);
+        } else {
+          // Stay in the same surah, increment ayah
+          setSelectedSurah(lastEntry.end_surah);
+          setSelectedAyah(lastEntry.end_ayah + 1);
+        }
+      }
+    }
+  }, [lastEntry?.local_id]); // Only run when the last entry changes
+
   const gradientColors = useMemo(() => {
     const totalVerses = lastEntry?.total_ayahs || 0;
     return getGradientColors(totalVerses);
@@ -56,12 +85,13 @@ export default function NightPrayerScreen() {
     const values = Object.values(yearlyData).map((d) => d.verses);
     const totalAyahs = values.reduce((sum, v) => sum + v, 0);
     const bestNight = values.length > 0 ? Math.max(...values) : 0;
-    const averageAyahs = values.length > 0 ? Math.round(totalAyahs / values.length) : 0;
+    const averageAyahs =
+      values.length > 0 ? Math.round(totalAyahs / values.length) : 0;
     return { totalAyahs, bestNight, averageAyahs };
   }, [yearlyData]);
 
   const getSurahName = (name: string) => {
-    const surah = quranData.find(s => s.name === name);
+    const surah = quranData.find((s) => s.name === name);
     return isRTL ? surah?.nameAr || name : name;
   };
 
@@ -69,30 +99,33 @@ export default function NightPrayerScreen() {
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
 
   // Surah picker options
-  const surahOptions: PickerOption[] = useMemo(() =>
-    quranData.map((surah) => ({
-      label: isRTL ? surah.nameAr : surah.name,
-      value: surah.name,
-      searchTerms: `${surah.name} ${surah.nameAr}`,
-    })),
+  const surahOptions: PickerOption[] = useMemo(
+    () =>
+      quranData.map((surah) => ({
+        label: isRTL ? surah.nameAr : surah.name,
+        value: surah.name,
+        searchTerms: `${surah.name} ${surah.nameAr}`,
+      })),
     [isRTL]
   );
 
   // Ayah picker options for start surah
-  const startAyahOptions: PickerOption[] = useMemo(() =>
-    Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => ({
-      label: String(i + 1),
-      value: String(i + 1),
-    })),
+  const startAyahOptions: PickerOption[] = useMemo(
+    () =>
+      Array.from({ length: currentSurah?.ayahs || 0 }, (_, i) => ({
+        label: String(i + 1),
+        value: String(i + 1),
+      })),
     [currentSurah]
   );
 
   // Ayah picker options for end surah
-  const endAyahOptions: PickerOption[] = useMemo(() =>
-    Array.from({ length: endCurrentSurah?.ayahs || 0 }, (_, i) => ({
-      label: String(i + 1),
-      value: String(i + 1),
-    })),
+  const endAyahOptions: PickerOption[] = useMemo(
+    () =>
+      Array.from({ length: endCurrentSurah?.ayahs || 0 }, (_, i) => ({
+        label: String(i + 1),
+        value: String(i + 1),
+      })),
     [endCurrentSurah]
   );
 
@@ -119,11 +152,8 @@ export default function NightPrayerScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={gradientColors}
-        style={styles.background}
-      />
-      
+      <LinearGradient colors={gradientColors} style={styles.background} />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -157,7 +187,9 @@ export default function NightPrayerScreen() {
             <View style={styles.dashboardItem}>
               {lastEntry ? (
                 <>
-                  <Text style={styles.lastEntryNumber}>{lastEntry.total_ayahs}</Text>
+                  <Text style={styles.lastEntryNumber}>
+                    {lastEntry.total_ayahs}
+                  </Text>
                   <Text style={styles.dashboardLabel}>{t('lastNight')}</Text>
                 </>
               ) : (
@@ -173,26 +205,36 @@ export default function NightPrayerScreen() {
         {/* Quick Stats */}
         <View style={styles.quickStatsRow}>
           <View style={styles.quickStatCard}>
-            <Text style={styles.quickStatNumber}>{computedStats.totalAyahs.toLocaleString()}</Text>
+            <Text style={styles.quickStatNumber}>
+              {computedStats.totalAyahs.toLocaleString()}
+            </Text>
             <Text style={styles.quickStatLabel}>{t('totalVerses')}</Text>
           </View>
           <View style={styles.quickStatCard}>
-            <Text style={styles.quickStatNumber}>{computedStats.bestNight}</Text>
+            <Text style={styles.quickStatNumber}>
+              {computedStats.bestNight}
+            </Text>
             <Text style={styles.quickStatLabel}>{t('bestNight')}</Text>
           </View>
           <View style={styles.quickStatCard}>
-            <Text style={styles.quickStatNumber}>{computedStats.averageAyahs}</Text>
+            <Text style={styles.quickStatNumber}>
+              {computedStats.averageAyahs}
+            </Text>
             <Text style={styles.quickStatLabel}>{t('average')}</Text>
           </View>
         </View>
 
         {/* Calculator Section Header */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="calculator-outline" size={20} color="rgba(255,255,255,0.6)" />
+          <Ionicons
+            name="calculator-outline"
+            size={20}
+            color="rgba(255,255,255,0.6)"
+          />
           <Text style={styles.sectionHeaderText}>{t('verseCalculator')}</Text>
         </View>
-{/* Controls Container */}
-<View style={styles.controlsContainer}>
+        {/* Controls Container */}
+        <View style={styles.controlsContainer}>
           {/* Toggle */}
           <View style={styles.toggleContainer}>
             <TouchableOpacity
@@ -297,19 +339,31 @@ export default function NightPrayerScreen() {
               </>
             )}
           </View>
-
         </View>
         {/* Range Display */}
         <View style={styles.rangeDisplayCard}>
           <View style={styles.rangeRow}>
             <View style={styles.rangeItem}>
-              <Text style={styles.rangeSurah}>{getSurahName(range.startSurah)}</Text>
-              <Text style={styles.rangeAyah}>{t('ayah')} {range.startAyah}</Text>
+              <Text style={styles.rangeSurah}>
+                {getSurahName(range.startSurah)}
+              </Text>
+              <Text style={styles.rangeAyah}>
+                {t('ayah')} {range.startAyah}
+              </Text>
             </View>
-            <Feather name={isRTL ? "arrow-left" : "arrow-right"} size={20} color="#ffffff" style={{ opacity: 0.5 }} />
+            <Feather
+              name={isRTL ? 'arrow-left' : 'arrow-right'}
+              size={20}
+              color="#ffffff"
+              style={{ opacity: 0.5 }}
+            />
             <View style={styles.rangeItem}>
-              <Text style={styles.rangeSurah}>{getSurahName(range.endSurah)}</Text>
-              <Text style={styles.rangeAyah}>{t('ayah')} {range.endAyah}</Text>
+              <Text style={styles.rangeSurah}>
+                {getSurahName(range.endSurah)}
+              </Text>
+              <Text style={styles.rangeAyah}>
+                {t('ayah')} {range.endAyah}
+              </Text>
             </View>
           </View>
           <View style={styles.rangeResultContainer}>
@@ -318,7 +372,6 @@ export default function NightPrayerScreen() {
           </View>
         </View>
 
-        
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -380,260 +433,261 @@ export default function NightPrayerScreen() {
   );
 }
 
-const createStyles = (isRTL: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  background: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '100%',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 24,
-    paddingTop: 60,
-  },
-  // Hero Section
-  heroSection: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  heroMoonImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    marginBottom: 20,
-  },
-  heroTitle: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  heroSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  // Dashboard Card
-  dashboardCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  dashboardRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-  },
-  dashboardItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  dashboardDivider: {
-    width: 1,
-    height: 60,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginHorizontal: 20,
-  },
-  streakContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  streakNumber: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  streakEmoji: {
-    fontSize: 28,
-  },
-  lastEntryNumber: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  dashboardLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 4,
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  // Quick Stats
-  quickStatsRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    gap: 12,
-    marginBottom: 32,
-  },
-  quickStatCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  quickStatNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 4,
-  },
-  quickStatLabel: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.5)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  // Section Header
-  sectionHeader: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
-  },
-  sectionHeaderText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  // Range Display
-  rangeDisplayCard: {
-    backgroundColor: '#0f0f0f',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  rangeRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  rangeItem: {
-    alignItems: isRTL ? 'flex-end' : 'flex-start',
-    flex: 1,
-  },
-  rangeSurah: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 4,
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  rangeAyah: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  rangeResultContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-    gap: 8,
-  },
-  rangeResultNumber: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  rangeResultLabel: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.5)',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  controlsContainer: {
-    backgroundColor: '#0f0f0f',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
-    padding: 4,
-    marginBottom: 24,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  toggleButtonActive: {
-    backgroundColor: '#ffffff',
-  },
-  toggleText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  toggleTextActive: {
-    color: '#000000',
-  },
-  targetOptions: {
-    marginBottom: 24,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: 12,
-    marginLeft: 4,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  targetButtonsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  targetButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  targetButtonActive: {
-    borderColor: '#ffffff',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  targetButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  targetButtonTextActive: {
-    fontWeight: '700',
-  },
-  pickersSection: {
-    gap: 12,
-  },
-  pickerRow: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    gap: 12,
-  },
-});
+const createStyles = (isRTL: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#000',
+    },
+    background: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      height: '100%',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 24,
+      paddingTop: 60,
+    },
+    // Hero Section
+    heroSection: {
+      alignItems: 'center',
+      marginBottom: 32,
+    },
+    heroMoonImage: {
+      width: 140,
+      height: 140,
+      borderRadius: 70,
+      marginBottom: 20,
+    },
+    heroTitle: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 8,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    heroSubtitle: {
+      fontSize: 16,
+      color: 'rgba(255,255,255,0.6)',
+      textAlign: 'center',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    // Dashboard Card
+    dashboardCard: {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    dashboardRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+    },
+    dashboardItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    dashboardDivider: {
+      width: 1,
+      height: 60,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      marginHorizontal: 20,
+    },
+    streakContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    streakNumber: {
+      fontSize: 42,
+      fontWeight: 'bold',
+      color: '#ffffff',
+    },
+    streakEmoji: {
+      fontSize: 28,
+    },
+    lastEntryNumber: {
+      fontSize: 42,
+      fontWeight: 'bold',
+      color: '#ffffff',
+    },
+    dashboardLabel: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.5)',
+      marginTop: 4,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    // Quick Stats
+    quickStatsRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      gap: 12,
+      marginBottom: 32,
+    },
+    quickStatCard: {
+      flex: 1,
+      backgroundColor: 'rgba(255, 255, 255, 0.06)',
+      borderRadius: 16,
+      padding: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.08)',
+    },
+    quickStatNumber: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 4,
+    },
+    quickStatLabel: {
+      fontSize: 11,
+      color: 'rgba(255,255,255,0.5)',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    // Section Header
+    sectionHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 16,
+    },
+    sectionHeaderText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.6)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    // Range Display
+    rangeDisplayCard: {
+      backgroundColor: '#0f0f0f',
+      borderRadius: 20,
+      padding: 20,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    rangeRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    rangeItem: {
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
+      flex: 1,
+    },
+    rangeSurah: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#ffffff',
+      marginBottom: 4,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    rangeAyah: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.6)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    rangeResultContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'center',
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255,255,255,0.1)',
+      gap: 8,
+    },
+    rangeResultNumber: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: '#ffffff',
+    },
+    rangeResultLabel: {
+      fontSize: 16,
+      color: 'rgba(255,255,255,0.5)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    controlsContainer: {
+      backgroundColor: '#0f0f0f',
+      borderRadius: 24,
+      padding: 24,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    toggleContainer: {
+      flexDirection: 'row',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderRadius: 16,
+      padding: 4,
+      marginBottom: 24,
+    },
+    toggleButton: {
+      flex: 1,
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderRadius: 12,
+    },
+    toggleButtonActive: {
+      backgroundColor: '#ffffff',
+    },
+    toggleText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.6)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    toggleTextActive: {
+      color: '#000000',
+    },
+    targetOptions: {
+      marginBottom: 24,
+    },
+    sectionLabel: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.6)',
+      marginBottom: 12,
+      marginLeft: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    targetButtonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    targetButton: {
+      flex: 1,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      paddingVertical: 16,
+      alignItems: 'center',
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    targetButtonActive: {
+      borderColor: '#ffffff',
+      backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    targetButtonText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#ffffff',
+    },
+    targetButtonTextActive: {
+      fontWeight: '700',
+    },
+    pickersSection: {
+      gap: 12,
+    },
+    pickerRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      gap: 12,
+    },
+  });
