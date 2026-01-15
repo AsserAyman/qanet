@@ -111,16 +111,6 @@ class OfflineDataManager {
     // Update local database first
     await sqliteManager.updatePrayerLog(localId, updateData);
 
-    // Queue for sync
-    await sqliteManager.addSyncOperation({
-      table_name: TABLES.PRAYER_LOGS,
-      operation: OPERATION_TYPES.UPDATE,
-      local_id: localId,
-      data: updateData,
-      created_at: now,
-      retry_count: 0,
-    });
-
     // Trigger background sync if online
     if (networkManager.isOnline()) {
       syncEngine.triggerSync();

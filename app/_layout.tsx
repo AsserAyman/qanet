@@ -9,6 +9,9 @@ import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { I18nProvider } from '../contexts/I18nContext';
 import { useOfflineData } from '../hooks/useOfflineData';
 import { View, ActivityIndicator } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 function AppContent() {
   const { loading } = useAuth();
@@ -71,10 +74,12 @@ export default function RootLayout() {
   useFrameworkReady();
 
   return (
-    <I18nProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </I18nProvider>
+    <QueryClientProvider client={queryClient}>
+      <I18nProvider>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </I18nProvider>
+    </QueryClientProvider>
   );
 }

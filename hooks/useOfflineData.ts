@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { offlineDataManager, CreatePrayerLogData } from '../utils/database/offlineDataManager';
 import { LocalPrayerLog } from '../utils/database/schema';
 import { networkManager } from '../utils/network/networkManager';
@@ -31,72 +32,47 @@ export function useOfflineData() {
 }
 
 export function usePrayerLogs(limit: number = 30) {
-  const [logs, setLogs] = useState<LocalPrayerLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const loadLogs = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await offlineDataManager.getPrayerLogs(limit);
-      setLogs(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load prayer logs');
-    } finally {
-      setLoading(false);
-    }
-  }, [limit]);
+  const { data: logs = [], isLoading: loading, error } = useQuery({
+    queryKey: ['prayerLogs', limit],
+    queryFn: () => offlineDataManager.getPrayerLogs(limit),
+  });
 
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
+  const createLogMutation = useMutation({
+    mutationFn: (data: CreatePrayerLogData) => offlineDataManager.createPrayerLog(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
+    },
+  });
 
-  const createLog = useCallback(async (data: CreatePrayerLogData) => {
-    try {
-      const newLog = await offlineDataManager.createPrayerLog(data);
-      setLogs(prev => [newLog, ...prev]);
-      return newLog;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create prayer log');
-      throw err;
-    }
-  }, []);
+  const updateLogMutation = useMutation({
+    mutationFn: ({ localId, updates }: { localId: string; updates: Partial<LocalPrayerLog> }) =>
+      offlineDataManager.updatePrayerLog(localId, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
+    },
+  });
 
-  const updateLog = useCallback(async (localId: string, updates: Partial<LocalPrayerLog>) => {
-    try {
-      await offlineDataManager.updatePrayerLog(localId, updates);
-      setLogs(prev => prev.map(log => 
-        log.local_id === localId ? { ...log, ...updates } : log
-      ));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update prayer log');
-      throw err;
-    }
-  }, []);
-
-  const deleteLog = useCallback(async (localId: string) => {
-    try {
-      await offlineDataManager.deletePrayerLog(localId);
-      setLogs(prev => prev.filter(log => log.local_id !== localId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete prayer log');
-      throw err;
-    }
-  }, []);
-
-  const refresh = useCallback(() => {
-    return loadLogs();
-  }, [loadLogs]);
+  const deleteLogMutation = useMutation({
+    mutationFn: (localId: string) => offlineDataManager.deletePrayerLog(localId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
+    },
+  });
 
   return {
     logs,
     loading,
-    error,
-    createLog,
-    updateLog,
-    deleteLog,
-    refresh,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    createLog: createLogMutation.mutateAsync,
+    updateLog: (localId: string, updates: Partial<LocalPrayerLog>) => 
+      updateLogMutation.mutateAsync({ localId, updates }),
+    deleteLog: deleteLogMutation.mutateAsync,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['prayerLogs'] }),
   };
 }
 
@@ -115,94 +91,70 @@ export function useNetworkStatus() {
 }
 
 export function useSyncStatus() {
-  const [syncStatus, setSyncStatus] = useState({
+  const queryClient = useQueryClient();
+
+  const { data: syncStatus = {
     pendingOperations: 0,
     lastSync: null as string | null,
     isOnline: false,
+  }, isLoading: loading } = useQuery({
+    queryKey: ['syncStatus'],
+    queryFn: () => offlineDataManager.getSyncStatus(),
+    // Refetch more often or when window focuses could be good, but explicit triggers work too
   });
-  const [loading, setLoading] = useState(true);
-
-  const loadSyncStatus = useCallback(async () => {
-    try {
-      const status = await offlineDataManager.getSyncStatus();
-      setSyncStatus(status);
-    } catch (err) {
-      console.error('Failed to load sync status:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
-    loadSyncStatus();
-    
     // Refresh sync status when network changes
     const unsubscribe = networkManager.onNetworkChange(() => {
-      loadSyncStatus();
+      queryClient.invalidateQueries({ queryKey: ['syncStatus'] });
     });
-
     return unsubscribe;
-  }, [loadSyncStatus]);
+  }, [queryClient]);
 
-  const forceSync = useCallback(async () => {
-    try {
-      await offlineDataManager.forceSyncNow();
-      await loadSyncStatus();
-    } catch (err) {
-      throw err;
-    }
-  }, [loadSyncStatus]);
+  const forceSyncMutation = useMutation({
+    mutationFn: () => offlineDataManager.forceSyncNow(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['syncStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['prayerLogs'] }); // Data might have changed from server
+    },
+  });
 
   return {
     syncStatus,
     loading,
-    forceSync,
-    refresh: loadSyncStatus,
+    forceSync: forceSyncMutation.mutateAsync,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['syncStatus'] }),
   };
 }
 
 export function useOfflineStats() {
-  const [stats, setStats] = useState<{ status: string; count: number }[]>([]);
-  const [streak, setStreak] = useState(0);
-  const [yearlyData, setYearlyData] = useState<{ [key: string]: { verses: number; status: string } }>({});
-  const [monthlyData, setMonthlyData] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const loadStats = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ['offlineStats'],
+    queryFn: async () => {
       const [statsData, streakData, yearData, monthData] = await Promise.all([
         offlineDataManager.getStatusStats(),
         offlineDataManager.getCurrentStreak(),
         offlineDataManager.getYearlyData(),
         offlineDataManager.getMonthlyData(),
       ]);
-
-      setStats(statsData);
-      setStreak(streakData);
-      setYearlyData(yearData);
-      setMonthlyData(monthData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load stats');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+      return {
+        stats: statsData,
+        streak: streakData,
+        yearlyData: yearData,
+        monthlyData: monthData,
+      };
+    },
+  });
 
   return {
-    stats,
-    streak,
-    yearlyData,
-    monthlyData,
+    stats: data?.stats || [],
+    streak: data?.streak || 0,
+    yearlyData: data?.yearlyData || {},
+    monthlyData: data?.monthlyData || {},
     loading,
-    error,
-    refresh: loadStats,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['offlineStats'] }),
   };
 }
