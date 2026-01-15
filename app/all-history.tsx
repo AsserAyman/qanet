@@ -140,7 +140,12 @@ export default function AllHistoryScreen() {
             return (
               <React.Fragment key={log.local_id}>
                 {showDate && (
-                  <View style={styles.dateHeaderContainer}>
+                  <View
+                    style={[
+                      styles.dateHeaderContainer,
+                      { marginTop: index === 0 ? 8 : 28 },
+                    ]}
+                  >
                     <View>
                       <Text style={styles.dateHeader}>{dateLabel}</Text>
                       <Text style={styles.dateSubHeader}>
@@ -306,7 +311,6 @@ const createStyles = (isRTL: boolean, insets: any) =>
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'flex-start',
       justifyContent: 'space-between',
-      marginTop: 12,
       marginBottom: 8,
     },
     dateHeader: {
