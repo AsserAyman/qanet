@@ -177,7 +177,12 @@ export default function NightPrayerScreen() {
                 <React.Fragment key={log.local_id}>
                   {showDate && (
                     <View style={styles.dateHeaderContainer}>
-                      <Text style={styles.dateHeader}>{dateLabel}</Text>
+                      <View>
+                        <Text style={styles.dateHeader}>{dateLabel}</Text>
+                        <Text style={styles.dateSubHeader}>
+                          {dailyTotal} {t('verses')}
+                        </Text>
+                      </View>
                       <View
                         style={[
                           styles.headerStatusBadge,
@@ -441,7 +446,7 @@ const createStyles = (isRTL: boolean) =>
     },
     dateHeaderContainer: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'space-between',
       marginTop: 12,
       marginBottom: 8,
@@ -452,6 +457,14 @@ const createStyles = (isRTL: boolean) =>
       color: 'rgba(255,255,255,0.4)',
       textTransform: 'uppercase',
       letterSpacing: 1,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    dateSubHeader: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: 'rgba(255,255,255,0.7)',
+      marginTop: 2,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
