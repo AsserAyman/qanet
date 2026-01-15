@@ -10,6 +10,8 @@ import {
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../contexts/I18nContext';
+import { usePrayerLogs } from '../../hooks/useOfflineData';
+import { getVerseStatus } from '../../utils/quranData';
 
 type TabWithPlatformIcons = {
   name: string;
@@ -34,6 +36,12 @@ export default function TabLayout() {
   const { t, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
   const hasGlassEffect = isLiquidGlassAvailable();
+  const { logs } = usePrayerLogs(1);
+
+  const lastEntry = logs.length > 0 ? logs[0] : null;
+  const statusColor = lastEntry
+    ? getVerseStatus(lastEntry.total_ayahs).color
+    : '#ffffff';
 
   const tabs: Tab[] = [
     {
@@ -96,10 +104,12 @@ export default function TabLayout() {
     <View style={styles.container}>
       <NativeTabs
         labelStyle={{
-          color: 'white',
+          color: 'rgba(255, 255, 255, 0.7)', // Subtle unselected state
         }}
-        tintColor="white"
-        disableTransparentOnScrollEdge={false}
+        // tintColor={statusColor}
+        tintColor={'white'}
+        backgroundColor="#0f0f0f"
+        disableTransparentOnScrollEdge={true}
       >
         {orderedTabs.map((tab) => (
           <NativeTabs.Trigger key={tab.name} name={tab.name}>
@@ -126,7 +136,8 @@ export default function TabLayout() {
         >
           <GlassView
             style={styles.fabGlass}
-            glassEffectStyle="clear"
+            glassEffectStyle="regular"
+            // glassEffectStyle="clear"
             // tintColor="rgba(140, 142, 239, 0.4)"
             isInteractive
           >
@@ -135,7 +146,12 @@ export default function TabLayout() {
               onPress={() => router.push('/add-prayer')}
               activeOpacity={0.9}
             >
-              <Ionicons name="add" size={32} color="#ffffff" />
+              <Ionicons
+                name="add"
+                size={32}
+                // color={statusColor}
+                color={'#ffffff'}
+              />
             </TouchableOpacity>
           </GlassView>
         </View>
@@ -143,17 +159,31 @@ export default function TabLayout() {
         <TouchableOpacity
           style={[
             styles.fab,
-            styles.fabSolid,
+            styles.fabModern,
             {
               bottom: insets.bottom + 70,
               right: isRTL ? undefined : 20,
               left: isRTL ? 20 : undefined,
+              // borderColor: `${statusColor}40`,
+              borderColor: `rgba(47, 47, 47, 0.7)`,
+              backgroundColor: '#0f0f0f', // Matches Calculator surfaces
             },
           ]}
           onPress={() => router.push('/add-prayer')}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={28} color="#ffffff" />
+          <View
+            style={[
+              styles.fabInnerGlow,
+              { backgroundColor: `${statusColor}5` },
+            ]}
+          />
+          <Ionicons
+            name="add"
+            size={32}
+            // color={statusColor}
+            color={'#rgba(255, 255, 255, 0.7)'}
+          />
         </TouchableOpacity>
       )}
     </View>
@@ -174,15 +204,19 @@ const styles = StyleSheet.create({
     height: 64,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 10,
   },
-  fabSolid: {
-    backgroundColor: '#6366f1',
-    borderRadius: 28,
+  fabModern: {
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    overflow: 'hidden',
+  },
+  fabInnerGlow: {
+    ...StyleSheet.absoluteFillObject,
   },
   fabGlass: {
     width: 60,
