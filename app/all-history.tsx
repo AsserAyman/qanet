@@ -39,28 +39,6 @@ export default function AllHistoryScreen() {
     }
   }, [refreshLogs, refreshStats]);
 
-  const handleDelete = React.useCallback((log: LocalPrayerLog) => {
-    Alert.alert(
-      t('confirmDelete'),
-      t('deleteConfirmMessage'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteLog(log.local_id);
-              await refreshStats();
-            } catch (error) {
-              console.error('Delete failed:', error);
-            }
-          },
-        },
-      ]
-    );
-  }, [deleteLog, refreshStats, t]);
-
   const handleEdit = React.useCallback((log: LocalPrayerLog) => {
     router.push(`/edit-prayer/${log.local_id}`);
   }, []);
@@ -117,65 +95,65 @@ export default function AllHistoryScreen() {
         }
       >
         <View style={styles.historyCard}>
-          {logs.map((log) => (
-            <View key={log.local_id} style={styles.historyItem}>
-              <View
-                style={[
-                  styles.historyIconContainer,
-                  { backgroundColor: getStatusColor(log.status) + '20' },
-                ]}
-              >
-                <Feather
-                  name="moon"
-                  size={20}
-                  color={getStatusColor(log.status)}
-                />
-              </View>
-              <View style={styles.historyContent}>
-                <Text style={styles.historyDate}>
-                  {new Date(log.date).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
-                </Text>
-                <Text style={styles.historyRange}>
-                  {getSurahName(log.start_surah)} {log.start_ayah} → {getSurahName(log.end_surah)}{' '}
-                  {log.end_ayah}
-                </Text>
-                <Text style={styles.historyVerses}>
-                  {log.total_ayahs} {t('verses')}
-                </Text>
-              </View>
-              <View style={styles.rightContainer}>
-                <View style={styles.syncStatusContainer}>
-                  <Text
+          {logs.map((log, index, arr) => {
+            const showDate = index === 0 || 
+              new Date(log.date).toDateString() !== new Date(arr[index - 1].date).toDateString();
+            
+            const dateLabel = new Date(log.date).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric'
+            });
+
+            return (
+              <React.Fragment key={log.local_id}>
+                {showDate && (
+                  <Text style={styles.dateHeader}>{dateLabel}</Text>
+                )}
+                <TouchableOpacity
+                  style={[
+                    styles.historyItem,
+                    index === logs.length - 1 && { borderBottomWidth: 0 }
+                  ]}
+                  onPress={() => handleEdit(log)}
+                  activeOpacity={0.7}
+                >
+                  <View
                     style={[
-                      styles.historyStatus,
-                      { color: getStatusColor(log.status) },
+                      styles.historyIconContainer,
+                      { backgroundColor: getStatusColor(log.status) + '15' },
                     ]}
                   >
-                    {t(log.status.toLowerCase().replace(' ', ''))}
-                  </Text>
-                  {log.sync_status !== 'synced' && (
-                    <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor(log.sync_status) }]} />
-                  )}
-                </View>
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleEdit(log)}
-                    activeOpacity={0.7}
-                  >
-                    <Feather name="edit-2" size={16} color="rgba(255,255,255,0.6)" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleDelete(log)}
-                    activeOpacity={0.7}
-                  >
-                    <Feather name="trash-2" size={16} color="rgba(239,68,68,0.8)" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          ))}
+                    <Feather
+                      name="moon"
+                      size={20}
+                      color={getStatusColor(log.status)}
+                    />
+                  </View>
+                  <View style={styles.historyContent}>
+                    <Text style={styles.historyRange}>
+                      {getSurahName(log.start_surah)} {log.start_ayah} → {getSurahName(log.end_surah)}{' '}
+                      {log.end_ayah}
+                    </Text>
+                    <View style={styles.metaContainer}>
+                      <Text style={styles.historyVerses}>
+                        {log.total_ayahs} {t('verses')}
+                      </Text>
+                      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(log.status) + '20' }]}>
+                        <Text style={[styles.statusText, { color: getStatusColor(log.status) }]}>
+                          {t(log.status.toLowerCase().replace(' ', ''))}
+                        </Text>
+                      </View>
+                      {log.sync_status !== 'synced' && (
+                        <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor(log.sync_status) }]} />
+                      )}
+                    </View>
+                  </View>
+                  <Feather name={isRTL ? "chevron-left" : "chevron-right"} size={16} color="rgba(255,255,255,0.3)" />
+                </TouchableOpacity>
+              </React.Fragment>
+            );
+          })}
           {logs.length === 0 && (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>{t('noHistoryYet')}</Text>
@@ -262,17 +240,28 @@ const createStyles = (isRTL: boolean, insets: any) =>
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
     },
+    dateHeader: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.4)',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 8,
+      marginTop: 8,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
     historyItem: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      paddingVertical: 16,
+      paddingVertical: 12,
       borderBottomWidth: 1,
-      borderBottomColor: 'rgba(255,255,255,0.1)',
+      borderBottomColor: 'rgba(255,255,255,0.05)',
     },
     historyIconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: isRTL ? 0 : 16,
@@ -280,59 +269,43 @@ const createStyles = (isRTL: boolean, insets: any) =>
     },
     historyContent: {
       flex: 1,
-    },
-    historyDate: {
-      fontSize: 14,
-      color: 'rgba(255,255,255,0.6)',
-      marginBottom: 4,
-      textAlign: isRTL ? 'right' : 'left',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+      justifyContent: 'center',
     },
     historyRange: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: '700',
       color: '#ffffff',
-      marginBottom: 2,
+      marginBottom: 6,
       textAlign: isRTL ? 'right' : 'left',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    metaContainer: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 12,
     },
     historyVerses: {
-      fontSize: 14,
-      color: 'rgba(255,255,255,0.6)',
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.5)',
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
-    rightContainer: {
-      alignItems: isRTL ? 'flex-start' : 'flex-end',
-      gap: 8,
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    syncStatusContainer: {
-      alignItems: isRTL ? 'flex-start' : 'flex-end',
-      gap: 6,
-    },
-    historyStatus: {
-      fontSize: 14,
+    statusText: {
+      fontSize: 11,
       fontWeight: '600',
-      marginLeft: isRTL ? 0 : 12,
-      marginRight: isRTL ? 12 : 0,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     syncIndicator: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
-    actionButtons: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      gap: 8,
-    },
-    actionButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      width: 6,
+      height: 6,
+      borderRadius: 3,
     },
     emptyState: {
       padding: 40,

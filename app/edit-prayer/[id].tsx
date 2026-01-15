@@ -1,4 +1,4 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -10,6 +10,7 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,7 +30,7 @@ export default function EditPrayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isRTL, t } = useI18n();
   const insets = useSafeAreaInsets();
-  const { logs, updateLog } = usePrayerLogs();
+  const { logs, updateLog, deleteLog } = usePrayerLogs();
   const { refresh: refreshStats } = useOfflineStats();
 
   // Find the log by local_id
@@ -43,6 +44,7 @@ export default function EditPrayerScreen() {
   const [endSurah, setEndSurah] = useState('Al-Baqara');
   const [endAyah, setEndAyah] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Modal visibility states
   const [showStartSurahPicker, setShowStartSurahPicker] = useState(false);
@@ -147,9 +149,36 @@ export default function EditPrayerScreen() {
   };
 
   const handleClose = () => {
-    if (!loading) {
+    if (!loading && !deleteLoading) {
       router.back();
     }
+  };
+
+  const handleDelete = () => {
+    if (!log) return;
+
+    Alert.alert(
+      t('confirmDelete'),
+      t('deleteConfirmMessage'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeleteLoading(true);
+              await deleteLog(log.local_id);
+              await refreshStats();
+              router.back();
+            } catch (error) {
+              console.error('Delete failed:', error);
+              setDeleteLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Show loading state while finding the log
@@ -315,7 +344,7 @@ export default function EditPrayerScreen() {
           <TouchableOpacity
             style={[styles.saveButton, loading && styles.saveButtonDisabled]}
             onPress={handleSave}
-            disabled={loading}
+            disabled={loading || deleteLoading}
             activeOpacity={0.8}
           >
             {loading ? (
@@ -332,6 +361,21 @@ export default function EditPrayerScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Delete Button */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+          disabled={loading || deleteLoading}
+          activeOpacity={0.8}
+        >
+          {deleteLoading ? (
+            <ActivityIndicator size="small" color="#ef4444" />
+          ) : (
+            <Feather name="trash-2" size={20} color="#ef4444" />
+          )}
+          <Text style={styles.deleteButtonText}>{t('deleteEntry')}</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Picker Modals */}
@@ -585,6 +629,24 @@ const createStyles = (isRTL: boolean) =>
     },
     saveButtonText: {
       color: '#ffffff',
+      fontSize: 16,
+      fontWeight: '600',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    deleteButton: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(239, 68, 68, 0.3)',
+      marginTop: 8,
+    },
+    deleteButtonText: {
+      color: '#ef4444',
       fontSize: 16,
       fontWeight: '600',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,

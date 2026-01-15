@@ -121,6 +121,7 @@ export const translations = {
     success: 'Success',
     edit: 'Edit',
     delete: 'Delete',
+    deleteEntry: 'Delete Entry',
     confirmDelete: 'Delete Prayer Log',
     deleteConfirmMessage:
       'Are you sure you want to delete this prayer log? This action cannot be undone.',
@@ -297,6 +298,7 @@ export const translations = {
     success: 'نجح',
     edit: 'تعديل',
     delete: 'حذف',
+    deleteEntry: 'حذف السجل',
     confirmDelete: 'حذف سجل الصلاة',
     deleteConfirmMessage:
       'هل أنت متأكد من حذف سجل الصلاة هذا؟ لا يمكن التراجع عن هذا الإجراء.',
