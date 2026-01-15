@@ -1,6 +1,12 @@
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { NativeTabs, Icon, Label, VectorIcon } from 'expo-router/unstable-native-tabs';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { router } from 'expo-router';
+import {
+  Icon,
+  Label,
+  NativeTabs,
+  VectorIcon,
+} from 'expo-router/unstable-native-tabs';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../contexts/I18nContext';
@@ -27,6 +33,7 @@ function hasVectorIcon(tab: Tab): tab is TabWithVectorIcon {
 export default function TabLayout() {
   const { t, isRTL } = useI18n();
   const insets = useSafeAreaInsets();
+  const hasGlassEffect = isLiquidGlassAvailable();
 
   const tabs: Tab[] = [
     {
@@ -58,12 +65,30 @@ export default function TabLayout() {
 
   const renderIcon = (tab: Tab) => {
     if (hasVectorIcon(tab)) {
-      return <Icon src={<VectorIcon family={tab.vectorIcon.family} name={tab.vectorIcon.name} />} />;
+      return (
+        <Icon
+          src={
+            <VectorIcon
+              family={tab.vectorIcon.family}
+              name={tab.vectorIcon.name}
+            />
+          }
+        />
+      );
     }
 
     return Platform.select({
       ios: <Icon sf={tab.iosIcon as any} />,
-      android: <Icon src={<VectorIcon family={tab.androidIcon.family as typeof Feather} name={tab.androidIcon.name as any} />} />,
+      android: (
+        <Icon
+          src={
+            <VectorIcon
+              family={tab.androidIcon.family as typeof Feather}
+              name={tab.androidIcon.name as any}
+            />
+          }
+        />
+      ),
     });
   };
 
@@ -73,7 +98,7 @@ export default function TabLayout() {
         labelStyle={{
           color: 'white',
         }}
-        tintColor='white'
+        tintColor="white"
         disableTransparentOnScrollEdge={false}
       >
         {orderedTabs.map((tab) => (
@@ -85,20 +110,52 @@ export default function TabLayout() {
       </NativeTabs>
 
       {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[
-          styles.fab,
-          {
-            bottom: insets.bottom + 70,
-            right: isRTL ? undefined : 20,
-            left: isRTL ? 20 : undefined,
-          },
-        ]}
-        onPress={() => router.push('/add-prayer')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={28} color="#ffffff" />
-      </TouchableOpacity>
+      {hasGlassEffect ? (
+        <View
+          style={[
+            styles.glassWrapper,
+            {
+              bottom: insets.bottom + 60,
+              right: isRTL ? undefined : 35,
+              left: isRTL ? 35 : undefined,
+              width: 64,
+              height: 64,
+            },
+          ]}
+          pointerEvents="box-none"
+        >
+          <GlassView
+            style={styles.fabGlass}
+            glassEffectStyle="clear"
+            // tintColor="rgba(140, 142, 239, 0.4)"
+            isInteractive
+          >
+            <TouchableOpacity
+              style={styles.fabContent}
+              onPress={() => router.push('/add-prayer')}
+              activeOpacity={0.9}
+            >
+              <Ionicons name="add" size={32} color="#ffffff" />
+            </TouchableOpacity>
+          </GlassView>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={[
+            styles.fab,
+            styles.fabSolid,
+            {
+              bottom: insets.bottom + 70,
+              right: isRTL ? undefined : 20,
+              left: isRTL ? 20 : undefined,
+            },
+          ]}
+          onPress={() => router.push('/add-prayer')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color="#ffffff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -107,18 +164,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  glassWrapper: {
+    position: 'absolute',
+    zIndex: 10,
+  },
   fab: {
     position: 'absolute',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#6366f1',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 64,
+    height: 64,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  fabSolid: {
+    backgroundColor: '#6366f1',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabGlass: {
+    width: 60,
+    height: 60,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  fabContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
 });
