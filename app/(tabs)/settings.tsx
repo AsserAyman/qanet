@@ -213,12 +213,6 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
-        {/* Sign Out Button */}
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Feather name="log-out" size={20} color="#ef4444" />
-          <Text style={styles.signOutText}>{t('signOut')}</Text>
-        </TouchableOpacity>
-        
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
