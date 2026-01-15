@@ -213,13 +213,13 @@ export default function NightPrayerScreen() {
                     <View
                       style={[
                         styles.historyIconContainer,
-                        { backgroundColor: getStatusColor(log.status) + '15' },
+                        { backgroundColor: 'rgba(255,255,255,0.1)' },
                       ]}
                     >
                       <Feather
                         name="moon"
                         size={20}
-                        color={getStatusColor(log.status)}
+                        color="rgba(255,255,255,0.6)"
                       />
                     </View>
                     <View style={styles.historyContent}>
