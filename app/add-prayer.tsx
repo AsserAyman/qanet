@@ -1,27 +1,36 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useState, useMemo } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import React, { useMemo, useState } from 'react';
 import {
+  Image,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  Image,
-  Platform,
 } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
-import { useI18n } from '../contexts/I18nContext';
-import { usePrayerLogs } from '../hooks/useOfflineData';
+
 import { PickerModal, PickerOption } from '../components/PickerModal';
 import { SelectField } from '../components/SelectField';
+import { useI18n } from '../contexts/I18nContext';
+import { usePrayerLogs } from '../hooks/useOfflineData';
 import {
   calculateVersesBetween,
-  getVerseStatus,
   getGradientColors,
+  getVerseStatus,
   quranData,
 } from '../utils/quranData';
 
@@ -39,6 +48,9 @@ export default function AddPrayerScreen() {
   const [endAyah, setEndAyah] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Animation state
+  const successAnim = useSharedValue(0); // 0: initial, 1: success
 
   // Modal visibility states
   const [showStartSurahPicker, setShowStartSurahPicker] = useState(false);
@@ -114,10 +126,19 @@ export default function AddPrayerScreen() {
         date: date,
       });
 
-      router.back();
+      // Success Feedback
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Trigger animation
+      successAnim.value = withSpring(1, { damping: 12 });
+
+      // Delay closing to show animation
+      setTimeout(() => {
+        router.back();
+      }, 300);
     } catch (err: any) {
       setError(err.message);
-    } finally {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setLoading(false);
     }
   };
@@ -130,10 +151,59 @@ export default function AddPrayerScreen() {
   };
 
   const handleClose = () => {
-    if (!loading) {
+    if (!loading && successAnim.value === 0) {
       router.back();
     }
   };
+
+  // Animated Styles
+  const buttonTextStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(
+        successAnim.value,
+        [0, 0.5],
+        [1, 0],
+        Extrapolation.CLAMP
+      ),
+      maxWidth: interpolate(
+        successAnim.value,
+        [0, 1],
+        [200, 0],
+        Extrapolation.CLAMP
+      ), // Collapses width
+      transform: [
+        {
+          translateX: interpolate(
+            successAnim.value,
+            [0, 1],
+            [0, isRTL ? -10 : 10],
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
+      marginHorizontal: interpolate(
+        successAnim.value,
+        [0, 1],
+        [4, 0],
+        Extrapolation.CLAMP
+      ),
+    };
+  });
+
+  const iconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: interpolate(
+            successAnim.value,
+            [0, 0.5, 1],
+            [1, 0.8, 1.2],
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -151,7 +221,7 @@ export default function AddPrayerScreen() {
         <TouchableOpacity
           onPress={handleClose}
           style={styles.closeButton}
-          disabled={loading}
+          disabled={loading || successAnim.value > 0}
         >
           <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
         </TouchableOpacity>
@@ -294,30 +364,31 @@ export default function AddPrayerScreen() {
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={handleClose}
-            disabled={loading}
-            activeOpacity={0.8}
+            disabled={loading || successAnim.value > 0}
+            activeOpacity={0.7}
           >
             <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+            style={[
+              styles.saveButton,
+              (loading || successAnim.value > 0) && styles.saveButtonDisabled,
+            ]}
             onPress={handleSave}
-            disabled={loading}
+            disabled={loading || successAnim.value > 0}
             activeOpacity={0.8}
           >
-            {loading ? (
-              <MaterialIcons
-                name="hourglass-empty"
-                size={20}
-                color="#ffffff"
-              />
-            ) : (
-              <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
-            )}
-            <Text style={styles.saveButtonText}>
-              {loading ? t('savingPrayerRecord') : t('savePrayerRecord')}
-            </Text>
+            <Animated.View style={iconStyle}>
+              <Ionicons name="checkmark-circle" size={24} color="#ffffff" />
+            </Animated.View>
+
+            <Animated.Text
+              style={[styles.saveButtonText, buttonTextStyle]}
+              numberOfLines={1}
+            >
+              {loading ? t('saving') : t('savePrayerRecord')}
+            </Animated.Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -444,28 +515,35 @@ const createStyles = (isRTL: boolean) =>
     },
     statusCard: {
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
-      borderRadius: 20,
-      padding: 20,
-      marginBottom: 16,
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 20,
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
     },
     statusRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 20,
       gap: 16,
     },
     moonImage: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: 64,
+      height: 64,
+      borderRadius: 32,
     },
     statusTextContainer: {
       flex: 1,
     },
     statusTitle: {
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: 'bold',
       color: '#ffffff',
       marginBottom: 4,
@@ -473,61 +551,65 @@ const createStyles = (isRTL: boolean) =>
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     statusDescription: {
-      fontSize: 13,
-      color: 'rgba(255,255,255,0.6)',
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.7)',
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+      lineHeight: 20,
     },
     totalVersesContainer: {
       alignItems: 'center',
       justifyContent: 'center',
       borderTopWidth: 1,
       borderTopColor: 'rgba(255,255,255,0.1)',
-      paddingTop: 12,
+      paddingTop: 16,
     },
     totalVersesNumber: {
-      fontSize: 36,
+      fontSize: 42,
       fontWeight: 'bold',
       color: '#ffffff',
-      lineHeight: 42,
+      lineHeight: 48,
     },
     totalVersesLabel: {
-      fontSize: 12,
+      fontSize: 13,
       color: 'rgba(255,255,255,0.6)',
       textTransform: 'uppercase',
-      letterSpacing: 1,
+      letterSpacing: 1.5,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+      marginTop: 4,
     },
     card: {
       backgroundColor: 'rgba(0,0,0,0.3)',
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: 20,
+      padding: 20,
       marginBottom: 16,
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.1)',
+      borderColor: 'rgba(255,255,255,0.08)',
     },
     cardHeader: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      marginBottom: 12,
-      gap: 10,
+      marginBottom: 16,
+      gap: 12,
     },
     cardTitle: {
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '600',
       color: '#ffffff',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     dateDisplay: {
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      borderRadius: 12,
-      padding: 14,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderRadius: 16,
+      padding: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.05)',
     },
     dateText: {
-      fontSize: 15,
+      fontSize: 16,
       color: '#ffffff',
       fontWeight: '500',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
@@ -537,25 +619,25 @@ const createStyles = (isRTL: boolean) =>
       marginTop: 12,
     },
     pickersSection: {
-      gap: 10,
+      gap: 16,
     },
     sectionLabel: {
-      fontSize: 13,
+      fontSize: 14,
       color: 'rgba(255,255,255,0.5)',
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-      marginBottom: 2,
+      marginBottom: 4,
     },
     pickerRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
-      gap: 10,
+      gap: 12,
     },
     rangeDivider: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      marginVertical: 2,
+      marginVertical: 4,
     },
     rangeLine: {
       height: 1,
@@ -564,45 +646,49 @@ const createStyles = (isRTL: boolean) =>
     },
     buttonRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
-      gap: 12,
-      marginTop: 8,
-      marginBottom: 20,
+      gap: 16,
+      marginTop: 12,
+      marginBottom: 40,
     },
     cancelButton: {
       flex: 1,
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      borderRadius: 16,
-      padding: 16,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderRadius: 18,
+      paddingVertical: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.2)',
+      minHeight: 60,
     },
     cancelButtonText: {
-      color: '#ffffff',
+      color: 'rgba(255,255,255,0.8)',
       fontSize: 16,
       fontWeight: '600',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     saveButton: {
-      flex: 1,
-      backgroundColor: 'rgba(34, 197, 94, 0.3)',
-      borderRadius: 16,
-      padding: 16,
+      flex: 2,
+      backgroundColor: '#22c55e', // Solid Green
+      borderRadius: 18,
+      paddingVertical: 18,
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      borderWidth: 1,
-      borderColor: 'rgba(34, 197, 94, 0.5)',
+      // gap: 10, // Removed gap to allow precise animation control
+      shadowColor: '#22c55e',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 6,
+      minHeight: 60,
     },
     saveButtonDisabled: {
-      opacity: 0.7,
+      opacity: 0.9, // Keep opacity high for the success state
+      backgroundColor: '#15803d',
     },
     saveButtonText: {
       color: '#ffffff',
-      fontSize: 16,
-      fontWeight: '600',
+      fontSize: 17,
+      fontWeight: '700',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });
