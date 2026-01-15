@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,11 +12,10 @@ import {
 import { PickerModal, PickerOption } from '../../components/PickerModal';
 import { SelectField } from '../../components/SelectField';
 import { useI18n } from '../../contexts/I18nContext';
-import { usePrayerLogs } from '../../hooks/useOfflineData';
+import { useLastNightStats, usePrayerLogs } from '../../hooks/useOfflineData';
 import {
   calculateVerseRange,
   calculateVersesBetween,
-  getGradientColors,
   getVerseStatus,
   quranData,
 } from '../../utils/quranData';
@@ -41,6 +39,7 @@ export default function CalculatorScreen() {
 
   const { t, isRTL } = useI18n();
   const { logs } = usePrayerLogs();
+  const { gradientColors } = useLastNightStats();
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
 
@@ -68,11 +67,6 @@ export default function CalculatorScreen() {
       }
     }
   }, [lastEntry?.local_id]); // Only run when the last entry changes
-
-  const gradientColors = useMemo(() => {
-    const totalVerses = lastEntry?.total_ayahs || 0;
-    return getGradientColors(totalVerses);
-  }, [lastEntry]);
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);

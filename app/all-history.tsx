@@ -1,30 +1,45 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LocalPrayerLog } from '../utils/database/schema';
 
 import { useI18n } from '../contexts/I18nContext';
-import { usePrayerLogs, useOfflineStats, useOfflineData } from '../hooks/useOfflineData';
-import { quranData, getGradientColors } from '../utils/quranData';
+import {
+  useLastNightStats,
+  useOfflineData,
+  useOfflineStats,
+  usePrayerLogs,
+} from '../hooks/useOfflineData';
+import { getVerseStatus, quranData } from '../utils/quranData';
 
 export default function AllHistoryScreen() {
   const insets = useSafeAreaInsets();
   const { t, isRTL } = useI18n();
   const { isInitialized } = useOfflineData();
-  const { logs, loading: logsLoading, refresh: refreshLogs, deleteLog } = usePrayerLogs();
   const {
-    refresh: refreshStats
-  } = useOfflineStats();
+    logs,
+    loading: logsLoading,
+    refresh: refreshLogs,
+    deleteLog,
+  } = usePrayerLogs();
+  const { refresh: refreshStats } = useOfflineStats();
 
   const [refreshing, setRefreshing] = React.useState(false);
 
   const styles = createStyles(isRTL, insets);
 
   const getSurahName = (name: string) => {
-    const surah = quranData.find(s => s.name === name);
+    const surah = quranData.find((s) => s.name === name);
     return isRTL ? surah?.nameAr || name : name;
   };
 
@@ -43,20 +58,23 @@ export default function AllHistoryScreen() {
     router.push(`/edit-prayer/${log.local_id}`);
   }, []);
 
-  const lastEntry = logs.length > 0 ? logs[0] : null;
-  const gradientColors = React.useMemo(() => {
-    const totalVerses = lastEntry?.total_ayahs || 0;
-    return getGradientColors(totalVerses);
-  }, [lastEntry]);
+  const { gradientColors } = useLastNightStats();
 
   if (!isInitialized || logsLoading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <LinearGradient
-          colors={gradientColors}
-          style={styles.background}
-        />
-        <Text style={{ color: '#ffffff', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <LinearGradient colors={gradientColors} style={styles.background} />
+        <Text
+          style={{
+            color: '#ffffff',
+            fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+          }}
+        >
           {t('loading')}
         </Text>
       </View>
@@ -65,23 +83,24 @@ export default function AllHistoryScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={gradientColors}
-        style={styles.background}
-      />
-      
+      <LinearGradient colors={gradientColors} style={styles.background} />
+
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name={isRTL ? "arrow-forward" : "arrow-back"} size={24} color="#ffffff" />
+          <Ionicons
+            name={isRTL ? 'arrow-forward' : 'arrow-back'}
+            size={24}
+            color="#ffffff"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('prayerHistory')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -96,24 +115,54 @@ export default function AllHistoryScreen() {
       >
         <View style={styles.historyCard}>
           {logs.map((log, index, arr) => {
-            const showDate = index === 0 || 
-              new Date(log.date).toDateString() !== new Date(arr[index - 1].date).toDateString();
-            
-            const dateLabel = new Date(log.date).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-              weekday: 'long',
-              month: 'short',
-              day: 'numeric'
-            });
+            const dateObj = new Date(log.date);
+            const dateStr = dateObj.toDateString();
+            const showDate =
+              index === 0 ||
+              dateStr !== new Date(arr[index - 1].date).toDateString();
+
+            // Calculate total verses for this date (from all logs)
+            const dailyTotal = logs
+              .filter((l) => new Date(l.date).toDateString() === dateStr)
+              .reduce((sum, l) => sum + l.total_ayahs, 0);
+
+            const dailyStatus = getVerseStatus(dailyTotal);
+
+            const dateLabel = dateObj.toLocaleDateString(
+              isRTL ? 'ar-SA' : 'en-US',
+              {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+              }
+            );
 
             return (
               <React.Fragment key={log.local_id}>
                 {showDate && (
-                  <Text style={styles.dateHeader}>{dateLabel}</Text>
+                  <View style={styles.dateHeaderContainer}>
+                    <Text style={styles.dateHeader}>{dateLabel}</Text>
+                    <View
+                      style={[
+                        styles.headerStatusBadge,
+                        { backgroundColor: dailyStatus.color + '20' },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.headerStatusText,
+                          { color: dailyStatus.color },
+                        ]}
+                      >
+                        {t(dailyStatus.status.toLowerCase().replace(' ', ''))}
+                      </Text>
+                    </View>
+                  </View>
                 )}
                 <TouchableOpacity
                   style={[
                     styles.historyItem,
-                    index === logs.length - 1 && { borderBottomWidth: 0 }
+                    index === logs.length - 1 && { borderBottomWidth: 0 },
                   ]}
                   onPress={() => handleEdit(log)}
                   activeOpacity={0.7}
@@ -132,24 +181,32 @@ export default function AllHistoryScreen() {
                   </View>
                   <View style={styles.historyContent}>
                     <Text style={styles.historyRange}>
-                      {getSurahName(log.start_surah)} {log.start_ayah} → {getSurahName(log.end_surah)}{' '}
-                      {log.end_ayah}
+                      {getSurahName(log.start_surah)} {log.start_ayah} →{' '}
+                      {getSurahName(log.end_surah)} {log.end_ayah}
                     </Text>
                     <View style={styles.metaContainer}>
                       <Text style={styles.historyVerses}>
                         {log.total_ayahs} {t('verses')}
                       </Text>
-                      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(log.status) + '20' }]}>
-                        <Text style={[styles.statusText, { color: getStatusColor(log.status) }]}>
-                          {t(log.status.toLowerCase().replace(' ', ''))}
-                        </Text>
-                      </View>
                       {log.sync_status !== 'synced' && (
-                        <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor(log.sync_status) }]} />
+                        <View
+                          style={[
+                            styles.syncIndicator,
+                            {
+                              backgroundColor: getSyncStatusColor(
+                                log.sync_status
+                              ),
+                            },
+                          ]}
+                        />
                       )}
                     </View>
                   </View>
-                  <Feather name={isRTL ? "chevron-left" : "chevron-right"} size={16} color="rgba(255,255,255,0.3)" />
+                  <Feather
+                    name={isRTL ? 'chevron-left' : 'chevron-right'}
+                    size={16}
+                    color="rgba(255,255,255,0.3)"
+                  />
                 </TouchableOpacity>
               </React.Fragment>
             );
@@ -240,15 +297,32 @@ const createStyles = (isRTL: boolean, insets: any) =>
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
     },
+    dateHeaderContainer: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 12,
+      marginBottom: 8,
+    },
     dateHeader: {
       fontSize: 13,
       fontWeight: '600',
       color: 'rgba(255,255,255,0.4)',
       textTransform: 'uppercase',
       letterSpacing: 1,
-      marginBottom: 8,
-      marginTop: 8,
       textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    headerStatusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerStatusText: {
+      fontSize: 11,
+      fontWeight: '600',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyItem: {
@@ -288,18 +362,6 @@ const createStyles = (isRTL: boolean, insets: any) =>
       fontSize: 13,
       color: 'rgba(255,255,255,0.5)',
       textAlign: isRTL ? 'right' : 'left',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-    },
-    statusBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 6,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    statusText: {
-      fontSize: 11,
-      fontWeight: '600',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     syncIndicator: {

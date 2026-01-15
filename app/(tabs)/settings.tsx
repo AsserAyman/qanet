@@ -1,46 +1,46 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
-import { useI18n, Language } from '../../contexts/I18nContext';
-import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
-import { usePrayerLogs, useOfflineData } from '../../hooks/useOfflineData';
-import { getGradientColors } from '../../utils/quranData';
+import React from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Language, useI18n } from '../../contexts/I18nContext';
+import {
+  useLastNightStats,
+  useOfflineData,
+  usePrayerLogs,
+} from '../../hooks/useOfflineData';
+import { supabase } from '../../utils/supabase';
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
   const router = useRouter();
   const { isInitialized } = useOfflineData();
   const { logs, loading: logsLoading } = usePrayerLogs();
-
-  const lastEntry = logs.length > 0 ? logs[0] : null;
-  const gradientColors = React.useMemo(() => {
-    const totalVerses = lastEntry?.total_ayahs || 0;
-    return getGradientColors(totalVerses);
-  }, [lastEntry]);
+  const { gradientColors } = useLastNightStats();
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
   };
 
   const handleSignOut = async () => {
-    Alert.alert(
-      t('signOut'),
-      'Are you sure you want to sign out?',
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('signOut'),
-          style: 'destructive',
-          onPress: async () => {
-            await supabase.auth.signOut();
-            router.replace('/(auth)/sign-in');
-          },
+    Alert.alert(t('signOut'), 'Are you sure you want to sign out?', [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('signOut'),
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.auth.signOut();
+          router.replace('/(auth)/sign-in');
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // Force dark styles
@@ -48,12 +48,19 @@ export default function SettingsScreen() {
 
   if (!isInitialized || logsLoading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <LinearGradient
-          colors={gradientColors}
-          style={styles.background}
-        />
-        <Text style={{ color: '#ffffff', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <LinearGradient colors={gradientColors} style={styles.background} />
+        <Text
+          style={{
+            color: '#ffffff',
+            fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+          }}
+        >
           {t('loading')}
         </Text>
       </View>
@@ -62,12 +69,9 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={gradientColors}
-        style={styles.background}
-      />
-      
-      <ScrollView 
+      <LinearGradient colors={gradientColors} style={styles.background} />
+
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -91,10 +95,12 @@ export default function SettingsScreen() {
               onPress={() => handleLanguageChange('en')}
             >
               <Text style={styles.languageFlag}>🇺🇸</Text>
-              <Text style={[
-                styles.languageOptionText,
-                language === 'en' && styles.languageOptionTextActive,
-              ]}>
+              <Text
+                style={[
+                  styles.languageOptionText,
+                  language === 'en' && styles.languageOptionTextActive,
+                ]}
+              >
                 {t('english')}
               </Text>
               {language === 'en' && (
@@ -110,10 +116,12 @@ export default function SettingsScreen() {
               onPress={() => handleLanguageChange('ar')}
             >
               <Text style={styles.languageFlag}>🇸🇦</Text>
-              <Text style={[
-                styles.languageOptionText,
-                language === 'ar' && styles.languageOptionTextActive,
-              ]}>
+              <Text
+                style={[
+                  styles.languageOptionText,
+                  language === 'ar' && styles.languageOptionTextActive,
+                ]}
+              >
                 {t('arabic')}
               </Text>
               {language === 'ar' && (
@@ -126,7 +134,7 @@ export default function SettingsScreen() {
         {/* Prayer Status Information */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('prayerStatusLevels')}</Text>
-          
+
           <View style={styles.statusItem}>
             <View
               style={[
@@ -208,9 +216,7 @@ export default function SettingsScreen() {
 
         <View style={styles.hadithCard}>
           <Text style={styles.hadithTitle}>{t('hadith')}</Text>
-          <Text style={styles.hadithText}>
-            {t('hadithText')}
-          </Text>
+          <Text style={styles.hadithText}>{t('hadithText')}</Text>
         </View>
 
         <View style={{ height: 100 }} />
@@ -219,173 +225,174 @@ export default function SettingsScreen() {
   );
 }
 
-const createStyles = (isRTL: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  background: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '100%',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 24,
-    paddingTop: 60,
-  },
-  header: {
-    marginBottom: 32,
-    alignItems: isRTL ? 'flex-end' : 'flex-start',
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 4,
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.7)',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 20,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  languageOptions: {
-    gap: 12,
-  },
-  languageOption: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  languageOptionActive: {
-    borderColor: '#ffffff',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  languageFlag: {
-    fontSize: 24,
-    marginRight: isRTL ? 0 : 16,
-    marginLeft: isRTL ? 16 : 0,
-  },
-  languageOptionText: {
-    flex: 1,
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '500',
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  languageOptionTextActive: {
-    color: '#ffffff',
-    fontWeight: '700',
-  },
-  statusItem: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 12,
-  },
-  statusIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: isRTL ? 0 : 16,
-    marginLeft: isRTL ? 16 : 0,
-  },
-  statusContent: {
-    flex: 1,
-  },
-  statusTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 4,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  statusSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 6,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  statusDescription: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
-    lineHeight: 20,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginVertical: 16,
-  },
-  hadithCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  hadithTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 16,
-    textAlign: isRTL ? 'right' : 'left',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
-  },
-  hadithText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    lineHeight: 26,
-    fontFamily: 'NotoNaskhArabic-Regular',
-    textAlign: isRTL ? 'right' : 'left',
-  },
-  signOutButton: {
-    flexDirection: isRTL ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    gap: 12,
-  },
-  signOutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ef4444',
-    fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-  },
-});
+const createStyles = (isRTL: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#000',
+    },
+    background: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      height: '100%',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 24,
+      paddingTop: 60,
+    },
+    header: {
+      marginBottom: 32,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
+    },
+    headerTitle: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 4,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    headerSubtitle: {
+      fontSize: 16,
+      color: 'rgba(255,255,255,0.7)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    card: {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 20,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    languageOptions: {
+      gap: 12,
+    },
+    languageOption: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: 'rgba(255,255,255,0.05)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    languageOptionActive: {
+      borderColor: '#ffffff',
+      backgroundColor: 'rgba(255,255,255,0.15)',
+    },
+    languageFlag: {
+      fontSize: 24,
+      marginRight: isRTL ? 0 : 16,
+      marginLeft: isRTL ? 16 : 0,
+    },
+    languageOptionText: {
+      flex: 1,
+      fontSize: 16,
+      color: 'rgba(255,255,255,0.6)',
+      fontWeight: '500',
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    languageOptionTextActive: {
+      color: '#ffffff',
+      fontWeight: '700',
+    },
+    statusItem: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'flex-start',
+      paddingVertical: 12,
+    },
+    statusIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: isRTL ? 0 : 16,
+      marginLeft: isRTL ? 16 : 0,
+    },
+    statusContent: {
+      flex: 1,
+    },
+    statusTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    statusSubtitle: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.8)',
+      marginBottom: 6,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    statusDescription: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.5)',
+      lineHeight: 20,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      marginVertical: 16,
+    },
+    hadithCard: {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    hadithTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 16,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    hadithText: {
+      fontSize: 16,
+      color: 'rgba(255,255,255,0.9)',
+      lineHeight: 26,
+      fontFamily: 'NotoNaskhArabic-Regular',
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    signOutButton: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      borderRadius: 20,
+      padding: 20,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: 'rgba(239, 68, 68, 0.3)',
+      gap: 12,
+    },
+    signOutText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#ef4444',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+  });

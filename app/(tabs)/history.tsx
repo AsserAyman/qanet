@@ -16,11 +16,11 @@ import { YearlyGraph } from '../../components/YearlyGraph';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
+  useLastNightStats,
   useOfflineData,
   useOfflineStats,
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
-import { getGradientColors } from '../../utils/quranData';
 
 export default function HistoryScreen() {
   const { session, loading: authLoading } = useAuth();
@@ -54,11 +54,7 @@ export default function HistoryScreen() {
     }
   }, [refreshLogs, refreshStats]);
 
-  const lastEntry = logs.length > 0 ? logs[0] : null;
-  const gradientColors = React.useMemo(() => {
-    const totalVerses = lastEntry?.total_ayahs || 0;
-    return getGradientColors(totalVerses);
-  }, [lastEntry]);
+  const { gradientColors } = useLastNightStats();
 
   if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (

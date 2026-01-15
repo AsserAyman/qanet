@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   Alert,
   Image,
@@ -12,21 +12,19 @@ import {
   View,
 } from 'react-native';
 import { useI18n } from '../../contexts/I18nContext';
-import { useOfflineStats, usePrayerLogs } from '../../hooks/useOfflineData';
+import {
+  useLastNightStats,
+  useOfflineStats,
+  usePrayerLogs,
+} from '../../hooks/useOfflineData';
 import { LocalPrayerLog } from '../../utils/database/schema';
-import { getGradientColors, quranData } from '../../utils/quranData';
+import { getVerseStatus, quranData } from '../../utils/quranData';
 
 export default function NightPrayerScreen() {
   const { t, isRTL } = useI18n();
   const { logs, deleteLog } = usePrayerLogs();
   const { streak, yearlyData, refresh: refreshStats } = useOfflineStats();
-
-  const lastEntry = logs.length > 0 ? logs[0] : null;
-
-  const gradientColors = useMemo(() => {
-    const totalVerses = lastEntry?.total_ayahs || 0;
-    return getGradientColors(totalVerses);
-  }, [lastEntry]);
+  const { totalVerses: lastNightTotal, gradientColors } = useLastNightStats();
 
   // Calculate stats from yearlyData
   const computedStats = React.useMemo(() => {
@@ -105,11 +103,9 @@ export default function NightPrayerScreen() {
             <View style={styles.dashboardDivider} />
 
             <View style={styles.dashboardItem}>
-              {lastEntry ? (
+              {lastNightTotal > 0 ? (
                 <>
-                  <Text style={styles.lastEntryNumber}>
-                    {lastEntry.total_ayahs}
-                  </Text>
+                  <Text style={styles.lastEntryNumber}>{lastNightTotal}</Text>
                   <Text style={styles.dashboardLabel}>{t('lastNight')}</Text>
                 </>
               ) : (
@@ -155,12 +151,20 @@ export default function NightPrayerScreen() {
 
           <View style={styles.historyCard}>
             {logs.slice(0, 3).map((log, index, arr) => {
+              const dateObj = new Date(log.date);
+              const dateStr = dateObj.toDateString();
               const showDate =
                 index === 0 ||
-                new Date(log.date).toDateString() !==
-                  new Date(arr[index - 1].date).toDateString();
+                dateStr !== new Date(arr[index - 1].date).toDateString();
 
-              const dateLabel = new Date(log.date).toLocaleDateString(
+              // Calculate total verses for this date (from all logs)
+              const dailyTotal = logs
+                .filter((l) => new Date(l.date).toDateString() === dateStr)
+                .reduce((sum, l) => sum + l.total_ayahs, 0);
+
+              const dailyStatus = getVerseStatus(dailyTotal);
+
+              const dateLabel = dateObj.toLocaleDateString(
                 isRTL ? 'ar-SA' : 'en-US',
                 {
                   weekday: 'long',
@@ -172,7 +176,24 @@ export default function NightPrayerScreen() {
               return (
                 <React.Fragment key={log.local_id}>
                   {showDate && (
-                    <Text style={styles.dateHeader}>{dateLabel}</Text>
+                    <View style={styles.dateHeaderContainer}>
+                      <Text style={styles.dateHeader}>{dateLabel}</Text>
+                      <View
+                        style={[
+                          styles.headerStatusBadge,
+                          { backgroundColor: dailyStatus.color + '20' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.headerStatusText,
+                            { color: dailyStatus.color },
+                          ]}
+                        >
+                          {t(dailyStatus.status.toLowerCase().replace(' ', ''))}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   <TouchableOpacity
                     style={[
@@ -206,24 +227,6 @@ export default function NightPrayerScreen() {
                         <Text style={styles.historyVerses}>
                           {log.total_ayahs} {t('verses')}
                         </Text>
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            {
-                              backgroundColor:
-                                getStatusColor(log.status) + '20',
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.statusText,
-                              { color: getStatusColor(log.status) },
-                            ]}
-                          >
-                            {t(log.status.toLowerCase().replace(' ', ''))}
-                          </Text>
-                        </View>
                         {log.sync_status !== 'synced' && (
                           <View
                             style={[
@@ -436,15 +439,32 @@ const createStyles = (isRTL: boolean) =>
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
     },
+    dateHeaderContainer: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 12,
+      marginBottom: 8,
+    },
     dateHeader: {
       fontSize: 13,
       fontWeight: '600',
       color: 'rgba(255,255,255,0.4)',
       textTransform: 'uppercase',
       letterSpacing: 1,
-      marginBottom: 8,
-      marginTop: 8,
       textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    headerStatusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerStatusText: {
+      fontSize: 11,
+      fontWeight: '600',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     historyItem: {
@@ -484,18 +504,6 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 13,
       color: 'rgba(255,255,255,0.5)',
       textAlign: isRTL ? 'right' : 'left',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-    },
-    statusBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 6,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    statusText: {
-      fontSize: 11,
-      fontWeight: '600',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     syncIndicator: {

@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { offlineDataManager, CreatePrayerLogData } from '../utils/database/offlineDataManager';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  CreatePrayerLogData,
+  offlineDataManager,
+} from '../utils/database/offlineDataManager';
 import { LocalPrayerLog } from '../utils/database/schema';
 import { networkManager } from '../utils/network/networkManager';
+import { getGradientColors } from '../utils/quranData';
 
 export function useOfflineData() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -15,7 +19,11 @@ export function useOfflineData() {
         await offlineDataManager.initialize();
         setIsInitialized(true);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to initialize offline data');
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to initialize offline data'
+        );
       } finally {
         setIsLoading(false);
       }
@@ -34,13 +42,18 @@ export function useOfflineData() {
 export function usePrayerLogs(limit: number = 30) {
   const queryClient = useQueryClient();
 
-  const { data: logs = [], isLoading: loading, error } = useQuery({
+  const {
+    data: logs = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
     queryKey: ['prayerLogs', limit],
     queryFn: () => offlineDataManager.getPrayerLogs(limit),
   });
 
   const createLogMutation = useMutation({
-    mutationFn: (data: CreatePrayerLogData) => offlineDataManager.createPrayerLog(data),
+    mutationFn: (data: CreatePrayerLogData) =>
+      offlineDataManager.createPrayerLog(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
       queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
@@ -48,8 +61,13 @@ export function usePrayerLogs(limit: number = 30) {
   });
 
   const updateLogMutation = useMutation({
-    mutationFn: ({ localId, updates }: { localId: string; updates: Partial<LocalPrayerLog> }) =>
-      offlineDataManager.updatePrayerLog(localId, updates),
+    mutationFn: ({
+      localId,
+      updates,
+    }: {
+      localId: string;
+      updates: Partial<LocalPrayerLog>;
+    }) => offlineDataManager.updatePrayerLog(localId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
       queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
@@ -57,7 +75,8 @@ export function usePrayerLogs(limit: number = 30) {
   });
 
   const deleteLogMutation = useMutation({
-    mutationFn: (localId: string) => offlineDataManager.deletePrayerLog(localId),
+    mutationFn: (localId: string) =>
+      offlineDataManager.deletePrayerLog(localId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
       queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
@@ -67,9 +86,10 @@ export function usePrayerLogs(limit: number = 30) {
   return {
     logs,
     loading,
-    error: error instanceof Error ? error.message : error ? String(error) : null,
+    error:
+      error instanceof Error ? error.message : error ? String(error) : null,
     createLog: createLogMutation.mutateAsync,
-    updateLog: (localId: string, updates: Partial<LocalPrayerLog>) => 
+    updateLog: (localId: string, updates: Partial<LocalPrayerLog>) =>
       updateLogMutation.mutateAsync({ localId, updates }),
     deleteLog: deleteLogMutation.mutateAsync,
     refresh: () => queryClient.invalidateQueries({ queryKey: ['prayerLogs'] }),
@@ -93,11 +113,14 @@ export function useNetworkStatus() {
 export function useSyncStatus() {
   const queryClient = useQueryClient();
 
-  const { data: syncStatus = {
-    pendingOperations: 0,
-    lastSync: null as string | null,
-    isOnline: false,
-  }, isLoading: loading } = useQuery({
+  const {
+    data: syncStatus = {
+      pendingOperations: 0,
+      lastSync: null as string | null,
+      isOnline: false,
+    },
+    isLoading: loading,
+  } = useQuery({
     queryKey: ['syncStatus'],
     queryFn: () => offlineDataManager.getSyncStatus(),
     // Refetch more often or when window focuses could be good, but explicit triggers work too
@@ -130,7 +153,11 @@ export function useSyncStatus() {
 export function useOfflineStats() {
   const queryClient = useQueryClient();
 
-  const { data, isLoading: loading, error } = useQuery({
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
     queryKey: ['offlineStats'],
     queryFn: async () => {
       const [statsData, streakData, yearData, monthData] = await Promise.all([
@@ -154,7 +181,38 @@ export function useOfflineStats() {
     yearlyData: data?.yearlyData || {},
     monthlyData: data?.monthlyData || {},
     loading,
-    error: error instanceof Error ? error.message : error ? String(error) : null,
-    refresh: () => queryClient.invalidateQueries({ queryKey: ['offlineStats'] }),
+    error:
+      error instanceof Error ? error.message : error ? String(error) : null,
+    refresh: () =>
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] }),
   };
+}
+
+export function useLastNightStats() {
+  const { logs, loading } = usePrayerLogs();
+
+  const stats = useMemo(() => {
+    if (logs.length === 0) {
+      return {
+        totalVerses: 0,
+        gradientColors: getGradientColors(0),
+        date: null,
+      };
+    }
+
+    const lastEntry = logs[0];
+    const lastDateStr = new Date(lastEntry.date).toDateString();
+
+    const lastNightTotal = logs
+      .filter((log) => new Date(log.date).toDateString() === lastDateStr)
+      .reduce((sum, log) => sum + log.total_ayahs, 0);
+
+    return {
+      totalVerses: lastNightTotal,
+      gradientColors: getGradientColors(lastNightTotal),
+      date: lastEntry.date,
+    };
+  }, [logs]);
+
+  return { ...stats, loading };
 }
