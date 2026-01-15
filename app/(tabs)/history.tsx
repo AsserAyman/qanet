@@ -1,16 +1,25 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
-import { DailyBreakdownChart } from '../../components/DailyBreakdownChart';
 import { StatsOverview } from '../../components/StatsOverview';
 import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
 
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../hooks/useAuth';
-import { usePrayerLogs, useOfflineStats, useOfflineData } from '../../hooks/useOfflineData';
+import {
+  useOfflineData,
+  useOfflineStats,
+  usePrayerLogs,
+} from '../../hooks/useOfflineData';
 import { getGradientColors } from '../../utils/quranData';
 
 export default function HistoryScreen() {
@@ -25,7 +34,7 @@ export default function HistoryScreen() {
     monthlyData,
     loading: statsLoading,
     error: statsError,
-    refresh: refreshStats
+    refresh: refreshStats,
   } = useOfflineStats();
 
   const [selectedDate, setSelectedDate] = React.useState(new Date());
@@ -53,12 +62,19 @@ export default function HistoryScreen() {
 
   if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <LinearGradient
-          colors={gradientColors}
-          style={styles.background}
-        />
-        <Text style={{ color: '#ffffff', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <LinearGradient colors={gradientColors} style={styles.background} />
+        <Text
+          style={{
+            color: '#ffffff',
+            fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+          }}
+        >
           {t('loading')}
         </Text>
       </View>
@@ -67,12 +83,22 @@ export default function HistoryScreen() {
 
   if (statsError) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <LinearGradient
-          colors={gradientColors}
-          style={styles.background}
-        />
-        <Text style={[styles.errorText, { color: '#ff6b6b', fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <LinearGradient colors={gradientColors} style={styles.background} />
+        <Text
+          style={[
+            styles.errorText,
+            {
+              color: '#ff6b6b',
+              fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+            },
+          ]}
+        >
           {statsError}
         </Text>
       </View>
@@ -83,12 +109,9 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={gradientColors}
-        style={styles.background}
-      />
-      
-      <ScrollView 
+      <LinearGradient colors={gradientColors} style={styles.background} />
+
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -130,23 +153,12 @@ export default function HistoryScreen() {
             ])
           )}
         />
-
-        <DailyBreakdownChart
-          data={Object.fromEntries(
-            Object.entries(yearlyData).map(([date, dayData]) => [
-              date,
-              dayData.verses,
-            ])
-          )}
-        />
-
-        <YearlyGraph data={yearlyData} />
-
         <Calendar
           date={selectedDate}
           markedDates={monthlyData}
           onDateChange={setSelectedDate}
         />
+        <YearlyGraph data={yearlyData} />
 
         <View style={{ height: 100 }} />
       </ScrollView>
