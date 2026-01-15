@@ -67,20 +67,20 @@ export const translations = {
 
     // Prayer Status
     negligent: 'Negligent',
-    notNegligent: 'Not Negligent',
+    notnegligent: 'Not Negligent',
     qanet: 'Qanet',
     mokantar: 'Mokantar',
 
     // Status descriptions
     negligentDesc: 'Less than 10 verses',
-    notNegligentDesc: '10-99 verses',
+    notnegligentDesc: '10-99 verses',
     qanetDesc: '100-999 verses',
     mokantarDesc: '1000+ verses',
 
     // Status explanations
     negligentExplanation:
       'Strive to read at least 10 verses to avoid being recorded among the negligent.',
-    notNegligentExplanation:
+    notnegligentExplanation:
       'Reading 10 or more verses keeps you from being recorded among the negligent.',
     qanetExplanation:
       'Reading 100 verses records you among those who are obedient to Allah.',
@@ -112,6 +112,7 @@ export const translations = {
 
     // Common
     seeAll: 'See All',
+    noHistoryYet: 'No History Yet',
     loading: 'Loading...',
     save: 'Save',
     cancel: 'Cancel',
@@ -243,20 +244,20 @@ export const translations = {
 
     // Prayer Status
     negligent: 'غافل',
-    notNegligent: 'غير غافل',
+    notnegligent: 'غير غافل',
     qanet: 'قانت',
     mokantar: 'مقنطر',
 
     // Status descriptions
     negligentDesc: 'أقل من 10 آيات',
-    notNegligentDesc: '10-99 آية',
+    notnegligentDesc: '10-99 آية',
     qanetDesc: '100-999 آية',
     mokantarDesc: '1000+ آية',
 
     // Status explanations
     negligentExplanation:
       'اجتهد في قراءة 10 آيات على الأقل لتجنب أن تُكتب من المهملين.',
-    notNegligentExplanation:
+    notnegligentExplanation:
       'قراءة 10 آيات أو أكثر تجعلك لا تُكتب من المهملين.',
     qanetExplanation: 'قراءة 100 آية تجعلك تُكتب من القانتين المطيعين لله.',
     mokantarExplanation: 'قراءة 1000 آية تكسبك أجراً عظيماً.',
@@ -287,6 +288,7 @@ export const translations = {
 
     // Common
     seeAll: 'عرض الكل',
+    noHistoryYet: 'لا يوجد تاريخ بعد',
     loading: 'جاري التحميل...',
     save: 'حفظ',
     cancel: 'إلغاء',

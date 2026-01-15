@@ -193,31 +193,31 @@ export function calculateVersesBetween(
 export function getVerseStatus(verseCount: number): {
   status: string;
   color: string;
-  description: string;
+  descriptionKey: string;
 } {
   if (verseCount >= 1000) {
     return {
       status: 'Mokantar',
       color: '#a855f7',
-      description: 'Huge rewards await you!',
+      descriptionKey: 'hugeRewardsAwaitYou',
     };
   } else if (verseCount >= 100) {
     return {
       status: 'Qanet',
       color: '#22c55e',
-      description: 'Among those who are obedient to Allah',
+      descriptionKey: 'amongThoseObedientToAllah',
     };
   } else if (verseCount >= 10) {
     return {
       status: 'Not Negligent',
       color: '#3b82f6',
-      description: 'You are not among the negligent',
+      descriptionKey: 'youAreNotAmongTheNegligent',
     };
   } else {
     return {
       status: 'Negligent',
       color: '#ef4444',
-      description: 'Strive to read at least 10 verses',
+      descriptionKey: 'striveToReadAtLeast10Verses',
     };
   }
 }

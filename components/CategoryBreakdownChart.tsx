@@ -34,7 +34,7 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
         };
       case 'Not Negligent':
         return {
-          title: t('notNegligent'),
+          title: t('notnegligent'),
           icon: 'clock',
           color: '#3b82f6',
           description: t('occasionalGaps'),

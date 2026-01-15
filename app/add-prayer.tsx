@@ -181,7 +181,7 @@ export default function AddPrayerScreen() {
                 {t(status.status.toLowerCase().replace(/\s+/g, ''))}
               </Text>
               <Text style={styles.statusDescription}>
-                {status.description}
+                {t(status.descriptionKey)}
               </Text>
             </View>
           </View>

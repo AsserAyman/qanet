@@ -157,10 +157,10 @@ export default function SettingsScreen() {
               <Feather name="moon" size={24} color="#3b82f6" />
             </View>
             <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>{t('notNegligent')}</Text>
-              <Text style={styles.statusSubtitle}>{t('notNegligentDesc')}</Text>
+              <Text style={styles.statusTitle}>{t('notnegligent')}</Text>
+              <Text style={styles.statusSubtitle}>{t('notnegligentDesc')}</Text>
               <Text style={styles.statusDescription}>
-                {t('notNegligentExplanation')}
+                {t('notnegligentExplanation')}
               </Text>
             </View>
           </View>
