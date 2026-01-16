@@ -311,6 +311,7 @@ const createStyles = (isRTL: boolean) =>
     },
     scrollView: {
       flex: 1,
+      marginTop: 20,
     },
     contentContainer: {
       padding: 24,
@@ -322,8 +323,8 @@ const createStyles = (isRTL: boolean) =>
       marginBottom: 32,
     },
     heroMoonImage: {
-      width: 140,
-      height: 140,
+      width: 160,
+      height: 160,
       borderRadius: 70,
       marginBottom: 20,
     },
