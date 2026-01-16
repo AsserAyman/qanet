@@ -111,6 +111,26 @@ class OfflineDataManager {
     // Update local database first
     await sqliteManager.updatePrayerLog(localId, updateData);
 
+    // Queue for sync to ensure updates aren't lost
+    // Check if there's already a pending operation for this record
+    const pendingOps = await sqliteManager.getPendingSyncOperations();
+    const hasPendingOp = pendingOps.some(
+      op => op.local_id === localId && (op.operation === OPERATION_TYPES.CREATE || op.operation === OPERATION_TYPES.UPDATE)
+    );
+
+    // Only queue UPDATE if there's no pending CREATE or UPDATE
+    // (CREATE will use latest data, so no need for separate UPDATE)
+    if (!hasPendingOp) {
+      await sqliteManager.addSyncOperation({
+        table_name: TABLES.PRAYER_LOGS,
+        operation: OPERATION_TYPES.UPDATE,
+        local_id: localId,
+        data: updateData,
+        created_at: now,
+        retry_count: 0,
+      });
+    }
+
     // Trigger background sync if online
     if (networkManager.isOnline()) {
       syncEngine.triggerSync();
@@ -277,6 +297,9 @@ class OfflineDataManager {
         return;
       }
 
+      // Get all pending operations to avoid creating duplicates
+      const pendingOps = await sqliteManager.getPendingSyncOperations();
+
       // Update all local prayer_logs with new user_id and mark for re-sync
       for (const log of oldLogs) {
         const now = new Date().toISOString();
@@ -288,15 +311,22 @@ class OfflineDataManager {
           updated_at: now,
         });
 
-        // Queue for re-sync with the new user_id
-        await sqliteManager.addSyncOperation({
-          table_name: TABLES.PRAYER_LOGS,
-          operation: OPERATION_TYPES.CREATE, // Re-create on server with new user_id
-          local_id: log.local_id,
-          data: { ...log, user_id: newUserId },
-          created_at: now,
-          retry_count: 0,
-        });
+        // Only queue for re-sync if there's no pending CREATE operation already
+        const hasPendingCreate = pendingOps.some(
+          op => op.local_id === log.local_id && op.operation === OPERATION_TYPES.CREATE
+        );
+
+        if (!hasPendingCreate) {
+          // Queue for re-sync with the new user_id
+          await sqliteManager.addSyncOperation({
+            table_name: TABLES.PRAYER_LOGS,
+            operation: OPERATION_TYPES.CREATE, // Re-create on server with new user_id
+            local_id: log.local_id,
+            data: { ...log, user_id: newUserId },
+            created_at: now,
+            retry_count: 0,
+          });
+        }
       }
 
       // Update cached user ID

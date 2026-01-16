@@ -194,6 +194,12 @@ class SyncEngine {
       return;
     }
 
+    if (currentLog.server_id) {
+      // Record already has server_id - it was already synced, skip to prevent duplicate
+      console.log(`[Sync] Skipping CREATE for ${operation.local_id} - already synced (has server_id)`);
+      return;
+    }
+
     try {
       // Ensure we have custom user ID
       const customUserId = await this.ensureCustomUserExists();
@@ -337,7 +343,33 @@ class SyncEngine {
   private async processServerLog(serverLog: any): Promise<void> {
     const userId = await this.getCurrentUserId();
     const existingLogs = await sqliteManager.getPrayerLogs(userId, 1000);
-    const existingLog = existingLogs.find(log => log.server_id === serverLog.id);
+
+    // Check by server_id first
+    let existingLog = existingLogs.find(log => log.server_id === serverLog.id);
+
+    // If not found by server_id, check for potential duplicate by content
+    // This catches cases where a record was created locally but the server_id wasn't set yet
+    if (!existingLog) {
+      existingLog = existingLogs.find(log =>
+        !log.server_id &&  // Only match unsynced local records
+        log.date === serverLog.date &&
+        log.start_surah === serverLog.start_surah &&
+        log.start_ayah === serverLog.start_ayah &&
+        log.end_surah === serverLog.end_surah &&
+        log.end_ayah === serverLog.end_ayah
+      );
+
+      if (existingLog) {
+        // Found a matching unsynced local record - link it to the server record instead of creating duplicate
+        console.log(`[Sync] Linking existing local record ${existingLog.local_id} to server record ${serverLog.id}`);
+        await sqliteManager.updatePrayerLog(existingLog.local_id, {
+          server_id: serverLog.id,
+          sync_status: SYNC_STATUS.SYNCED,
+          last_synced: new Date().toISOString(),
+        });
+        return;
+      }
+    }
 
     if (existingLog) {
       // Check if server version is newer
