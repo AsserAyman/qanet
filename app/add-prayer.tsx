@@ -32,6 +32,7 @@ import {
   getGradientColors,
   getVerseStatus,
   quranData,
+  surahAyahToGlobalIndex,
 } from '../utils/quranData';
 
 export default function AddPrayerScreen() {
@@ -116,14 +117,18 @@ export default function AddPrayerScreen() {
       setLoading(true);
       setError(null);
 
+      // Convert surah/ayah to global indices
+      const startGlobal = surahAyahToGlobalIndex(selectedSurah, selectedAyah);
+      const endGlobal = surahAyahToGlobalIndex(endSurah, endAyah);
+
       await createLog({
-        start_surah: selectedSurah,
-        start_ayah: selectedAyah,
-        end_surah: endSurah,
-        end_ayah: endAyah,
-        total_ayahs: totalVerses,
-        status: status.status,
-        date: date,
+        prayer_date: date,
+        recitations: [
+          {
+            start_ayah: startGlobal,
+            end_ayah: endGlobal,
+          },
+        ],
       });
 
       // Success Feedback

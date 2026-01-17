@@ -17,6 +17,7 @@ import {
   calculateVerseRange,
   calculateVersesBetween,
   getVerseStatus,
+  globalIndexToSurahAyah,
   quranData,
 } from '../../utils/quranData';
 
@@ -45,28 +46,28 @@ export default function CalculatorScreen() {
 
   // Set default starting point based on last entry's end point
   useEffect(() => {
-    if (lastEntry) {
+    if (lastEntry && lastEntry.recitations.length > 0) {
+      // Get the last recitation's end position
+      const lastRecitation = lastEntry.recitations[lastEntry.recitations.length - 1];
+      const endInfo = globalIndexToSurahAyah(lastRecitation.end_ayah);
       const endSurahData = quranData.find(
-        (s) => s.name === lastEntry.end_surah
+        (s) => s.name === endInfo.surahName
       );
       if (endSurahData) {
         // Check if we need to move to the next surah
-        if (lastEntry.end_ayah >= endSurahData.ayahs) {
+        if (endInfo.ayahNumber >= endSurahData.ayahs) {
           // Move to the next surah
-          const currentIndex = quranData.findIndex(
-            (s) => s.name === lastEntry.end_surah
-          );
-          const nextIndex = (currentIndex + 1) % quranData.length;
+          const nextIndex = (endInfo.surahIndex + 1) % quranData.length;
           setSelectedSurah(quranData[nextIndex].name);
           setSelectedAyah(1);
         } else {
           // Stay in the same surah, increment ayah
-          setSelectedSurah(lastEntry.end_surah);
-          setSelectedAyah(lastEntry.end_ayah + 1);
+          setSelectedSurah(endInfo.surahName);
+          setSelectedAyah(endInfo.ayahNumber + 1);
         }
       }
     }
-  }, [lastEntry?.local_id]); // Only run when the last entry changes
+  }, [lastEntry?.id]); // Only run when the last entry changes
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);

@@ -19,8 +19,9 @@ import {
   useOfflineData,
   useOfflineStats,
   usePrayerLogs,
+  calculateTotalAyahs,
 } from '../hooks/useOfflineData';
-import { getVerseStatus, quranData } from '../utils/quranData';
+import { getVerseStatus, globalIndexToSurahAyah } from '../utils/quranData';
 
 export default function AllHistoryScreen() {
   const insets = useSafeAreaInsets();
@@ -30,7 +31,6 @@ export default function AllHistoryScreen() {
     logs,
     loading: logsLoading,
     refresh: refreshLogs,
-    deleteLog,
   } = usePrayerLogs();
   const { refresh: refreshStats } = useOfflineStats();
 
@@ -38,9 +38,19 @@ export default function AllHistoryScreen() {
 
   const styles = createStyles(isRTL, insets);
 
-  const getSurahName = (name: string) => {
-    const surah = quranData.find((s) => s.name === name);
-    return isRTL ? surah?.nameAr || name : name;
+  const formatRecitationRange = (log: LocalPrayerLog): string => {
+    if (log.recitations.length === 0) {
+      return '';
+    }
+
+    const firstRec = log.recitations[0];
+    const startInfo = globalIndexToSurahAyah(firstRec.start_ayah);
+    const endInfo = globalIndexToSurahAyah(firstRec.end_ayah);
+
+    const startName = isRTL ? startInfo.surahNameAr : startInfo.surahName;
+    const endName = isRTL ? endInfo.surahNameAr : endInfo.surahName;
+
+    return `${startName} ${startInfo.ayahNumber} → ${endName} ${endInfo.ayahNumber}`;
   };
 
   const handleRefresh = React.useCallback(async () => {
@@ -55,7 +65,7 @@ export default function AllHistoryScreen() {
   }, [refreshLogs, refreshStats]);
 
   const handleEdit = React.useCallback((log: LocalPrayerLog) => {
-    router.push(`/edit-prayer/${log.local_id}`);
+    router.push(`/edit-prayer/${log.id}`);
   }, []);
 
   const { gradientColors } = useLastNightStats();
@@ -115,18 +125,19 @@ export default function AllHistoryScreen() {
       >
         <View style={styles.historyCard}>
           {logs.map((log, index, arr) => {
-            const dateObj = new Date(log.date);
+            const dateObj = new Date(log.prayer_date);
             const dateStr = dateObj.toDateString();
             const showDate =
               index === 0 ||
-              dateStr !== new Date(arr[index - 1].date).toDateString();
+              dateStr !== new Date(arr[index - 1].prayer_date).toDateString();
 
             // Calculate total verses for this date (from all logs)
             const dailyTotal = logs
-              .filter((l) => new Date(l.date).toDateString() === dateStr)
-              .reduce((sum, l) => sum + l.total_ayahs, 0);
+              .filter((l) => new Date(l.prayer_date).toDateString() === dateStr)
+              .reduce((sum, l) => sum + calculateTotalAyahs(l.recitations), 0);
 
             const dailyStatus = getVerseStatus(dailyTotal);
+            const logTotalAyahs = calculateTotalAyahs(log.recitations);
 
             const dateLabel = dateObj.toLocaleDateString(
               isRTL ? 'ar-SA' : 'en-US',
@@ -138,7 +149,7 @@ export default function AllHistoryScreen() {
             );
 
             return (
-              <React.Fragment key={log.local_id}>
+              <React.Fragment key={log.id}>
                 {showDate && (
                   <View
                     style={[
@@ -191,12 +202,11 @@ export default function AllHistoryScreen() {
                   </View>
                   <View style={styles.historyContent}>
                     <Text style={styles.historyRange}>
-                      {getSurahName(log.start_surah)} {log.start_ayah} →{' '}
-                      {getSurahName(log.end_surah)} {log.end_ayah}
+                      {formatRecitationRange(log)}
                     </Text>
                     <View style={styles.metaContainer}>
                       <Text style={styles.historyVerses}>
-                        {log.total_ayahs} {t('verses')}
+                        {logTotalAyahs} {t('verses')}
                       </Text>
                       {log.sync_status !== 'synced' && (
                         <View
@@ -231,19 +241,6 @@ export default function AllHistoryScreen() {
       </ScrollView>
     </View>
   );
-}
-
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'Mokantar':
-      return '#a855f7';
-    case 'Qanet':
-      return '#22c55e';
-    case 'Not Negligent':
-      return '#3b82f6';
-    default:
-      return '#ef4444';
-  }
 }
 
 function getSyncStatusColor(syncStatus: string): string {

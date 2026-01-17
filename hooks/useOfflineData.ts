@@ -2,11 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import {
   CreatePrayerLogData,
+  UpdatePrayerLogData,
   offlineDataManager,
 } from '../utils/database/offlineDataManager';
-import { LocalPrayerLog } from '../utils/database/schema';
+import { LocalPrayerLog, LocalRecitation } from '../utils/database/schema';
 import { networkManager } from '../utils/network/networkManager';
-import { getGradientColors } from '../utils/quranData';
+import { getGradientColors, calculateAyahsBetweenIndices } from '../utils/quranData';
 
 export function useOfflineData() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -62,12 +63,12 @@ export function usePrayerLogs(limit: number = 30) {
 
   const updateLogMutation = useMutation({
     mutationFn: ({
-      localId,
+      id,
       updates,
     }: {
-      localId: string;
-      updates: Partial<LocalPrayerLog>;
-    }) => offlineDataManager.updatePrayerLog(localId, updates),
+      id: string;
+      updates: UpdatePrayerLogData;
+    }) => offlineDataManager.updatePrayerLog(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
       queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
@@ -75,8 +76,8 @@ export function usePrayerLogs(limit: number = 30) {
   });
 
   const deleteLogMutation = useMutation({
-    mutationFn: (localId: string) =>
-      offlineDataManager.deletePrayerLog(localId),
+    mutationFn: (id: string) =>
+      offlineDataManager.deletePrayerLog(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
       queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
@@ -89,8 +90,8 @@ export function usePrayerLogs(limit: number = 30) {
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
     createLog: createLogMutation.mutateAsync,
-    updateLog: (localId: string, updates: Partial<LocalPrayerLog>) =>
-      updateLogMutation.mutateAsync({ localId, updates }),
+    updateLog: (id: string, updates: UpdatePrayerLogData) =>
+      updateLogMutation.mutateAsync({ id, updates }),
     deleteLog: deleteLogMutation.mutateAsync,
     refresh: () => queryClient.invalidateQueries({ queryKey: ['prayerLogs'] }),
   };
@@ -123,7 +124,6 @@ export function useSyncStatus() {
   } = useQuery({
     queryKey: ['syncStatus'],
     queryFn: () => offlineDataManager.getSyncStatus(),
-    // Refetch more often or when window focuses could be good, but explicit triggers work too
   });
 
   useEffect(() => {
@@ -138,7 +138,7 @@ export function useSyncStatus() {
     mutationFn: () => offlineDataManager.forceSyncNow(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['syncStatus'] });
-      queryClient.invalidateQueries({ queryKey: ['prayerLogs'] }); // Data might have changed from server
+      queryClient.invalidateQueries({ queryKey: ['prayerLogs'] });
     },
   });
 
@@ -188,6 +188,15 @@ export function useOfflineStats() {
   };
 }
 
+/**
+ * Helper function to calculate total ayahs from recitations
+ */
+export function calculateTotalAyahs(recitations: LocalRecitation[]): number {
+  return recitations.reduce((sum, rec) => {
+    return sum + calculateAyahsBetweenIndices(rec.start_ayah, rec.end_ayah);
+  }, 0);
+}
+
 export function useLastNightStats() {
   const { logs, loading } = usePrayerLogs();
 
@@ -201,16 +210,16 @@ export function useLastNightStats() {
     }
 
     const lastEntry = logs[0];
-    const lastDateStr = new Date(lastEntry.date).toDateString();
+    const lastDateStr = new Date(lastEntry.prayer_date).toDateString();
 
     const lastNightTotal = logs
-      .filter((log) => new Date(log.date).toDateString() === lastDateStr)
-      .reduce((sum, log) => sum + log.total_ayahs, 0);
+      .filter((log) => new Date(log.prayer_date).toDateString() === lastDateStr)
+      .reduce((sum, log) => sum + calculateTotalAyahs(log.recitations), 0);
 
     return {
       totalVerses: lastNightTotal,
       gradientColors: getGradientColors(lastNightTotal),
-      date: lastEntry.date,
+      date: lastEntry.prayer_date,
     };
   }, [logs]);
 

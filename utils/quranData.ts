@@ -232,3 +232,104 @@ export function getGradientColors(verseCount: number): readonly [string, string,
   }
   return ['#4a0e0e', '#2b0505', '#000000'];
 }
+
+// =====================================================
+// Global Ayah Index Utilities
+// =====================================================
+// The Quran has 6236 ayahs total. Global index ranges from 1-6236.
+// This allows storing recitation ranges as simple integer pairs.
+
+// Pre-computed cumulative ayah counts for fast lookup
+const cumulativeAyahCounts: number[] = [];
+let totalCount = 0;
+for (const surah of quranData) {
+  cumulativeAyahCounts.push(totalCount);
+  totalCount += surah.ayahs;
+}
+// Total ayahs in Quran: 6236
+export const TOTAL_QURAN_AYAHS = totalCount;
+
+/**
+ * Convert surah name and ayah number to global index (1-6236)
+ * @param surahName - Name of the surah (e.g., "Al-Fatiha")
+ * @param ayahNumber - Ayah number within the surah (1-based)
+ * @returns Global ayah index (1-6236)
+ */
+export function surahAyahToGlobalIndex(surahName: string, ayahNumber: number): number {
+  const surahIndex = quranData.findIndex(s => s.name === surahName);
+  if (surahIndex === -1) {
+    throw new Error(`Unknown surah: ${surahName}`);
+  }
+  const surah = quranData[surahIndex];
+  if (ayahNumber < 1 || ayahNumber > surah.ayahs) {
+    throw new Error(`Invalid ayah number ${ayahNumber} for surah ${surahName} (has ${surah.ayahs} ayahs)`);
+  }
+  return cumulativeAyahCounts[surahIndex] + ayahNumber;
+}
+
+/**
+ * Convert global ayah index to surah name and ayah number
+ * @param globalIndex - Global ayah index (1-6236)
+ * @returns Object with surahName, surahNameAr, ayahNumber
+ */
+export function globalIndexToSurahAyah(globalIndex: number): {
+  surahName: string;
+  surahNameAr: string;
+  ayahNumber: number;
+  surahIndex: number;
+} {
+  if (globalIndex < 1 || globalIndex > TOTAL_QURAN_AYAHS) {
+    throw new Error(`Invalid global index: ${globalIndex}. Must be between 1 and ${TOTAL_QURAN_AYAHS}`);
+  }
+
+  // Binary search for the surah
+  let low = 0;
+  let high = quranData.length - 1;
+
+  while (low < high) {
+    const mid = Math.floor((low + high + 1) / 2);
+    if (cumulativeAyahCounts[mid] < globalIndex) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  const surah = quranData[low];
+  const ayahNumber = globalIndex - cumulativeAyahCounts[low];
+
+  return {
+    surahName: surah.name,
+    surahNameAr: surah.nameAr,
+    ayahNumber,
+    surahIndex: low,
+  };
+}
+
+/**
+ * Calculate total ayahs between two global indices (inclusive)
+ */
+export function calculateAyahsBetweenIndices(startGlobal: number, endGlobal: number): number {
+  return endGlobal - startGlobal + 1;
+}
+
+/**
+ * Format a global index range for display
+ * @param startGlobal - Start global index
+ * @param endGlobal - End global index
+ * @param useArabic - Use Arabic surah names
+ * @returns Formatted string like "Al-Baqara 1 → Al-Baqara 50"
+ */
+export function formatRecitationRange(
+  startGlobal: number,
+  endGlobal: number,
+  useArabic: boolean = false
+): string {
+  const start = globalIndexToSurahAyah(startGlobal);
+  const end = globalIndexToSurahAyah(endGlobal);
+
+  const startName = useArabic ? start.surahNameAr : start.surahName;
+  const endName = useArabic ? end.surahNameAr : end.surahName;
+
+  return `${startName} ${start.ayahNumber} → ${endName} ${end.ayahNumber}`;
+}

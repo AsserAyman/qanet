@@ -1,6 +1,5 @@
 import { sqliteManager } from './sqlite';
-import { supabase } from '../supabase';
-import { LocalPrayerLog, TABLES, SYNC_STATUS, OPERATION_TYPES } from './schema';
+import { LocalPrayerLog, TABLES, SYNC_STATUS, OPERATION_TYPES, LocalRecitation } from './schema';
 import { networkManager } from '../network/networkManager';
 import { syncEngine } from '../sync/syncEngine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,14 +7,22 @@ import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
 import { getCachedCustomUserId, registerOrGetCustomUser } from '../auth/userRegistration';
 
+// Input data for creating a new prayer log
 export interface CreatePrayerLogData {
-  start_surah: string;
-  start_ayah: number;
-  end_surah: string;
-  end_ayah: number;
-  total_ayahs: number;
-  status: string;
-  date: Date;
+  prayer_date: Date;
+  recitations: {
+    start_ayah: number;  // Global index (1-6236)
+    end_ayah: number;    // Global index (1-6236)
+  }[];
+}
+
+// Input data for updating a prayer log
+export interface UpdatePrayerLogData {
+  prayer_date?: string;
+  recitations?: {
+    start_ayah: number;
+    end_ayah: number;
+  }[];
 }
 
 class OfflineDataManager {
@@ -55,15 +62,9 @@ class OfflineDataManager {
     const userId = await this.getCurrentUserId();
     const now = new Date().toISOString();
 
-    const logData: Omit<LocalPrayerLog, 'local_id'> = {
+    const logData = {
       user_id: userId,
-      date: data.date.toISOString().split('T')[0],
-      start_surah: data.start_surah,
-      start_ayah: data.start_ayah,
-      end_surah: data.end_surah,
-      end_ayah: data.end_ayah,
-      total_ayahs: data.total_ayahs,
-      status: data.status,
+      prayer_date: data.prayer_date.toISOString().split('T')[0],
       created_at: now,
       updated_at: now,
       sync_status: SYNC_STATUS.PENDING,
@@ -71,13 +72,13 @@ class OfflineDataManager {
     };
 
     // Insert into local database first (immediate response)
-    const savedLog = await sqliteManager.insertPrayerLog(logData);
+    const savedLog = await sqliteManager.insertPrayerLog(logData, data.recitations);
 
     // Queue for sync
     await sqliteManager.addSyncOperation({
       table_name: TABLES.PRAYER_LOGS,
       operation: OPERATION_TYPES.CREATE,
-      local_id: savedLog.local_id,
+      record_id: savedLog.id,
       data: savedLog,
       created_at: now,
       retry_count: 0,
@@ -98,24 +99,40 @@ class OfflineDataManager {
     return await sqliteManager.getPrayerLogs(userId, limit);
   }
 
-  async updatePrayerLog(localId: string, updates: Partial<LocalPrayerLog>): Promise<void> {
+  async getPrayerLogById(id: string): Promise<LocalPrayerLog | null> {
+    await this.ensureInitialized();
+    return await sqliteManager.getPrayerLogById(id);
+  }
+
+  async updatePrayerLog(id: string, updates: UpdatePrayerLogData): Promise<void> {
     await this.ensureInitialized();
 
     const now = new Date().toISOString();
-    const updateData = {
-      ...updates,
-      updated_at: now,
-      sync_status: SYNC_STATUS.PENDING,
-    };
 
-    // Update local database first
-    await sqliteManager.updatePrayerLog(localId, updateData);
+    // Update prayer_log fields if provided
+    if (updates.prayer_date) {
+      await sqliteManager.updatePrayerLog(id, {
+        prayer_date: updates.prayer_date,
+        updated_at: now,
+        sync_status: SYNC_STATUS.PENDING,
+      });
+    } else {
+      await sqliteManager.updatePrayerLog(id, {
+        updated_at: now,
+        sync_status: SYNC_STATUS.PENDING,
+      });
+    }
+
+    // Update recitations if provided
+    if (updates.recitations) {
+      await sqliteManager.replaceRecitationsForPrayerLog(id, updates.recitations);
+    }
 
     // Queue for sync to ensure updates aren't lost
     // Check if there's already a pending operation for this record
     const pendingOps = await sqliteManager.getPendingSyncOperations();
     const hasPendingOp = pendingOps.some(
-      op => op.local_id === localId && (op.operation === OPERATION_TYPES.CREATE || op.operation === OPERATION_TYPES.UPDATE)
+      op => op.record_id === id && (op.operation === OPERATION_TYPES.CREATE || op.operation === OPERATION_TYPES.UPDATE)
     );
 
     // Only queue UPDATE if there's no pending CREATE or UPDATE
@@ -124,8 +141,8 @@ class OfflineDataManager {
       await sqliteManager.addSyncOperation({
         table_name: TABLES.PRAYER_LOGS,
         operation: OPERATION_TYPES.UPDATE,
-        local_id: localId,
-        data: updateData,
+        record_id: id,
+        data: updates,
         created_at: now,
         retry_count: 0,
       });
@@ -137,19 +154,19 @@ class OfflineDataManager {
     }
   }
 
-  async deletePrayerLog(localId: string): Promise<void> {
+  async deletePrayerLog(id: string): Promise<void> {
     await this.ensureInitialized();
 
     const now = new Date().toISOString();
 
     // Mark as deleted locally
-    await sqliteManager.deletePrayerLog(localId);
+    await sqliteManager.deletePrayerLog(id);
 
     // Queue for sync
     await sqliteManager.addSyncOperation({
       table_name: TABLES.PRAYER_LOGS,
       operation: OPERATION_TYPES.DELETE,
-      local_id: localId,
+      record_id: id,
       data: { deleted_at: now },
       created_at: now,
       retry_count: 0,
@@ -165,12 +182,21 @@ class OfflineDataManager {
     await this.ensureInitialized();
 
     const userId = await this.getCurrentUserId();
-    const logs = await sqliteManager.getPrayerLogs(userId, 1000); // Get more for stats
+    const logs = await sqliteManager.getPrayerLogs(userId, 1000);
 
-    const statusCounts = logs.reduce((acc, log) => {
-      acc[log.status] = (acc[log.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    // Group logs by date and calculate total ayahs per day
+    const dailyTotals: { [date: string]: number } = {};
+    for (const log of logs) {
+      const total = this.calculateTotalAyahs(log.recitations);
+      dailyTotals[log.prayer_date] = (dailyTotals[log.prayer_date] || 0) + total;
+    }
+
+    // Calculate status for each day
+    const statusCounts: Record<string, number> = {};
+    for (const total of Object.values(dailyTotals)) {
+      const status = this.getStatusFromAyahCount(total);
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    }
 
     return Object.entries(statusCounts).map(([status, count]) => ({
       status,
@@ -182,25 +208,34 @@ class OfflineDataManager {
     await this.ensureInitialized();
 
     const userId = await this.getCurrentUserId();
-    const logs = await sqliteManager.getPrayerLogs(userId, 365); // Get a year's worth
+    const logs = await sqliteManager.getPrayerLogs(userId, 365);
+
+    // Group logs by date
+    const dateSet = new Set(logs.map(log => log.prayer_date));
+    const dates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
 
     let streak = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Sort logs by date descending
-    const sortedLogs = logs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    for (let i = 0; i < sortedLogs.length; i++) {
-      const logDate = new Date(sortedLogs[i].date);
+    for (let i = 0; i < dates.length; i++) {
       const expectedDate = new Date(today);
       expectedDate.setDate(today.getDate() - i);
+      const expectedDateStr = expectedDate.toISOString().split('T')[0];
 
-      if (
-        logDate.getTime() === expectedDate.getTime() &&
-        sortedLogs[i].status !== 'Negligent'
-      ) {
-        streak++;
+      if (dates.includes(expectedDateStr)) {
+        // Check if the day wasn't 'Negligent'
+        const dayLogs = logs.filter(log => log.prayer_date === expectedDateStr);
+        const dayTotal = dayLogs.reduce((sum, log) =>
+          sum + this.calculateTotalAyahs(log.recitations), 0
+        );
+        const status = this.getStatusFromAyahCount(dayTotal);
+
+        if (status !== 'Negligent') {
+          streak++;
+        } else {
+          break;
+        }
       } else {
         break;
       }
@@ -215,14 +250,25 @@ class OfflineDataManager {
     const userId = await this.getCurrentUserId();
     const logs = await sqliteManager.getPrayerLogs(userId, 1000);
 
+    // Group by date and sum verses
     const yearlyData: { [key: string]: { verses: number; status: string } } = {};
-    
-    logs.forEach((log) => {
-      yearlyData[log.date] = {
-        verses: log.total_ayahs,
-        status: log.status,
-      };
-    });
+
+    for (const log of logs) {
+      const total = this.calculateTotalAyahs(log.recitations);
+      if (yearlyData[log.prayer_date]) {
+        yearlyData[log.prayer_date].verses += total;
+      } else {
+        yearlyData[log.prayer_date] = {
+          verses: total,
+          status: '', // Will be calculated after summing
+        };
+      }
+    }
+
+    // Calculate status for each date
+    for (const date of Object.keys(yearlyData)) {
+      yearlyData[date].status = this.getStatusFromAyahCount(yearlyData[date].verses);
+    }
 
     return yearlyData;
   }
@@ -230,14 +276,12 @@ class OfflineDataManager {
   async getMonthlyData(): Promise<{ [key: string]: string }> {
     await this.ensureInitialized();
 
-    const userId = await this.getCurrentUserId();
-    const logs = await sqliteManager.getPrayerLogs(userId, 1000);
+    const yearlyData = await this.getYearlyData();
 
     const monthlyData: { [key: string]: string } = {};
-    
-    logs.forEach((log) => {
-      monthlyData[log.date] = log.status;
-    });
+    for (const [date, data] of Object.entries(yearlyData)) {
+      monthlyData[date] = data.status;
+    }
 
     return monthlyData;
   }
@@ -277,14 +321,6 @@ class OfflineDataManager {
   /**
    * Migrate local data to a new user ID
    * Used when transitioning from device_id → anonymous_user_id → email_user_id
-   *
-   * This function:
-   * 1. Updates all local prayer_logs with the new user_id
-   * 2. Marks them as pending sync
-   * 3. Re-queues them for sync to the cloud
-   *
-   * @param oldUserId The previous user_id (device_id or anonymous_id)
-   * @param newUserId The new user_id (anonymous_id or email_id)
    */
   async migrateLocalDataToNewUserId(oldUserId: string, newUserId: string): Promise<void> {
     await this.ensureInitialized();
@@ -305,7 +341,7 @@ class OfflineDataManager {
         const now = new Date().toISOString();
 
         // Update the log with new user_id
-        await sqliteManager.updatePrayerLog(log.local_id, {
+        await sqliteManager.updatePrayerLog(log.id, {
           user_id: newUserId,
           sync_status: SYNC_STATUS.PENDING,
           updated_at: now,
@@ -313,15 +349,15 @@ class OfflineDataManager {
 
         // Only queue for re-sync if there's no pending CREATE operation already
         const hasPendingCreate = pendingOps.some(
-          op => op.local_id === log.local_id && op.operation === OPERATION_TYPES.CREATE
+          op => op.record_id === log.id && op.operation === OPERATION_TYPES.CREATE
         );
 
         if (!hasPendingCreate) {
           // Queue for re-sync with the new user_id
           await sqliteManager.addSyncOperation({
             table_name: TABLES.PRAYER_LOGS,
-            operation: OPERATION_TYPES.CREATE, // Re-create on server with new user_id
-            local_id: log.local_id,
+            operation: OPERATION_TYPES.CREATE,
+            record_id: log.id,
             data: { ...log, user_id: newUserId },
             created_at: now,
             retry_count: 0,
@@ -339,6 +375,29 @@ class OfflineDataManager {
     } catch (error) {
       throw error;
     }
+  }
+
+  // =====================================================
+  // Helper Methods
+  // =====================================================
+
+  /**
+   * Calculate total ayahs from recitations
+   */
+  calculateTotalAyahs(recitations: LocalRecitation[]): number {
+    return recitations.reduce((sum, rec) => {
+      return sum + (rec.end_ayah - rec.start_ayah + 1);
+    }, 0);
+  }
+
+  /**
+   * Get status based on ayah count (same logic as getVerseStatus in quranData.ts)
+   */
+  private getStatusFromAyahCount(totalAyahs: number): string {
+    if (totalAyahs >= 200) return 'Mokantar';
+    if (totalAyahs >= 100) return 'Qanet';
+    if (totalAyahs >= 50) return 'Not Negligent';
+    return 'Negligent';
   }
 
   private async getCurrentUserId(): Promise<string> {
@@ -360,8 +419,6 @@ class OfflineDataManager {
     }
 
     // Priority 3: Device ID as temp fallback (until we can sync)
-    // Note: This won't work for Supabase inserts, but allows local SQLite to work
-    // When the app goes online, we'll create the custom user and migrate this data
     return deviceIdentityManager.getDeviceId();
   }
 

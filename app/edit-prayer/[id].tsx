@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useI18n } from '../../contexts/I18nContext';
-import { usePrayerLogs, useOfflineStats } from '../../hooks/useOfflineData';
+import { usePrayerLogs, useOfflineStats, calculateTotalAyahs } from '../../hooks/useOfflineData';
 import { PickerModal, PickerOption } from '../../components/PickerModal';
 import { SelectField } from '../../components/SelectField';
 import {
@@ -24,6 +24,8 @@ import {
   getVerseStatus,
   getGradientColors,
   quranData,
+  globalIndexToSurahAyah,
+  surahAyahToGlobalIndex,
 } from '../../utils/quranData';
 
 export default function EditPrayerScreen() {
@@ -33,8 +35,8 @@ export default function EditPrayerScreen() {
   const { logs, updateLog, deleteLog } = usePrayerLogs();
   const { refresh: refreshStats } = useOfflineStats();
 
-  // Find the log by local_id
-  const log = useMemo(() => logs.find((l) => l.local_id === id), [logs, id]);
+  // Find the log by id
+  const log = useMemo(() => logs.find((l) => l.id === id), [logs, id]);
 
   // Form state
   const [date, setDate] = useState(new Date());
@@ -57,11 +59,19 @@ export default function EditPrayerScreen() {
   // Initialize form with log data when log is found
   useEffect(() => {
     if (log) {
-      setDate(new Date(log.date));
-      setSelectedSurah(log.start_surah);
-      setSelectedAyah(log.start_ayah);
-      setEndSurah(log.end_surah);
-      setEndAyah(log.end_ayah);
+      setDate(new Date(log.prayer_date));
+
+      // Convert global indices to surah/ayah for first recitation
+      if (log.recitations.length > 0) {
+        const firstRec = log.recitations[0];
+        const startInfo = globalIndexToSurahAyah(firstRec.start_ayah);
+        const endInfo = globalIndexToSurahAyah(firstRec.end_ayah);
+
+        setSelectedSurah(startInfo.surahName);
+        setSelectedAyah(startInfo.ayahNumber);
+        setEndSurah(endInfo.surahName);
+        setEndAyah(endInfo.ayahNumber);
+      }
     }
   }, [log]);
 
@@ -122,14 +132,18 @@ export default function EditPrayerScreen() {
     try {
       setLoading(true);
 
-      await updateLog(log.local_id, {
-        date: date.toISOString().split('T')[0],
-        start_surah: selectedSurah,
-        start_ayah: selectedAyah,
-        end_surah: endSurah,
-        end_ayah: endAyah,
-        total_ayahs: totalVerses,
-        status: status.status,
+      // Convert surah/ayah to global indices
+      const startGlobal = surahAyahToGlobalIndex(selectedSurah, selectedAyah);
+      const endGlobal = surahAyahToGlobalIndex(endSurah, endAyah);
+
+      await updateLog(log.id, {
+        prayer_date: date.toISOString().split('T')[0],
+        recitations: [
+          {
+            start_ayah: startGlobal,
+            end_ayah: endGlobal,
+          },
+        ],
       });
 
       await refreshStats();
@@ -168,7 +182,7 @@ export default function EditPrayerScreen() {
           onPress: async () => {
             try {
               setDeleteLoading(true);
-              await deleteLog(log.local_id);
+              await deleteLog(log.id);
               await refreshStats();
               router.back();
             } catch (error) {

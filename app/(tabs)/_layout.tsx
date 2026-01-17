@@ -10,7 +10,7 @@ import {
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../contexts/I18nContext';
-import { usePrayerLogs } from '../../hooks/useOfflineData';
+import { usePrayerLogs, calculateTotalAyahs } from '../../hooks/useOfflineData';
 import { getVerseStatus } from '../../utils/quranData';
 
 type TabWithPlatformIcons = {
@@ -40,7 +40,7 @@ export default function TabLayout() {
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
   const statusColor = lastEntry
-    ? getVerseStatus(lastEntry.total_ayahs).color
+    ? getVerseStatus(calculateTotalAyahs(lastEntry.recitations)).color
     : '#ffffff';
 
   const tabs: Tab[] = [

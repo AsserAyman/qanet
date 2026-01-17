@@ -1,19 +1,16 @@
 import { sqliteManager } from '../database/sqlite';
 import { supabase } from '../supabase';
 import { networkManager } from '../network/networkManager';
-import { SyncOperation, TABLES, SYNC_STATUS } from '../database/schema';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SyncOperation, TABLES, SYNC_STATUS, LocalPrayerLog } from '../database/schema';
 import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
 import { getCachedCustomUserId, registerOrGetCustomUser } from '../auth/userRegistration';
 
 const MAX_RETRY_ATTEMPTS = 3;
-const RETRY_DELAY_BASE = 1000; // 1 second base delay
 
 class SyncEngine {
   private isInitialized = false;
   private isSyncing = false;
-  private syncQueue: SyncOperation[] = [];
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
@@ -133,17 +130,17 @@ class SyncEngine {
 
   private async pushLocalChanges(): Promise<void> {
     const pendingOperations = await sqliteManager.getPendingSyncOperations();
-    
+
     for (const operation of pendingOperations) {
       try {
         await this.processSyncOperation(operation);
         await sqliteManager.removeSyncOperation(operation.id);
       } catch (error) {
         console.error(`Failed to sync operation ${operation.id}:`, error);
-        
+
         // Increment retry count
         const newRetryCount = operation.retry_count + 1;
-        
+
         if (newRetryCount >= MAX_RETRY_ATTEMPTS) {
           // Mark as error after max retries
           await sqliteManager.updateSyncOperation(operation.id, {
@@ -179,24 +176,23 @@ class SyncEngine {
 
   private async syncCreateOperation(operation: SyncOperation): Promise<void> {
     // Read the LATEST data from database instead of using potentially stale operation.data
-    // This ensures any updates made after the CREATE was queued are included
-    const currentLog = await sqliteManager.getPrayerLogByLocalId(operation.local_id);
+    const currentLog = await sqliteManager.getPrayerLogById(operation.record_id);
 
     if (!currentLog) {
       // Record was deleted before sync completed - skip this operation
-      console.log(`[Sync] Skipping CREATE for ${operation.local_id} - record no longer exists`);
+      console.log(`[Sync] Skipping CREATE for ${operation.record_id} - record no longer exists`);
       return;
     }
 
     if (currentLog.is_deleted) {
       // Record was deleted before sync completed - skip this operation
-      console.log(`[Sync] Skipping CREATE for ${operation.local_id} - record is deleted`);
+      console.log(`[Sync] Skipping CREATE for ${operation.record_id} - record is deleted`);
       return;
     }
 
-    if (currentLog.server_id) {
-      // Record already has server_id - it was already synced, skip to prevent duplicate
-      console.log(`[Sync] Skipping CREATE for ${operation.local_id} - already synced (has server_id)`);
+    // Check if already synced (sync_status is 'synced')
+    if (currentLog.sync_status === SYNC_STATUS.SYNCED) {
+      console.log(`[Sync] Skipping CREATE for ${operation.record_id} - already synced`);
       return;
     }
 
@@ -204,33 +200,42 @@ class SyncEngine {
       // Ensure we have custom user ID
       const customUserId = await this.ensureCustomUserExists();
 
-      // Create on server with custom_user_id using latest local data
-      const { data, error } = await supabase
+      // Create prayer_log on server with unified ID (client-generated)
+      const { error: prayerLogError } = await supabase
         .from('prayer_logs')
         .insert({
-          custom_user_id: customUserId,
-          date: currentLog.date,
-          start_surah: currentLog.start_surah,
-          start_ayah: currentLog.start_ayah,
-          end_surah: currentLog.end_surah,
-          end_ayah: currentLog.end_ayah,
-          total_ayahs: currentLog.total_ayahs,
-          status: currentLog.status,
-        })
-        .select()
-        .single();
+          id: currentLog.id,  // Use the same UUID from client
+          user_id: customUserId,
+          prayer_date: currentLog.prayer_date,
+          created_at: currentLog.created_at,
+          updated_at: currentLog.updated_at,
+        });
 
-      if (error) throw error;
+      if (prayerLogError) throw prayerLogError;
 
-      // Update local record with server ID
-      // Note: Supabase table uses 'local_id' as primary key, not 'id'
-      await sqliteManager.updatePrayerLog(operation.local_id, {
-        server_id: data.local_id,
+      // Insert recitations
+      if (currentLog.recitations.length > 0) {
+        const recitationInserts = currentLog.recitations.map(rec => ({
+          id: rec.id,  // Use the same UUID from client
+          prayer_log_id: currentLog.id,
+          start_ayah: rec.start_ayah,
+          end_ayah: rec.end_ayah,
+        }));
+
+        const { error: recitationsError } = await supabase
+          .from('recitations')
+          .insert(recitationInserts);
+
+        if (recitationsError) throw recitationsError;
+      }
+
+      // Update local record as synced
+      await sqliteManager.updatePrayerLog(operation.record_id, {
         sync_status: SYNC_STATUS.SYNCED,
         last_synced: new Date().toISOString(),
       });
 
-      console.log(`[Sync] CREATE successful for ${operation.local_id}, server_id: ${data.local_id}`);
+      console.log(`[Sync] CREATE successful for ${operation.record_id}`);
     } catch (error: any) {
       // Re-throw to be handled by the caller
       throw error;
@@ -238,82 +243,99 @@ class SyncEngine {
   }
 
   private async syncUpdateOperation(operation: SyncOperation): Promise<void> {
-    // Get the current local record to find server_id
-    const currentLog = await sqliteManager.getPrayerLogByLocalId(operation.local_id);
+    // Get the current local record
+    const currentLog = await sqliteManager.getPrayerLogById(operation.record_id);
 
     if (!currentLog) {
       // Record was deleted before sync completed - skip this operation
-      console.log(`[Sync] Skipping UPDATE for ${operation.local_id} - record no longer exists`);
+      console.log(`[Sync] Skipping UPDATE for ${operation.record_id} - record no longer exists`);
       return;
     }
 
-    if (!currentLog.server_id) {
-      // No server_id yet - this means the CREATE operation hasn't completed
-      // Check if there's a pending CREATE operation for this record
-      const pendingOps = await sqliteManager.getPendingSyncOperations();
-      const hasPendingCreate = pendingOps.some(
-        op => op.local_id === operation.local_id && op.operation === 'create'
-      );
+    // Check if there's a pending CREATE operation for this record
+    const pendingOps = await sqliteManager.getPendingSyncOperations();
+    const hasPendingCreate = pendingOps.some(
+      op => op.record_id === operation.record_id && op.operation === 'create'
+    );
 
-      if (hasPendingCreate) {
-        // CREATE is still pending - skip this UPDATE since CREATE will use latest data
-        console.log(`[Sync] Skipping UPDATE for ${operation.local_id} - pending CREATE will include latest data`);
-        return;
+    if (hasPendingCreate) {
+      // CREATE is still pending - skip this UPDATE since CREATE will use latest data
+      console.log(`[Sync] Skipping UPDATE for ${operation.record_id} - pending CREATE will include latest data`);
+      return;
+    }
+
+    try {
+      // Update prayer_log on server
+      const { error: updateError } = await supabase
+        .from('prayer_logs')
+        .update({
+          prayer_date: currentLog.prayer_date,
+          updated_at: currentLog.updated_at,
+        })
+        .eq('id', currentLog.id);
+
+      if (updateError) throw updateError;
+
+      // Replace recitations on server
+      // First delete existing recitations
+      const { error: deleteError } = await supabase
+        .from('recitations')
+        .delete()
+        .eq('prayer_log_id', currentLog.id);
+
+      if (deleteError) throw deleteError;
+
+      // Then insert new recitations
+      if (currentLog.recitations.length > 0) {
+        const recitationInserts = currentLog.recitations.map(rec => ({
+          id: rec.id,
+          prayer_log_id: currentLog.id,
+          start_ayah: rec.start_ayah,
+          end_ayah: rec.end_ayah,
+        }));
+
+        const { error: insertError } = await supabase
+          .from('recitations')
+          .insert(recitationInserts);
+
+        if (insertError) throw insertError;
       }
 
-      // No pending CREATE and no server_id - this is a stale operation
-      // The CREATE likely already completed but failed to set server_id, or this is legacy data
-      // Skip this operation gracefully instead of failing repeatedly
-      console.log(`[Sync] Skipping stale UPDATE for ${operation.local_id} - no server_id and no pending CREATE`);
-      return;
+      // Update local sync status
+      await sqliteManager.updatePrayerLog(operation.record_id, {
+        sync_status: SYNC_STATUS.SYNCED,
+        last_synced: new Date().toISOString(),
+      });
+
+      console.log(`[Sync] UPDATE successful for ${operation.record_id}`);
+    } catch (error: any) {
+      throw error;
     }
-
-    // Read the latest data from database to ensure we sync the most recent version
-    // Note: Supabase table uses 'local_id' as primary key, not 'id'
-    const { error } = await supabase
-      .from('prayer_logs')
-      .update({
-        date: currentLog.date,
-        start_surah: currentLog.start_surah,
-        start_ayah: currentLog.start_ayah,
-        end_surah: currentLog.end_surah,
-        end_ayah: currentLog.end_ayah,
-        total_ayahs: currentLog.total_ayahs,
-        status: currentLog.status,
-      })
-      .eq('local_id', currentLog.server_id);
-
-    if (error) throw error;
-
-    // Update local sync status
-    await sqliteManager.updatePrayerLog(operation.local_id, {
-      sync_status: SYNC_STATUS.SYNCED,
-      last_synced: new Date().toISOString(),
-    });
   }
 
   private async syncDeleteOperation(operation: SyncOperation): Promise<void> {
-    // Get the current local record to find server_id (including deleted records)
-    const currentLog = await sqliteManager.getPrayerLogByLocalId(operation.local_id);
+    // Get the current local record to check if it exists
+    const currentLog = await sqliteManager.getPrayerLogById(operation.record_id);
 
-    if (currentLog?.server_id) {
-      // Delete from server
-      // Note: Supabase table uses 'local_id' as primary key, not 'id'
+    try {
+      // Delete from server (recitations will cascade delete)
       const { error } = await supabase
         .from('prayer_logs')
         .delete()
-        .eq('local_id', currentLog.server_id);
+        .eq('id', operation.record_id);
 
       if (error) throw error;
-    }
 
-    // The local record is already marked as deleted, no need to update
+      console.log(`[Sync] DELETE successful for ${operation.record_id}`);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   private async pullServerChanges(): Promise<void> {
     const userId = await this.getCurrentUserId();
     const metadata = await sqliteManager.getSyncMetadata(TABLES.PRAYER_LOGS);
-    
+
     let lastSync = metadata?.last_sync;
     if (!lastSync) {
       // First sync - get all data from last 30 days
@@ -325,8 +347,15 @@ class SyncEngine {
     // Fetch changes from server since last sync
     const { data: serverLogs, error } = await supabase
       .from('prayer_logs')
-      .select('*')
-      .eq('custom_user_id', userId)
+      .select(`
+        *,
+        recitations (
+          id,
+          start_ayah,
+          end_ayah
+        )
+      `)
+      .eq('user_id', userId)
       .gte('updated_at', lastSync)
       .order('updated_at', { ascending: true });
 
@@ -346,38 +375,7 @@ class SyncEngine {
   }
 
   private async processServerLog(serverLog: any): Promise<void> {
-    const userId = await this.getCurrentUserId();
-    const existingLogs = await sqliteManager.getPrayerLogs(userId, 1000);
-
-    // Note: Supabase table uses 'local_id' as primary key, not 'id'
-    const serverRecordId = serverLog.local_id;
-
-    // Check by server_id first
-    let existingLog = existingLogs.find(log => log.server_id === serverRecordId);
-
-    // If not found by server_id, check for potential duplicate by content
-    // This catches cases where a record was created locally but the server_id wasn't set yet
-    if (!existingLog && serverRecordId) {
-      existingLog = existingLogs.find(log =>
-        !log.server_id &&  // Only match unsynced local records
-        log.date === serverLog.date &&
-        log.start_surah === serverLog.start_surah &&
-        log.start_ayah === serverLog.start_ayah &&
-        log.end_surah === serverLog.end_surah &&
-        log.end_ayah === serverLog.end_ayah
-      );
-
-      if (existingLog) {
-        // Found a matching unsynced local record - link it to the server record instead of creating duplicate
-        console.log(`[Sync] Linking existing local record ${existingLog.local_id} to server record ${serverRecordId}`);
-        await sqliteManager.updatePrayerLog(existingLog.local_id, {
-          server_id: serverRecordId,
-          sync_status: SYNC_STATUS.SYNCED,
-          last_synced: new Date().toISOString(),
-        });
-        return;
-      }
-    }
+    const existingLog = await sqliteManager.getPrayerLogById(serverLog.id);
 
     if (existingLog) {
       // Check if server version is newer
@@ -386,38 +384,40 @@ class SyncEngine {
 
       if (serverUpdated > localUpdated) {
         // Server version is newer, update local
-        await sqliteManager.updatePrayerLog(existingLog.local_id, {
-          date: serverLog.date,
-          start_surah: serverLog.start_surah,
-          start_ayah: serverLog.start_ayah,
-          end_surah: serverLog.end_surah,
-          end_ayah: serverLog.end_ayah,
-          total_ayahs: serverLog.total_ayahs,
-          status: serverLog.status,
+        await sqliteManager.updatePrayerLog(existingLog.id, {
+          prayer_date: serverLog.prayer_date,
           updated_at: serverLog.updated_at,
           sync_status: SYNC_STATUS.SYNCED,
           last_synced: new Date().toISOString(),
         });
+
+        // Replace recitations
+        const recitations = (serverLog.recitations || []).map((rec: any) => ({
+          start_ayah: rec.start_ayah,
+          end_ayah: rec.end_ayah,
+        }));
+        await sqliteManager.replaceRecitationsForPrayerLog(existingLog.id, recitations);
       }
     } else {
       // New record from server, insert locally
-      // Mark as SYNCED locally since we're pulling from server (server is source of truth)
-      await sqliteManager.insertPrayerLog({
-        server_id: serverRecordId,
-        user_id: serverLog.custom_user_id || userId,
-        date: serverLog.date,
-        start_surah: serverLog.start_surah,
-        start_ayah: serverLog.start_ayah,
-        end_surah: serverLog.end_surah,
-        end_ayah: serverLog.end_ayah,
-        total_ayahs: serverLog.total_ayahs,
-        status: serverLog.status,
-        created_at: serverLog.created_at,
-        updated_at: serverLog.updated_at,
-        sync_status: SYNC_STATUS.SYNCED, // Client-side only: mark as synced
-        last_synced: new Date().toISOString(),
-        is_deleted: false,
-      });
+      const userId = await this.getCurrentUserId();
+      const recitations = (serverLog.recitations || []).map((rec: any) => ({
+        start_ayah: rec.start_ayah,
+        end_ayah: rec.end_ayah,
+      }));
+
+      await sqliteManager.insertPrayerLog(
+        {
+          user_id: userId,
+          prayer_date: serverLog.prayer_date,
+          created_at: serverLog.created_at,
+          updated_at: serverLog.updated_at,
+          sync_status: SYNC_STATUS.SYNCED,
+          last_synced: new Date().toISOString(),
+          is_deleted: false,
+        },
+        recitations
+      );
     }
   }
 
