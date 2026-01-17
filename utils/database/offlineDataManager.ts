@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
 import { getCachedCustomUserId, registerOrGetCustomUser } from '../auth/userRegistration';
+import { calculateAyahsBetweenIndices } from '../quranData';
 
 // Input data for creating a new prayer log
 export interface CreatePrayerLogData {
@@ -386,7 +387,7 @@ class OfflineDataManager {
    */
   calculateTotalAyahs(recitations: LocalRecitation[]): number {
     return recitations.reduce((sum, rec) => {
-      return sum + (rec.end_ayah - rec.start_ayah + 1);
+      return sum + calculateAyahsBetweenIndices(rec.start_ayah, rec.end_ayah);
     }, 0);
   }
 

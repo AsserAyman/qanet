@@ -170,7 +170,7 @@ export function calculateVersesBetween(
   let currentSurahIndex = quranData.findIndex((s) => s.name === startSurah);
   const endSurahIndex = quranData.findIndex((s) => s.name === endSurah);
 
-  if (currentSurahIndex === endSurahIndex) {
+  if (currentSurahIndex === endSurahIndex && endAyah >= startAyah) {
     return endAyah - startAyah + 1;
   }
 
@@ -310,7 +310,12 @@ export function globalIndexToSurahAyah(globalIndex: number): {
  * Calculate total ayahs between two global indices (inclusive)
  */
 export function calculateAyahsBetweenIndices(startGlobal: number, endGlobal: number): number {
-  return endGlobal - startGlobal + 1;
+  if (endGlobal >= startGlobal) {
+    return endGlobal - startGlobal + 1;
+  } else {
+    // Wrap around case (e.g. from end of Quran to beginning)
+    return (TOTAL_QURAN_AYAHS - startGlobal + 1) + endGlobal;
+  }
 }
 
 /**
@@ -332,4 +337,26 @@ export function formatRecitationRange(
   const endName = useArabic ? end.surahNameAr : end.surahName;
 
   return `${startName} ${start.ayahNumber} → ${endName} ${end.ayahNumber}`;
+}
+
+/**
+ * Format a summary string for a list of recitations.
+ * e.g., "Al-Baqara 1 → Al-Baqara 50" or "Al-Baqara 1 → Al-Baqara 50 (+2 more)"
+ */
+export function formatLogSummary(
+  recitations: { start_ayah: number; end_ayah: number }[],
+  useArabic: boolean = false,
+  moreText: string = 'more' // Localized "more" string
+): string {
+  if (!recitations || recitations.length === 0) return '';
+
+  const firstRec = recitations[0];
+  const mainRange = formatRecitationRange(firstRec.start_ayah, firstRec.end_ayah, useArabic);
+
+  if (recitations.length > 1) {
+    const remainingCount = recitations.length - 1;
+    return `${mainRange} (+${remainingCount} ${moreText})`;
+  }
+
+  return mainRange;
 }

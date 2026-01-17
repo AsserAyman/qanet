@@ -19,6 +19,7 @@ export const translations = {
     start: 'Start',
     end: 'End',
     totalVerses: 'Total verses',
+    addAnotherRange: 'Add another range',
 
     // Add Prayer Screen
     recordYourSpiritualJourney: 'Record your spiritual journey with the Quran',
@@ -197,6 +198,7 @@ export const translations = {
     start: 'البداية',
     end: 'النهاية',
     totalVerses: 'إجمالي الآيات',
+    addAnotherRange: 'إضافة نطاق آخر',
 
     // Add Prayer Screen
     recordYourSpiritualJourney: 'سجل رحلتك الروحية مع القرآن',

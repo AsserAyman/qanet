@@ -21,7 +21,7 @@ import {
   usePrayerLogs,
   calculateTotalAyahs,
 } from '../hooks/useOfflineData';
-import { getVerseStatus, globalIndexToSurahAyah } from '../utils/quranData';
+import { getVerseStatus, formatLogSummary } from '../utils/quranData';
 
 export default function AllHistoryScreen() {
   const insets = useSafeAreaInsets();
@@ -39,18 +39,7 @@ export default function AllHistoryScreen() {
   const styles = createStyles(isRTL, insets);
 
   const formatRecitationRange = (log: LocalPrayerLog): string => {
-    if (log.recitations.length === 0) {
-      return '';
-    }
-
-    const firstRec = log.recitations[0];
-    const startInfo = globalIndexToSurahAyah(firstRec.start_ayah);
-    const endInfo = globalIndexToSurahAyah(firstRec.end_ayah);
-
-    const startName = isRTL ? startInfo.surahNameAr : startInfo.surahName;
-    const endName = isRTL ? endInfo.surahNameAr : endInfo.surahName;
-
-    return `${startName} ${startInfo.ayahNumber} → ${endName} ${endInfo.ayahNumber}`;
+    return formatLogSummary(log.recitations, isRTL, t('more'));
   };
 
   const handleRefresh = React.useCallback(async () => {

@@ -41,10 +41,16 @@ export default function EditPrayerScreen() {
   // Form state
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedSurah, setSelectedSurah] = useState('Al-Baqara');
-  const [selectedAyah, setSelectedAyah] = useState(1);
-  const [endSurah, setEndSurah] = useState('Al-Baqara');
-  const [endAyah, setEndAyah] = useState(1);
+  
+  const [ranges, setRanges] = useState<Array<{
+    id: string;
+    startSurah: string;
+    startAyah: number;
+    endSurah: string;
+    endAyah: number;
+  }>>([]);
+  const [activeRangeId, setActiveRangeId] = useState<string>('');
+
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -61,22 +67,37 @@ export default function EditPrayerScreen() {
     if (log) {
       setDate(new Date(log.prayer_date));
 
-      // Convert global indices to surah/ayah for first recitation
       if (log.recitations.length > 0) {
-        const firstRec = log.recitations[0];
-        const startInfo = globalIndexToSurahAyah(firstRec.start_ayah);
-        const endInfo = globalIndexToSurahAyah(firstRec.end_ayah);
-
-        setSelectedSurah(startInfo.surahName);
-        setSelectedAyah(startInfo.ayahNumber);
-        setEndSurah(endInfo.surahName);
-        setEndAyah(endInfo.ayahNumber);
+        const loadedRanges = log.recitations.map((rec, index) => {
+          const startInfo = globalIndexToSurahAyah(rec.start_ayah);
+          const endInfo = globalIndexToSurahAyah(rec.end_ayah);
+          return {
+            id: index.toString(),
+            startSurah: startInfo.surahName,
+            startAyah: startInfo.ayahNumber,
+            endSurah: endInfo.surahName,
+            endAyah: endInfo.ayahNumber,
+          };
+        });
+        setRanges(loadedRanges);
+        setActiveRangeId('0');
+      } else {
+         // Fallback default
+         setRanges([{
+           id: '0',
+           startSurah: 'Al-Baqara',
+           startAyah: 1,
+           endSurah: 'Al-Baqara',
+           endAyah: 1,
+         }]);
+         setActiveRangeId('0');
       }
     }
   }, [log]);
 
-  const currentSurah = quranData.find((s) => s.name === selectedSurah);
-  const endCurrentSurah = quranData.find((s) => s.name === endSurah);
+  const activeRange = ranges.find(r => r.id === activeRangeId) || ranges[0];
+  const currentSurah = quranData.find((s) => s.name === activeRange?.startSurah);
+  const endCurrentSurah = quranData.find((s) => s.name === activeRange?.endSurah);
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);
@@ -114,17 +135,41 @@ export default function EditPrayerScreen() {
     [endCurrentSurah]
   );
 
-  const totalVerses = calculateVersesBetween(
-    selectedSurah,
-    selectedAyah,
-    endSurah,
-    endAyah
-  );
+  const totalVerses = useMemo(() => ranges.reduce((acc, range) => {
+    return acc + calculateVersesBetween(
+      range.startSurah,
+      range.startAyah,
+      range.endSurah,
+      range.endAyah
+    );
+  }, 0), [ranges]);
+
   const status = getVerseStatus(totalVerses);
   const gradientColors = useMemo(
     () => getGradientColors(totalVerses),
     [totalVerses]
   );
+
+  const updateRange = (id: string, updates: Partial<typeof ranges[0]>) => {
+    setRanges(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const addRange = () => {
+    const lastRange = ranges[ranges.length - 1];
+    setRanges(prev => [...prev, {
+      id: Date.now().toString(),
+      startSurah: lastRange.endSurah,
+      startAyah: lastRange.endAyah, 
+      endSurah: lastRange.endSurah,
+      endAyah: lastRange.endAyah,
+    }]);
+  };
+
+  const removeRange = (id: string) => {
+    if (ranges.length > 1) {
+      setRanges(prev => prev.filter(r => r.id !== id));
+    }
+  };
 
   const handleSave = async () => {
     if (!log) return;
@@ -132,18 +177,14 @@ export default function EditPrayerScreen() {
     try {
       setLoading(true);
 
-      // Convert surah/ayah to global indices
-      const startGlobal = surahAyahToGlobalIndex(selectedSurah, selectedAyah);
-      const endGlobal = surahAyahToGlobalIndex(endSurah, endAyah);
+      const recitations = ranges.map(range => ({
+        start_ayah: surahAyahToGlobalIndex(range.startSurah, range.startAyah),
+        end_ayah: surahAyahToGlobalIndex(range.endSurah, range.endAyah),
+      }));
 
       await updateLog(log.id, {
         prayer_date: date.toISOString().split('T')[0],
-        recitations: [
-          {
-            start_ayah: startGlobal,
-            end_ayah: endGlobal,
-          },
-        ],
+        recitations,
       });
 
       await refreshStats();
@@ -196,7 +237,7 @@ export default function EditPrayerScreen() {
   };
 
   // Show loading state while finding the log
-  if (!log) {
+  if (!log || ranges.length === 0) {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#ffffff" />
@@ -291,58 +332,91 @@ export default function EditPrayerScreen() {
         </View>
 
         {/* Reading Range Inputs */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons
-              name="book-outline"
-              size={20}
-              color="rgba(255,255,255,0.7)"
-            />
-            <Text style={styles.cardTitle}>{t('readingRange')}</Text>
+        {ranges.map((range, index) => (
+          <View key={range.id} style={styles.card}>
+            <View style={[styles.cardHeader, { justifyContent: 'space-between' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Ionicons
+                  name="book-outline"
+                  size={20}
+                  color="rgba(255,255,255,0.7)"
+                />
+                <Text style={styles.cardTitle}>
+                  {t('readingRange')} {ranges.length > 1 ? index + 1 : ''}
+                </Text>
+              </View>
+              {ranges.length > 1 && (
+                <TouchableOpacity onPress={() => removeRange(range.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={styles.pickersSection}>
+              {/* Start Point */}
+              <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
+              <View style={styles.pickerRow}>
+                <SelectField
+                  label={t('surah')}
+                  value={getSurahName(range.startSurah)}
+                  onPress={() => {
+                    setActiveRangeId(range.id);
+                    setShowStartSurahPicker(true);
+                  }}
+                />
+                <SelectField
+                  label={t('ayah')}
+                  value={String(range.startAyah)}
+                  onPress={() => {
+                    setActiveRangeId(range.id);
+                    setShowStartAyahPicker(true);
+                  }}
+                />
+              </View>
+
+              <View style={styles.rangeDivider}>
+                <View style={styles.rangeLine} />
+                <Ionicons
+                  name="arrow-down"
+                  size={16}
+                  color="rgba(255,255,255,0.3)"
+                />
+                <View style={styles.rangeLine} />
+              </View>
+
+              {/* End Point */}
+              <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
+              <View style={styles.pickerRow}>
+                <SelectField
+                  label={t('surah')}
+                  value={getSurahName(range.endSurah)}
+                  onPress={() => {
+                    setActiveRangeId(range.id);
+                    setShowEndSurahPicker(true);
+                  }}
+                />
+                <SelectField
+                  label={t('ayah')}
+                  value={String(range.endAyah)}
+                  onPress={() => {
+                    setActiveRangeId(range.id);
+                    setShowEndAyahPicker(true);
+                  }}
+                />
+              </View>
+            </View>
           </View>
+        ))}
 
-          <View style={styles.pickersSection}>
-            {/* Start Point */}
-            <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
-            <View style={styles.pickerRow}>
-              <SelectField
-                label={t('surah')}
-                value={getSurahName(selectedSurah)}
-                onPress={() => setShowStartSurahPicker(true)}
-              />
-              <SelectField
-                label={t('ayah')}
-                value={String(selectedAyah)}
-                onPress={() => setShowStartAyahPicker(true)}
-              />
-            </View>
-
-            <View style={styles.rangeDivider}>
-              <View style={styles.rangeLine} />
-              <Ionicons
-                name="arrow-down"
-                size={16}
-                color="rgba(255,255,255,0.3)"
-              />
-              <View style={styles.rangeLine} />
-            </View>
-
-            {/* End Point */}
-            <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
-            <View style={styles.pickerRow}>
-              <SelectField
-                label={t('surah')}
-                value={getSurahName(endSurah)}
-                onPress={() => setShowEndSurahPicker(true)}
-              />
-              <SelectField
-                label={t('ayah')}
-                value={String(endAyah)}
-                onPress={() => setShowEndAyahPicker(true)}
-              />
-            </View>
-          </View>
-        </View>
+        {/* Add Range Button */}
+        <TouchableOpacity
+          style={styles.addRangeButton}
+          onPress={addRange}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={20} color="#ffffff" />
+          <Text style={styles.addRangeText}>{t('addAnotherRange')}</Text>
+        </TouchableOpacity>
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
@@ -397,14 +471,15 @@ export default function EditPrayerScreen() {
         visible={showStartSurahPicker}
         onClose={() => setShowStartSurahPicker(false)}
         onSelect={(value) => {
-          setSelectedSurah(value);
           const newSurah = quranData.find((s) => s.name === value);
-          if (newSurah && selectedAyah > newSurah.ayahs) {
-            setSelectedAyah(1);
+          if (newSurah && activeRange?.startAyah > newSurah.ayahs) {
+            updateRange(activeRangeId, { startSurah: value, startAyah: 1 });
+          } else {
+            updateRange(activeRangeId, { startSurah: value });
           }
         }}
         options={surahOptions}
-        selectedValue={selectedSurah}
+        selectedValue={activeRange?.startSurah}
         title={t('startingSurah')}
         searchPlaceholder={t('surah')}
       />
@@ -412,9 +487,9 @@ export default function EditPrayerScreen() {
       <PickerModal
         visible={showStartAyahPicker}
         onClose={() => setShowStartAyahPicker(false)}
-        onSelect={(value) => setSelectedAyah(Number(value))}
+        onSelect={(value) => updateRange(activeRangeId, { startAyah: Number(value) })}
         options={startAyahOptions}
-        selectedValue={String(selectedAyah)}
+        selectedValue={String(activeRange?.startAyah)}
         title={t('ayah')}
         showSearch={false}
       />
@@ -423,14 +498,15 @@ export default function EditPrayerScreen() {
         visible={showEndSurahPicker}
         onClose={() => setShowEndSurahPicker(false)}
         onSelect={(value) => {
-          setEndSurah(value);
           const newSurah = quranData.find((s) => s.name === value);
-          if (newSurah && endAyah > newSurah.ayahs) {
-            setEndAyah(1);
+          if (newSurah && activeRange?.endAyah > newSurah.ayahs) {
+            updateRange(activeRangeId, { endSurah: value, endAyah: 1 });
+          } else {
+            updateRange(activeRangeId, { endSurah: value });
           }
         }}
         options={surahOptions}
-        selectedValue={endSurah}
+        selectedValue={activeRange?.endSurah}
         title={t('endingSurah')}
         searchPlaceholder={t('surah')}
       />
@@ -438,9 +514,9 @@ export default function EditPrayerScreen() {
       <PickerModal
         visible={showEndAyahPicker}
         onClose={() => setShowEndAyahPicker(false)}
-        onSelect={(value) => setEndAyah(Number(value))}
+        onSelect={(value) => updateRange(activeRangeId, { endAyah: Number(value) })}
         options={endAyahOptions}
-        selectedValue={String(endAyah)}
+        selectedValue={String(activeRange?.endAyah)}
         title={t('ayah')}
         showSearch={false}
       />
@@ -603,6 +679,25 @@ const createStyles = (isRTL: boolean) =>
       height: 1,
       flex: 1,
       backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+    addRangeButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      padding: 16,
+      borderRadius: 16,
+      marginBottom: 24,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+      borderStyle: 'dashed',
+    },
+    addRangeText: {
+      color: '#ffffff',
+      fontSize: 15,
+      fontWeight: '600',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     buttonRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
