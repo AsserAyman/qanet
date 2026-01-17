@@ -24,6 +24,7 @@ export const translations = {
     // Add Prayer Screen
     recordYourSpiritualJourney: 'Record your spiritual journey with the Quran',
     prayerDate: 'Prayer Date',
+    wholeSurah: 'Whole Surah',
     startingPoint: 'Starting Point',
     endingPoint: 'Ending Point',
     surah: 'Surah',
@@ -203,6 +204,7 @@ export const translations = {
     // Add Prayer Screen
     recordYourSpiritualJourney: 'سجل رحلتك الروحية مع القرآن',
     prayerDate: 'تاريخ الصلاة',
+    wholeSurah: 'السورة كاملة',
     startingPoint: 'نقطة البداية',
     endingPoint: 'نقطة النهاية',
     surah: 'السورة',

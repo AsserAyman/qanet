@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -50,12 +51,14 @@ export default function AddPrayerScreen() {
     startAyah: number;
     endSurah: string;
     endAyah: number;
+    isWholeSurah?: boolean;
   }>>([{
     id: '1',
     startSurah: 'Al-Baqara',
     startAyah: 1,
     endSurah: 'Al-Baqara',
     endAyah: 1,
+    isWholeSurah: false,
   }]);
   const [activeRangeId, setActiveRangeId] = useState<string>('1');
 
@@ -146,6 +149,25 @@ export default function AddPrayerScreen() {
   const removeRange = (id: string) => {
     if (ranges.length > 1) {
       setRanges(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
+  const handleWholeSurahToggle = (id: string, value: boolean) => {
+    const range = ranges.find((r) => r.id === id);
+    if (!range) return;
+
+    if (value) {
+      const surah = quranData.find((s) => s.name === range.startSurah);
+      if (surah) {
+        updateRange(id, {
+          isWholeSurah: true,
+          startAyah: 1,
+          endSurah: range.startSurah,
+          endAyah: surah.ayahs,
+        });
+      }
+    } else {
+      updateRange(id, { isWholeSurah: false });
     }
   };
 
@@ -365,6 +387,18 @@ export default function AddPrayerScreen() {
             </View>
 
             <View style={styles.pickersSection}>
+              {/* Whole Surah Toggle */}
+              <View style={styles.toggleRow}>
+                <Text style={styles.toggleLabel}>{t('wholeSurah')}</Text>
+                <Switch
+                  value={range.isWholeSurah || false}
+                  onValueChange={(val) => handleWholeSurahToggle(range.id, val)}
+                  trackColor={{ false: '#767577', true: '#22c55e' }}
+                  thumbColor={range.isWholeSurah ? '#ffffff' : '#f4f3f4'}
+                  style={Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}}
+                />
+              </View>
+
               {/* Start Point */}
               <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
               <View style={styles.pickerRow}>
@@ -376,14 +410,17 @@ export default function AddPrayerScreen() {
                     setShowStartSurahPicker(true);
                   }}
                 />
-                <SelectField
-                  label={t('ayah')}
-                  value={String(range.startAyah)}
-                  onPress={() => {
-                    setActiveRangeId(range.id);
-                    setShowStartAyahPicker(true);
-                  }}
-                />
+                <View style={{ flex: 1, opacity: range.isWholeSurah ? 0.5 : 1 }}>
+                  <SelectField
+                    label={t('ayah')}
+                    value={String(range.startAyah)}
+                    onPress={() => {
+                      if (range.isWholeSurah) return;
+                      setActiveRangeId(range.id);
+                      setShowStartAyahPicker(true);
+                    }}
+                  />
+                </View>
               </View>
 
               <View style={styles.rangeDivider}>
@@ -397,24 +434,28 @@ export default function AddPrayerScreen() {
               </View>
 
               {/* End Point */}
-              <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
-              <View style={styles.pickerRow}>
-                <SelectField
-                  label={t('surah')}
-                  value={getSurahName(range.endSurah)}
-                  onPress={() => {
-                    setActiveRangeId(range.id);
-                    setShowEndSurahPicker(true);
-                  }}
-                />
-                <SelectField
-                  label={t('ayah')}
-                  value={String(range.endAyah)}
-                  onPress={() => {
-                    setActiveRangeId(range.id);
-                    setShowEndAyahPicker(true);
-                  }}
-                />
+              <View style={{ opacity: range.isWholeSurah ? 0.5 : 1 }}>
+                <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
+                <View style={styles.pickerRow}>
+                  <SelectField
+                    label={t('surah')}
+                    value={getSurahName(range.endSurah)}
+                    onPress={() => {
+                      if (range.isWholeSurah) return;
+                      setActiveRangeId(range.id);
+                      setShowEndSurahPicker(true);
+                    }}
+                  />
+                  <SelectField
+                    label={t('ayah')}
+                    value={String(range.endAyah)}
+                    onPress={() => {
+                      if (range.isWholeSurah) return;
+                      setActiveRangeId(range.id);
+                      setShowEndAyahPicker(true);
+                    }}
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -470,7 +511,14 @@ export default function AddPrayerScreen() {
         onClose={() => setShowStartSurahPicker(false)}
         onSelect={(value) => {
           const newSurah = quranData.find((s) => s.name === value);
-          if (newSurah && activeRange.startAyah > newSurah.ayahs) {
+          if (activeRange.isWholeSurah && newSurah) {
+            updateRange(activeRangeId, {
+              startSurah: value,
+              startAyah: 1,
+              endSurah: value,
+              endAyah: newSurah.ayahs,
+            });
+          } else if (newSurah && activeRange.startAyah > newSurah.ayahs) {
             updateRange(activeRangeId, { startSurah: value, startAyah: 1 });
           } else {
             updateRange(activeRangeId, { startSurah: value });
@@ -781,6 +829,23 @@ const createStyles = (isRTL: boolean) =>
       color: '#ffffff',
       fontSize: 17,
       fontWeight: '700',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    toggleRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: 'rgba(255,255,255,0.05)',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.05)',
+    },
+    toggleLabel: {
+      fontSize: 15,
+      color: '#ffffff',
+      fontWeight: '500',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });
