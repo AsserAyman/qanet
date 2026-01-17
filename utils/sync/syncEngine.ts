@@ -223,11 +223,14 @@ class SyncEngine {
       if (error) throw error;
 
       // Update local record with server ID
+      // Note: Supabase table uses 'local_id' as primary key, not 'id'
       await sqliteManager.updatePrayerLog(operation.local_id, {
-        server_id: data.id,
+        server_id: data.local_id,
         sync_status: SYNC_STATUS.SYNCED,
         last_synced: new Date().toISOString(),
       });
+
+      console.log(`[Sync] CREATE successful for ${operation.local_id}, server_id: ${data.local_id}`);
     } catch (error: any) {
       // Re-throw to be handled by the caller
       throw error;
@@ -266,6 +269,7 @@ class SyncEngine {
     }
 
     // Read the latest data from database to ensure we sync the most recent version
+    // Note: Supabase table uses 'local_id' as primary key, not 'id'
     const { error } = await supabase
       .from('prayer_logs')
       .update({
@@ -277,7 +281,7 @@ class SyncEngine {
         total_ayahs: currentLog.total_ayahs,
         status: currentLog.status,
       })
-      .eq('id', currentLog.server_id);
+      .eq('local_id', currentLog.server_id);
 
     if (error) throw error;
 
@@ -294,10 +298,11 @@ class SyncEngine {
 
     if (currentLog?.server_id) {
       // Delete from server
+      // Note: Supabase table uses 'local_id' as primary key, not 'id'
       const { error } = await supabase
         .from('prayer_logs')
         .delete()
-        .eq('id', currentLog.server_id);
+        .eq('local_id', currentLog.server_id);
 
       if (error) throw error;
     }
@@ -344,12 +349,15 @@ class SyncEngine {
     const userId = await this.getCurrentUserId();
     const existingLogs = await sqliteManager.getPrayerLogs(userId, 1000);
 
+    // Note: Supabase table uses 'local_id' as primary key, not 'id'
+    const serverRecordId = serverLog.local_id;
+
     // Check by server_id first
-    let existingLog = existingLogs.find(log => log.server_id === serverLog.id);
+    let existingLog = existingLogs.find(log => log.server_id === serverRecordId);
 
     // If not found by server_id, check for potential duplicate by content
     // This catches cases where a record was created locally but the server_id wasn't set yet
-    if (!existingLog) {
+    if (!existingLog && serverRecordId) {
       existingLog = existingLogs.find(log =>
         !log.server_id &&  // Only match unsynced local records
         log.date === serverLog.date &&
@@ -361,9 +369,9 @@ class SyncEngine {
 
       if (existingLog) {
         // Found a matching unsynced local record - link it to the server record instead of creating duplicate
-        console.log(`[Sync] Linking existing local record ${existingLog.local_id} to server record ${serverLog.id}`);
+        console.log(`[Sync] Linking existing local record ${existingLog.local_id} to server record ${serverRecordId}`);
         await sqliteManager.updatePrayerLog(existingLog.local_id, {
-          server_id: serverLog.id,
+          server_id: serverRecordId,
           sync_status: SYNC_STATUS.SYNCED,
           last_synced: new Date().toISOString(),
         });
@@ -393,8 +401,9 @@ class SyncEngine {
       }
     } else {
       // New record from server, insert locally
+      // Mark as SYNCED locally since we're pulling from server (server is source of truth)
       await sqliteManager.insertPrayerLog({
-        server_id: serverLog.id,
+        server_id: serverRecordId,
         user_id: serverLog.custom_user_id || userId,
         date: serverLog.date,
         start_surah: serverLog.start_surah,
@@ -405,7 +414,7 @@ class SyncEngine {
         status: serverLog.status,
         created_at: serverLog.created_at,
         updated_at: serverLog.updated_at,
-        sync_status: SYNC_STATUS.SYNCED,
+        sync_status: SYNC_STATUS.SYNCED, // Client-side only: mark as synced
         last_synced: new Date().toISOString(),
         is_deleted: false,
       });
