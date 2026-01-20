@@ -6,7 +6,6 @@ export interface LocalPrayerLog {
   created_at: string;
   updated_at: string;
   sync_status: 'pending' | 'synced' | 'conflict' | 'error';
-  last_synced?: string;
   is_deleted: boolean;
   recitations: LocalRecitation[];  // Always includes recitations
 }
@@ -36,7 +35,6 @@ export interface SyncOperation {
   table_name: string;
   operation: 'create' | 'update' | 'delete';
   record_id: string;             // Renamed from local_id (unified ID)
-  data: any;
   created_at: string;
   retry_count: number;
   error_message?: string;
@@ -45,7 +43,6 @@ export interface SyncOperation {
 export interface SyncMetadata {
   table_name: string;
   last_sync: string;
-  sync_version: number;
 }
 
 export const TABLES = {

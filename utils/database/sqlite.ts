@@ -5,11 +5,11 @@ import { LocalPrayerLog, LocalRecitation, SyncMetadata, SyncOperation, TABLES } 
 // Column whitelists for SQL injection protection
 const PRAYER_LOG_COLUMNS = [
   'user_id', 'prayer_date', 'updated_at',
-  'sync_status', 'last_synced', 'is_deleted'
+  'sync_status', 'is_deleted'
 ] as const;
 
 const SYNC_OPERATION_COLUMNS = [
-  'table_name', 'operation', 'record_id', 'data',
+  'table_name', 'operation', 'record_id',
   'retry_count', 'error_message'
 ] as const;
 
@@ -43,7 +43,6 @@ class SQLiteManager {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         sync_status TEXT DEFAULT 'pending',
-        last_synced TEXT,
         is_deleted INTEGER DEFAULT 0
       );
     `);
@@ -66,7 +65,6 @@ class SQLiteManager {
         table_name TEXT NOT NULL,
         operation TEXT NOT NULL,
         record_id TEXT NOT NULL,
-        data TEXT NOT NULL,
         created_at TEXT NOT NULL,
         retry_count INTEGER DEFAULT 0,
         error_message TEXT
@@ -77,8 +75,7 @@ class SQLiteManager {
     await this.db.execAsync(`
       CREATE TABLE IF NOT EXISTS ${TABLES.SYNC_METADATA} (
         table_name TEXT PRIMARY KEY,
-        last_sync TEXT NOT NULL,
-        sync_version INTEGER DEFAULT 1
+        last_sync TEXT NOT NULL
       );
     `);
 
@@ -114,8 +111,8 @@ class SQLiteManager {
     await this.db.runAsync(
       `INSERT INTO ${TABLES.PRAYER_LOGS} (
         id, user_id, prayer_date, created_at, updated_at,
-        sync_status, last_synced, is_deleted
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        sync_status, is_deleted
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         log.user_id,
@@ -123,7 +120,6 @@ class SQLiteManager {
         log.created_at,
         log.updated_at,
         log.sync_status,
-        log.last_synced || null,
         log.is_deleted ? 1 : 0,
       ]
     );
@@ -315,14 +311,13 @@ class SQLiteManager {
     const id = await this.generateUUID();
     await this.db.runAsync(
       `INSERT INTO ${TABLES.SYNC_OPERATIONS} (
-        id, table_name, operation, record_id, data, created_at, retry_count, error_message
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        id, table_name, operation, record_id, created_at, retry_count, error_message
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         operation.table_name,
         operation.operation,
         operation.record_id,
-        JSON.stringify(operation.data),
         operation.created_at,
         operation.retry_count,
         operation.error_message || null,
@@ -342,7 +337,6 @@ class SQLiteManager {
       table_name: row.table_name as string,
       operation: row.operation as 'create' | 'update' | 'delete',
       record_id: row.record_id as string,
-      data: JSON.parse(row.data as string),
       created_at: row.created_at as string,
       retry_count: row.retry_count as number,
       error_message: row.error_message as string | undefined,
@@ -372,11 +366,7 @@ class SQLiteManager {
 
     const setClause = validKeys.map((key) => `${key} = ?`).join(', ');
 
-    const values = validKeys.map((key) =>
-      key === 'data'
-        ? JSON.stringify(updates[key as keyof SyncOperation])
-        : updates[key as keyof SyncOperation]
-    );
+    const values = validKeys.map((key) => updates[key as keyof SyncOperation]) as SQLite.SQLiteBindValue[];
     values.push(id);
 
     await this.db.runAsync(
@@ -402,7 +392,6 @@ class SQLiteManager {
     return {
       table_name: result.table_name as string,
       last_sync: result.last_sync as string,
-      sync_version: result.sync_version as number,
     };
   }
 
@@ -410,9 +399,9 @@ class SQLiteManager {
     if (!this.db) throw new Error('Database not initialized');
 
     await this.db.runAsync(
-      `INSERT OR REPLACE INTO ${TABLES.SYNC_METADATA} (table_name, last_sync, sync_version)
-       VALUES (?, ?, ?)`,
-      [metadata.table_name, metadata.last_sync, metadata.sync_version]
+      `INSERT OR REPLACE INTO ${TABLES.SYNC_METADATA} (table_name, last_sync)
+       VALUES (?, ?)`,
+      [metadata.table_name, metadata.last_sync]
     );
   }
 
@@ -456,7 +445,6 @@ class SQLiteManager {
       created_at: row.created_at,
       updated_at: row.updated_at,
       sync_status: row.sync_status,
-      last_synced: row.last_synced,
       is_deleted: Boolean(row.is_deleted),
       recitations,
     };

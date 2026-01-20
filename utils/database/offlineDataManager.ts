@@ -80,7 +80,6 @@ class OfflineDataManager {
       table_name: TABLES.PRAYER_LOGS,
       operation: OPERATION_TYPES.CREATE,
       record_id: savedLog.id,
-      data: savedLog,
       created_at: now,
       retry_count: 0,
     });
@@ -143,7 +142,6 @@ class OfflineDataManager {
         table_name: TABLES.PRAYER_LOGS,
         operation: OPERATION_TYPES.UPDATE,
         record_id: id,
-        data: updates,
         created_at: now,
         retry_count: 0,
       });
@@ -168,7 +166,6 @@ class OfflineDataManager {
       table_name: TABLES.PRAYER_LOGS,
       operation: OPERATION_TYPES.DELETE,
       record_id: id,
-      data: { deleted_at: now },
       created_at: now,
       retry_count: 0,
     });
@@ -359,7 +356,6 @@ class OfflineDataManager {
             table_name: TABLES.PRAYER_LOGS,
             operation: OPERATION_TYPES.CREATE,
             record_id: log.id,
-            data: { ...log, user_id: newUserId },
             created_at: now,
             retry_count: 0,
           });

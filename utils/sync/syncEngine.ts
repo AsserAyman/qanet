@@ -1,12 +1,12 @@
-import { sqliteManager } from '../database/sqlite';
-import { supabase } from '../supabase';
-import { networkManager } from '../network/networkManager';
-import { SyncOperation, TABLES, SYNC_STATUS, LocalPrayerLog } from '../database/schema';
-import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
+import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { getCachedCustomUserId, registerOrGetCustomUser } from '../auth/userRegistration';
+import { SYNC_STATUS, SyncOperation, TABLES } from '../database/schema';
+import { sqliteManager } from '../database/sqlite';
+import { networkManager } from '../network/networkManager';
+import { supabase } from '../supabase';
 
-const MAX_RETRY_ATTEMPTS = 3;
+const MAX_RETRY_ATTEMPTS = 5;
 
 class SyncEngine {
   private isInitialized = false;
@@ -142,11 +142,9 @@ class SyncEngine {
         const newRetryCount = operation.retry_count + 1;
 
         if (newRetryCount >= MAX_RETRY_ATTEMPTS) {
-          // Mark as error after max retries
-          await sqliteManager.updateSyncOperation(operation.id, {
-            retry_count: newRetryCount,
-            error_message: error instanceof Error ? error.message : 'Unknown error',
-          });
+          // Give up after max retries - remove the operation
+          console.error(`Giving up on operation ${operation.id} after ${MAX_RETRY_ATTEMPTS} attempts:`, error instanceof Error ? error.message : 'Unknown error');
+          await sqliteManager.removeSyncOperation(operation.id);
         } else {
           // Schedule for retry
           await sqliteManager.updateSyncOperation(operation.id, {
@@ -232,7 +230,6 @@ class SyncEngine {
       // Update local record as synced
       await sqliteManager.updatePrayerLog(operation.record_id, {
         sync_status: SYNC_STATUS.SYNCED,
-        last_synced: new Date().toISOString(),
       });
 
       console.log(`[Sync] CREATE successful for ${operation.record_id}`);
@@ -304,7 +301,6 @@ class SyncEngine {
       // Update local sync status
       await sqliteManager.updatePrayerLog(operation.record_id, {
         sync_status: SYNC_STATUS.SYNCED,
-        last_synced: new Date().toISOString(),
       });
 
       console.log(`[Sync] UPDATE successful for ${operation.record_id}`);
@@ -370,7 +366,6 @@ class SyncEngine {
     await sqliteManager.updateSyncMetadata({
       table_name: TABLES.PRAYER_LOGS,
       last_sync: new Date().toISOString(),
-      sync_version: (metadata?.sync_version || 0) + 1,
     });
   }
 
@@ -388,7 +383,6 @@ class SyncEngine {
           prayer_date: serverLog.prayer_date,
           updated_at: serverLog.updated_at,
           sync_status: SYNC_STATUS.SYNCED,
-          last_synced: new Date().toISOString(),
         });
 
         // Replace recitations
@@ -413,7 +407,6 @@ class SyncEngine {
           created_at: serverLog.created_at,
           updated_at: serverLog.updated_at,
           sync_status: SYNC_STATUS.SYNCED,
-          last_synced: new Date().toISOString(),
           is_deleted: false,
         },
         recitations
