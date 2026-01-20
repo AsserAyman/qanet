@@ -1,4 +1,4 @@
-import { differenceInDays, format, startOfYear, addMonths } from 'date-fns';
+import { differenceInDays, format, startOfYear, addMonths, differenceInWeeks, endOfYear, isSameYear } from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import {
@@ -24,17 +24,16 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
 
   // Calculate available width considering padding and gaps
   const containerPadding = 48; // 24px * 2
-  const dayLabelsWidth = 20;
-  const availableWidth = width - containerPadding - dayLabelsWidth;
+  const availableWidth = width - containerPadding;
   const gapWidth = 4 * 52; // 4px gap * ~52 weeks
-  const cellSize = Math.max((availableWidth - gapWidth) / 53, 10); // Smaller minimum size
+  const cellSize = Math.max((availableWidth - gapWidth) / 53, 5); // Allow smaller size to fit
 
-  // Generate proper date-based grid
+  // Generate proper date-based grid for the entire current year
   const today = new Date();
   const yearStart = startOfYear(today);
-  const yearEnd = today;
+  const yearEnd = endOfYear(today); // Cover the full year
 
-  // Calculate weeks from start of year
+  // Calculate weeks for the full year
   const totalDays = differenceInDays(yearEnd, yearStart) + 1;
   const weeks = Math.ceil(totalDays / 7);
 
@@ -52,13 +51,8 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
   };
 
   const getColor = (status: string, verses: number) => {
-    if (verses === 0) return theme.border + '30'; // No activity
-    return getStatusColor(status); // Single solid color per status
-  };
-
-  const getBorderColor = (status: string, verses: number) => {
-    if (verses === 0) return theme.border;
-    return getStatusColor(status); // Same color for border
+    if (verses === 0) return theme.border + '30'; 
+    return getStatusColor(status);
   };
 
   const renderGrid = () => {
@@ -71,7 +65,7 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
         const currentDate = new Date(yearStart);
         currentDate.setDate(yearStart.getDate() + week * 7 + day);
 
-        if (currentDate > today) break;
+        if (!isSameYear(currentDate, yearStart)) break;
 
         const dateKey = format(currentDate, 'yyyy-MM-dd');
         const dayData = data[dateKey] || { verses: 0, status: 'Negligent' };
@@ -82,11 +76,9 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
             style={[
               styles.cell,
               {
-                width: cellSize - 2,
-                height: cellSize - 2,
+                width: cellSize,
+                height: cellSize,
                 backgroundColor: getColor(dayData.status, dayData.verses),
-                borderColor: getBorderColor(dayData.status, dayData.verses),
-                borderWidth: dayData.verses > 0 ? 1 : 0,
               },
             ]}
             activeOpacity={0.7}
@@ -104,17 +96,17 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
     return grid;
   };
 
-  // Generate month labels
   const monthLabels = [];
   for (let i = 0; i < 12; i++) {
     const date = addMonths(yearStart, i);
-    monthLabels.push(format(date, 'MMM', { locale }));
+    const weekIndex = differenceInWeeks(date, yearStart);
+    const position = weekIndex * (cellSize + 4);
+    
+    monthLabels.push({
+      label: format(date, 'MMM', { locale }),
+      left: position
+    });
   }
-  
-  // Day labels
-  const dayLabels = isRTL 
-    ? ['أ', 'إ', 'ث', 'أ', 'خ', 'ج', 'س'] // Sun-Sat approx
-    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   const styles = createStyles(theme, cellSize, isRTL);
 
@@ -131,88 +123,36 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
       </View>
 
       <View style={styles.graphContainer}>
-        <View style={styles.monthLabels}>
-          {monthLabels.map((month, index) => {
-            // Use container width instead of graph width to prevent overflow
-            const containerWidth = availableWidth - 20; // Available width minus some padding
-            const monthPosition = (index / 11) * Math.max(containerWidth, 0); // Spread across container width
-            
-            const positionStyle = isRTL 
-              ? { right: monthPosition }
-              : { left: monthPosition };
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={isRTL ? { flexDirection: 'row-reverse' } : {}}>
+          <View>
+            <View style={styles.monthLabels}>
+              {monthLabels.map((month, index) => {
+                const positionStyle = isRTL 
+                  ? { right: month.left }
+                  : { left: month.left };
 
-            return (
-              <Text
-                key={index}
-                style={[styles.monthLabel, positionStyle]}
-              >
-                {month}
-              </Text>
-            );
-          })}
-        </View>
-
-        <View style={styles.graphWrapper}>
-          <View style={styles.dayLabels}>
-            {dayLabels.map((day, index) => (
-              <Text
-                key={index}
-                style={[styles.dayLabel, { height: cellSize - 2 }]}
-              >
-                {index % 2 === 1 ? day : ''}
-              </Text>
-            ))}
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={isRTL ? { flexDirection: 'row-reverse' } : {}}>
+                return (
+                  <Text
+                    key={index}
+                    style={[styles.monthLabel, positionStyle]}
+                  >
+                    {month.label}
+                  </Text>
+                );
+              })}
+            </View>
             <View style={styles.graph}>{renderGrid()}</View>
-          </ScrollView>
-        </View>
+          </View>
+        </ScrollView>
       </View>
 
       <View style={styles.legend}>
         <Text style={styles.legendText}>{t('less')}</Text>
         <View style={styles.legendItems}>
-          <View
-            style={[
-              styles.legendItem,
-              {
-                backgroundColor: theme.border + '30',
-                borderColor: theme.border,
-                borderWidth: 0,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.legendItem,
-              {
-                backgroundColor: getStatusColor('Not Negligent'),
-                borderColor: getStatusColor('Not Negligent'),
-                borderWidth: 1,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.legendItem,
-              {
-                backgroundColor: getStatusColor('Qanet'),
-                borderColor: getStatusColor('Qanet'),
-                borderWidth: 1,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.legendItem,
-              {
-                backgroundColor: getStatusColor('Mokantar'),
-                borderColor: getStatusColor('Mokantar'),
-                borderWidth: 1,
-              },
-            ]}
-          />
+          <View style={[styles.legendItem, { backgroundColor: theme.border + '30' }]} />
+          <View style={[styles.legendItem, { backgroundColor: getStatusColor('Not Negligent') }]} />
+          <View style={[styles.legendItem, { backgroundColor: getStatusColor('Qanet') }]} />
+          <View style={[styles.legendItem, { backgroundColor: getStatusColor('Mokantar') }]} />
         </View>
         <Text style={styles.legendText}>{t('more')}</Text>
       </View>
@@ -252,11 +192,9 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
       marginBottom: 16,
     },
     monthLabels: {
-      flexDirection: 'row',
       height: 20,
       marginBottom: 8,
       position: 'relative',
-      width: '100%',
     },
     monthLabel: {
       fontSize: 10,
@@ -264,33 +202,18 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
       position: 'absolute',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
-    graphWrapper: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-    },
-    dayLabels: {
-      marginRight: isRTL ? 0 : 8,
-      marginLeft: isRTL ? 8 : 0,
-      justifyContent: 'space-between',
-    },
-    dayLabel: {
-      fontSize: 12,
-      color: 'rgba(255,255,255,0.6)',
-      textAlign: 'center',
-      lineHeight: cellSize - 2,
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-    },
     graph: {
-      flexDirection: isRTL ? 'row-reverse' : 'row', // Reverse grid for RTL
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 4,
     },
     week: {
       gap: 4,
     },
     cell: {
-      borderRadius: 4,
+      borderRadius: 2,
     },
     legend: {
-      flexDirection: 'row', // Keep LTR for scale
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -300,9 +223,9 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
       gap: 4,
     },
     legendItem: {
-      width: 16,
-      height: 16,
-      borderRadius: 3,
+      width: 12,
+      height: 12,
+      borderRadius: 2,
     },
     legendText: {
       fontSize: 12,
