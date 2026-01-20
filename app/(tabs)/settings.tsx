@@ -33,19 +33,6 @@ export default function SettingsScreen() {
     await setLanguage(lang);
   };
 
-  const handleSignOut = async () => {
-    Alert.alert(t('signOut'), 'Are you sure you want to sign out?', [
-      { text: t('cancel'), style: 'cancel' },
-      {
-        text: t('signOut'),
-        style: 'destructive',
-        onPress: async () => {
-          await supabase.auth.signOut();
-          router.replace('/(auth)/sign-in');
-        },
-      },
-    ]);
-  };
 
   // Force dark styles
   const styles = createStyles(isRTL);

@@ -10,7 +10,6 @@ import {
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
 import { StatsOverview } from '../../components/StatsOverview';
-import { WeeklyTrendsChart } from '../../components/WeeklyTrendsChart';
 import { YearlyGraph } from '../../components/YearlyGraph';
 
 import { useI18n } from '../../contexts/I18nContext';
@@ -141,14 +140,6 @@ export default function HistoryScreen() {
 
         <CategoryBreakdownChart stats={stats} />
 
-        <WeeklyTrendsChart
-          data={Object.fromEntries(
-            Object.entries(yearlyData).map(([date, dayData]) => [
-              date,
-              dayData.verses,
-            ])
-          )}
-        />
         <Calendar
           date={selectedDate}
           markedDates={monthlyData}
