@@ -7,6 +7,7 @@ import { supabase } from '../utils/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { I18nProvider } from '../contexts/I18nContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import { useOfflineData } from '../hooks/useOfflineData';
 import { View, ActivityIndicator } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -76,7 +77,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <ThemeProvider>
-          <AppContent />
+          <NotificationProvider>
+            <AppContent />
+          </NotificationProvider>
         </ThemeProvider>
       </I18nProvider>
     </QueryClientProvider>

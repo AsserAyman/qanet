@@ -64,6 +64,16 @@ export const translations = {
     system: 'System',
     english: 'English',
     arabic: 'العربية',
+    notifications: 'Notifications',
+    dailyReminder: 'Daily Reminder',
+    dailyReminderDesc: 'Remind me to log my night prayer',
+    reminderTime: 'Reminder at 9:00 PM',
+    notificationTitle: 'Time for Night Prayer',
+    notificationBody:
+      "Don't forget to log your night prayer reading. Strive to read at least 10 verses!",
+    notificationPermissionDenied: 'Permission Denied',
+    notificationPermissionDeniedDesc:
+      'Please enable notifications in your device settings to receive daily reminders.',
     prayerStatusLevels: 'Prayer Status Levels',
     signOut: 'Sign Out',
 
@@ -244,6 +254,15 @@ export const translations = {
     system: 'النظام',
     english: 'English',
     arabic: 'العربية',
+    notifications: 'الإشعارات',
+    dailyReminder: 'تذكير يومي',
+    dailyReminderDesc: 'ذكرني بتسجيل صلاة الليل',
+    reminderTime: 'التذكير في 9:00 مساءً',
+    notificationTitle: 'حان وقت صلاة الليل',
+    notificationBody: 'لا تنسى تسجيل قراءتك في صلاة الليل. اجتهد في قراءة 10 آيات على الأقل!',
+    notificationPermissionDenied: 'تم رفض الإذن',
+    notificationPermissionDeniedDesc:
+      'يرجى تفعيل الإشعارات في إعدادات جهازك لتلقي التذكيرات اليومية.',
     prayerStatusLevels: 'مستويات حالة الصلاة',
     signOut: 'تسجيل الخروج',
 

@@ -6,11 +6,13 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Language, useI18n } from '../../contexts/I18nContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import {
   useLastNightStats,
   useOfflineData,
@@ -24,6 +26,8 @@ export default function SettingsScreen() {
   const { isInitialized } = useOfflineData();
   const { logs, loading: logsLoading } = usePrayerLogs();
   const { gradientColors } = useLastNightStats();
+  const { notificationsEnabled, toggleNotifications, permissionStatus } =
+    useNotifications();
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
@@ -129,6 +133,66 @@ export default function SettingsScreen() {
               )}
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Notification Settings */}
+        <View style={styles.card}>
+          <View style={styles.notificationHeader}>
+            <View style={styles.notificationTitleContainer}>
+              <Feather
+                name="bell"
+                size={24}
+                color="#ffffff"
+                style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sectionTitle}>{t('notifications')}</Text>
+                <Text style={styles.notificationSubtitle}>
+                  {t('dailyReminderDesc')}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={toggleNotifications}
+              trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#3b82f6' }}
+              thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
+              ios_backgroundColor="rgba(255,255,255,0.1)"
+            />
+          </View>
+
+          {notificationsEnabled && (
+            <View style={styles.notificationInfo}>
+              <Feather
+                name="clock"
+                size={16}
+                color="rgba(255,255,255,0.6)"
+                style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+              />
+              <Text style={styles.notificationInfoText}>
+                {t('reminderTime')}
+              </Text>
+            </View>
+          )}
+
+          {permissionStatus === 'denied' && (
+            <View style={styles.permissionWarning}>
+              <MaterialIcons
+                name="warning"
+                size={20}
+                color="#ef4444"
+                style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.permissionWarningTitle}>
+                  {t('notificationPermissionDenied')}
+                </Text>
+                <Text style={styles.permissionWarningText}>
+                  {t('notificationPermissionDeniedDesc')}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Prayer Status Information */}
@@ -393,6 +457,66 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 16,
       fontWeight: '600',
       color: '#ef4444',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    notificationHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    notificationTitleContainer: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      flex: 1,
+      marginRight: isRTL ? 0 : 16,
+      marginLeft: isRTL ? 16 : 0,
+    },
+    notificationSubtitle: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.6)',
+      marginTop: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    notificationInfo: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(59, 130, 246, 0.2)',
+    },
+    notificationInfoText: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.8)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    permissionWarning: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'flex-start',
+      padding: 16,
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(239, 68, 68, 0.3)',
+      marginTop: 16,
+    },
+    permissionWarningTitle: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: '#ef4444',
+      marginBottom: 4,
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    permissionWarningText: {
+      fontSize: 13,
+      color: 'rgba(239, 68, 68, 0.8)',
+      lineHeight: 18,
+      textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });
