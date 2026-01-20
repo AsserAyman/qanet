@@ -1,12 +1,12 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useMemo, useState } from 'react';
 import {
-  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -305,6 +305,8 @@ export default function AddPrayerScreen() {
             <Image
               source={require('../assets/images/moon-image.png')}
               style={styles.moonImage}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
             <View style={styles.statusTextContainer}>
               <Text style={styles.statusTitle}>

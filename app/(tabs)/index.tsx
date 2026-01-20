@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
 import {
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -82,6 +82,8 @@ export default function NightPrayerScreen() {
           <Image
             source={require('../../assets/images/moon-image.png')}
             style={styles.heroMoonImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
           <Text style={styles.heroTitle}>Qanet</Text>
           <Text style={styles.heroSubtitle}>
