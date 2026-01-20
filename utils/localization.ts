@@ -53,7 +53,7 @@ export const translations = {
     versesThisYear: 'verses this year',
     less: 'Less',
     more: 'More',
-    basedOnTotalPrayerSessions: 'Based on {{count}} total prayer sessions',
+    basedOnTotalPrayerSessions: 'Based on {{count}} total nights',
 
     // Settings Screen
     customizeYourAppExperience: 'Customize your app experience',
@@ -243,7 +243,7 @@ export const translations = {
     versesThisYear: 'آية هذا العام',
     less: 'أقل',
     more: 'أكثر',
-    basedOnTotalPrayerSessions: 'بناءً على {{count}} جلسة صلاة إجمالية',
+    basedOnTotalPrayerSessions: 'بناءً على {{count}} ليلة إجمالية',
 
     // Settings Screen
     customizeYourAppExperience: 'خصص تجربة التطبيق الخاصة بك',

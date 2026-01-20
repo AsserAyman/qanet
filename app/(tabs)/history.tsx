@@ -55,6 +55,10 @@ export default function HistoryScreen() {
 
   const { gradientColors } = useLastNightStats();
 
+  const totalNights = React.useMemo(() => {
+    return stats.reduce((acc, curr) => acc + curr.count, 0);
+  }, [stats]);
+
   if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (
       <View
@@ -99,8 +103,6 @@ export default function HistoryScreen() {
       </View>
     );
   }
-
-  const totalNights = logs.length;
 
   return (
     <View style={styles.container}>

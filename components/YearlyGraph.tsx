@@ -41,13 +41,13 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Mokantar':
-        return '#15803d';
+        return '#a855f7';
       case 'Qanet':
-        return '#2563eb';
+        return '#22c55e';
       case 'Not Negligent':
-        return '#ca8a04';
+        return '#3b82f6';
       default:
-        return '#dc2626';
+        return '#ef4444';
     }
   };
 

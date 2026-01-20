@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
 import { getCachedCustomUserId, registerOrGetCustomUser } from '../auth/userRegistration';
-import { calculateAyahsBetweenIndices } from '../quranData';
+import { calculateAyahsBetweenIndices, getVerseStatus } from '../quranData';
 
 // Input data for creating a new prayer log
 export interface CreatePrayerLogData {
@@ -391,10 +391,7 @@ class OfflineDataManager {
    * Get status based on ayah count (same logic as getVerseStatus in quranData.ts)
    */
   private getStatusFromAyahCount(totalAyahs: number): string {
-    if (totalAyahs >= 200) return 'Mokantar';
-    if (totalAyahs >= 100) return 'Qanet';
-    if (totalAyahs >= 50) return 'Not Negligent';
-    return 'Negligent';
+    return getVerseStatus(totalAyahs).status;
   }
 
   private async getCurrentUserId(): Promise<string> {
