@@ -1,24 +1,26 @@
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useI18n, Language } from '../contexts/I18nContext';
-import { useNotifications } from '../contexts/NotificationContext';
+import React, { useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Language, useI18n } from '../contexts/I18nContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { saveReadingPreference } from '../utils/auth/userRegistration';
+import {
+  OnboardingData,
   onboardingManager,
   ReadingVolume,
-  OnboardingData,
 } from '../utils/onboarding';
-import { saveReadingPreference } from '../utils/auth/userRegistration';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -26,6 +28,7 @@ export default function OnboardingScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
   const { toggleNotifications } = useNotifications();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -35,6 +38,10 @@ export default function OnboardingScreen() {
   const [isCompleting, setIsCompleting] = useState(false);
 
   const totalPages = 4;
+
+  const gradientColors = useMemo(() => 
+    ['#020617', '#172554', '#1e1b4b'] as const, 
+  []);
 
   const handleLanguageSelect = async (lang: Language) => {
     setSelectedLanguage(lang);
@@ -69,20 +76,17 @@ export default function OnboardingScreen() {
   };
 
   const canProceed = () => {
-    if (currentPage === 0) return true; // Language page (already selected)
+    if (currentPage === 0) return true;
     if (currentPage === 1) return selectedReadingVolume !== null;
     return true;
   };
 
   const handleComplete = async (enableNotifications: boolean = false) => {
-    if (!selectedReadingVolume) {
-      return;
-    }
+    if (!selectedReadingVolume) return;
 
     setIsCompleting(true);
 
     try {
-      // Save onboarding data
       const onboardingData: OnboardingData = {
         language: selectedLanguage,
         readingPerNight: selectedReadingVolume,
@@ -92,15 +96,12 @@ export default function OnboardingScreen() {
 
       await onboardingManager.completeOnboarding(onboardingData);
 
-      // Save reading preference to Supabase (non-blocking)
       try {
         await saveReadingPreference(selectedReadingVolume);
       } catch (err) {
-        console.warn('⚠️  Failed to save reading preference (non-blocking):', err);
-        // Continue anyway - will sync later
+        console.warn('⚠️  Failed to save reading preference:', err);
       }
 
-      // Enable notifications if requested
       if (enableNotifications) {
         try {
           await toggleNotifications();
@@ -109,7 +110,6 @@ export default function OnboardingScreen() {
         }
       }
 
-      // Navigate to main app
       router.replace('/(tabs)');
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
@@ -117,63 +117,78 @@ export default function OnboardingScreen() {
     }
   };
 
+  const renderHeader = () => (
+    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+      <Image
+        source={require('../assets/images/moon-image.png')}
+        style={styles.headerImage}
+        contentFit="contain"
+      />
+      <Text style={styles.headerTitle}>Qanet</Text>
+    </View>
+  );
+
   const renderLanguagePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
       <View style={styles.pageContent}>
-        <View style={styles.iconContainer}>
-          <Feather name="globe" size={48} color="#ffffff" />
-        </View>
-
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
           {t('chooseYourLanguage')}
         </Text>
-        <Text
-          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
-        >
+        <Text style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}>
           {t('chooseLanguageDesc')}
         </Text>
 
-        <View style={styles.languageOptions}>
+        <View style={styles.cardContainer}>
           <TouchableOpacity
             style={[
-              styles.languageOption,
-              selectedLanguage === 'en' && styles.languageOptionActive,
+              styles.selectionCard,
+              selectedLanguage === 'en' && styles.selectionCardActive,
             ]}
             onPress={() => handleLanguageSelect('en')}
+            activeOpacity={0.8}
           >
-            <View style={styles.languageContent}>
-              <Text
-                style={[
-                  styles.languageText,
-                  selectedLanguage === 'en' && styles.languageTextActive,
-                ]}
-              >
+            <View style={[styles.cardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.iconBox, { backgroundColor: '#3b82f620', marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }]}>
+                <Text style={{ fontSize: 24 }}>🇺🇸</Text>
+              </View>
+              <Text style={[
+                styles.cardTitle, 
+                selectedLanguage === 'en' && styles.activeText,
+                { textAlign: isRTL ? 'right' : 'left' }
+              ]}>
                 English
               </Text>
               {selectedLanguage === 'en' && (
-                <Feather name="check-circle" size={24} color="#ffffff" />
+                <View style={styles.checkIcon}>
+                  <Feather name="check" size={16} color="#fff" />
+                </View>
               )}
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
-              styles.languageOption,
-              selectedLanguage === 'ar' && styles.languageOptionActive,
+              styles.selectionCard,
+              selectedLanguage === 'ar' && styles.selectionCardActive,
             ]}
             onPress={() => handleLanguageSelect('ar')}
+            activeOpacity={0.8}
           >
-            <View style={styles.languageContent}>
-              <Text
-                style={[
-                  styles.languageText,
-                  selectedLanguage === 'ar' && styles.languageTextActive,
-                ]}
-              >
+            <View style={[styles.cardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={[styles.iconBox, { backgroundColor: '#10b98120', marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }]}>
+                <Text style={{ fontSize: 24 }}>🇸🇦</Text>
+              </View>
+              <Text style={[
+                styles.cardTitle, 
+                selectedLanguage === 'ar' && styles.activeText,
+                { textAlign: isRTL ? 'right' : 'left' }
+              ]}>
                 العربية
               </Text>
               {selectedLanguage === 'ar' && (
-                <Feather name="check-circle" size={24} color="#ffffff" />
+                <View style={styles.checkIcon}>
+                  <Feather name="check" size={16} color="#fff" />
+                </View>
               )}
             </View>
           </TouchableOpacity>
@@ -182,307 +197,254 @@ export default function OnboardingScreen() {
     </View>
   );
 
-  const renderReadingVolumePage = () => (
+  const renderVolumePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
       <View style={styles.pageContent}>
-        <View style={styles.iconContainer}>
-          <Feather name="book-open" size={48} color="#ffffff" />
-        </View>
-
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
           {t('tellUsAboutYourReading')}
         </Text>
-        <Text
-          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
-        >
+        <Text style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}>
           {t('readingVolumeDesc')}
         </Text>
 
-        <View style={styles.readingOptions}>
-          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map(
-            (volume) => (
-              <TouchableOpacity
-                key={volume}
-                style={[
-                  styles.readingOption,
-                  selectedReadingVolume === volume &&
-                    styles.readingOptionActive,
-                ]}
-                onPress={() => handleReadingVolumeSelect(volume)}
-              >
-                <View style={styles.readingContent}>
-                  <Text
-                    style={[
-                      styles.readingText,
-                      { textAlign: isRTL ? 'right' : 'left' },
-                      selectedReadingVolume === volume &&
-                        styles.readingTextActive,
-                    ]}
-                  >
-                    {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
-                  </Text>
-                  {selectedReadingVolume === volume && (
-                    <Feather name="check-circle" size={20} color="#ffffff" />
+        <View style={styles.cardContainer}>
+          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map((volume) => (
+            <TouchableOpacity
+              key={volume}
+              style={[
+                styles.selectionCard,
+                selectedReadingVolume === volume && styles.selectionCardActive,
+              ]}
+              onPress={() => handleReadingVolumeSelect(volume)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.cardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Text style={[
+                  styles.cardTitle, 
+                  selectedReadingVolume === volume && styles.activeText,
+                  { textAlign: isRTL ? 'right' : 'left' }
+                ]}>
+                  {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
+                </Text>
+                {selectedReadingVolume === volume && (
+                   <View style={styles.checkIcon}>
+                     <Feather name="check" size={16} color="#fff" />
+                   </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderFeaturesPage = () => {
+    const features = [
+      {
+        id: 'negligent',
+        icon: 'warning',
+        iconType: MaterialIcons,
+        color: '#ef4444',
+        title: t('negligent'),
+        desc: t('negligentDesc')
+      },
+      {
+        id: 'notnegligent',
+        icon: 'moon',
+        iconType: Feather,
+        color: '#3b82f6',
+        title: t('notnegligent'),
+        desc: t('notnegligentDesc')
+      },
+      {
+        id: 'qanet',
+        icon: 'military-tech',
+        iconType: MaterialIcons,
+        color: '#22c55e',
+        title: t('qanet'),
+        desc: t('qanetDesc')
+      },
+      {
+        id: 'mokantar',
+        icon: 'military-tech',
+        iconType: MaterialIcons,
+        color: '#a855f7',
+        title: t('mokantar'),
+        desc: t('mokantarDesc')
+      }
+    ];
+    
+    return (
+      <View style={[styles.page, { width: SCREEN_WIDTH }]}>
+        <View style={styles.pageContent}>
+          <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center', marginBottom: 24 }]}>
+            {t('trackYourJourney')}
+          </Text>
+          
+          <View style={styles.timelineContainer}>
+            {features.map((feature, index) => {
+              const Icon = feature.iconType;
+              return (
+                <View 
+                  key={feature.id} 
+                  style={[
+                    styles.timelineItem, 
+                    { flexDirection: isRTL ? 'row-reverse' : 'row' }
+                  ]}
+                >
+                  {/* Timeline Connector */}
+                  {index !== features.length - 1 && (
+                    <View style={[styles.timelineLine, { 
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      left: isRTL ? undefined : 24,
+                      right: isRTL ? 24 : undefined
+                    }]} />
                   )}
+                  
+                  <View style={[
+                    styles.timelineIconBox, 
+                    { 
+                      backgroundColor: `${feature.color}20`,
+                      marginRight: isRTL ? 0 : 16,
+                      marginLeft: isRTL ? 16 : 0
+                    }
+                  ]}>
+                    <Icon name={feature.icon as any} size={20} color={feature.color} />
+                  </View>
+                  
+                  <View style={styles.timelineContent}>
+                    <Text style={[styles.timelineTitle, { textAlign: isRTL ? 'right' : 'left', color: feature.color }]}>
+                      {feature.title}
+                    </Text>
+                    <Text style={[styles.timelineDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
+                      {feature.desc}
+                    </Text>
+                  </View>
                 </View>
-              </TouchableOpacity>
-            )
-          )}
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderFeaturePage = () => (
-    <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={styles.pageContent}>
-        <View style={styles.iconContainer}>
-          <Feather name="star" size={48} color="#ffffff" />
-        </View>
-
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('trackYourJourney')}
-        </Text>
-
-        <View style={styles.featuresContainer}>
-          <View style={styles.featureItem}>
-            <View
-              style={[
-                styles.featureIconContainer,
-                { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
-              ]}
-            >
-              <MaterialIcons name="warning" size={24} color="#ef4444" />
-            </View>
-            <View style={styles.featureTextContainer}>
-              <Text
-                style={[
-                  styles.featureTitle,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('negligent')}
-              </Text>
-              <Text
-                style={[
-                  styles.featureDescription,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('negligentDesc')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <View
-              style={[
-                styles.featureIconContainer,
-                { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
-              ]}
-            >
-              <Feather name="moon" size={24} color="#3b82f6" />
-            </View>
-            <View style={styles.featureTextContainer}>
-              <Text
-                style={[
-                  styles.featureTitle,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('notnegligent')}
-              </Text>
-              <Text
-                style={[
-                  styles.featureDescription,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('notnegligentDesc')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <View
-              style={[
-                styles.featureIconContainer,
-                { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
-              ]}
-            >
-              <MaterialIcons name="military-tech" size={24} color="#22c55e" />
-            </View>
-            <View style={styles.featureTextContainer}>
-              <Text
-                style={[
-                  styles.featureTitle,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('qanet')}
-              </Text>
-              <Text
-                style={[
-                  styles.featureDescription,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('qanetDesc')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <View
-              style={[
-                styles.featureIconContainer,
-                { backgroundColor: 'rgba(168, 85, 247, 0.2)' },
-              ]}
-            >
-              <MaterialIcons name="military-tech" size={24} color="#a855f7" />
-            </View>
-            <View style={styles.featureTextContainer}>
-              <Text
-                style={[
-                  styles.featureTitle,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('mokantar')}
-              </Text>
-              <Text
-                style={[
-                  styles.featureDescription,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('mokantarDesc')}
-              </Text>
-            </View>
+              );
+            })}
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
-  const renderNotificationPage = () => (
+  const renderNotificationsPage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={styles.pageContent}>
-        <View style={styles.iconContainer}>
-          <Feather name="bell" size={48} color="#ffffff" />
+      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        <View style={[styles.iconCircle, { marginBottom: 32 }]}>
+          <Feather name="bell" size={64} color="#fff" />
         </View>
 
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Text style={[styles.title, { textAlign: 'center' }]}>
           {t('stayMotivated')}
         </Text>
-        <Text
-          style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}
-        >
+        <Text style={[styles.subtitle, { textAlign: 'center', maxWidth: 300 }]}>
           {t('enableNotificationsDesc')}
         </Text>
 
-        <View style={styles.notificationActions}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => handleComplete(true)}
-            disabled={isCompleting}
-          >
-            {isCompleting ? (
-              <ActivityIndicator color="#000000" />
-            ) : (
-              <Text style={styles.primaryButtonText}>
-                {t('enableNotifications')}
-              </Text>
-            )}
-          </TouchableOpacity>
+        <View style={{ height: 40 }} />
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => handleComplete(false)}
-            disabled={isCompleting}
-          >
-            <Text style={styles.secondaryButtonText}>{t('enableLater')}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={() => handleComplete(true)}
+          disabled={isCompleting}
+          activeOpacity={0.9}
+        >
+          {isCompleting ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text style={styles.primaryButtonText}>{t('enableNotifications')}</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.textButton}
+          onPress={() => handleComplete(false)}
+          disabled={isCompleting}
+        >
+          <Text style={styles.textButtonText}>{t('enableLater')}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#1e3a8a', '#312e81', '#1e1b4b']}
-        style={styles.background}
-      />
+      <LinearGradient colors={gradientColors} style={styles.background} />
+      
+      {renderHeader()}
 
       <ScrollView
         ref={scrollViewRef}
         horizontal
         pagingEnabled
+        scrollEnabled={false} 
         showsHorizontalScrollIndicator={false}
-        scrollEnabled={false}
         contentContainerStyle={styles.scrollContent}
       >
         {renderLanguagePage()}
-        {renderReadingVolumePage()}
-        {renderFeaturePage()}
-        {renderNotificationPage()}
+        {renderVolumePage()}
+        {renderFeaturesPage()}
+        {renderNotificationsPage()}
       </ScrollView>
 
-      {/* Navigation */}
-      <View style={styles.navigation}>
-        {/* Back Button */}
-        {currentPage > 0 && currentPage < totalPages - 1 && (
-          <TouchableOpacity
-            style={[
-              styles.navButton,
-              isRTL ? styles.navButtonRight : styles.navButtonLeft,
-            ]}
-            onPress={goToPreviousPage}
-          >
-            <Feather
-              name={isRTL ? 'arrow-right' : 'arrow-left'}
-              size={24}
-              color="#ffffff"
-            />
-          </TouchableOpacity>
-        )}
+      {/* Navigation Footer */}
+      <View style={[
+        styles.footer, 
+        { 
+          paddingBottom: insets.bottom + 20,
+          flexDirection: isRTL ? 'row-reverse' : 'row' 
+        }
+      ]}>
+        
+        {/* Left Action (Back) */}
+        <View style={styles.footerAction}>
+          {currentPage > 0 && currentPage < totalPages - 1 && (
+            <TouchableOpacity 
+              onPress={goToPreviousPage} 
+              style={styles.navButton}
+            >
+              <Feather name={isRTL ? "arrow-right" : "arrow-left"} size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
 
-        {/* Page Indicators */}
-        <View style={styles.pageIndicators}>
+        {/* Indicators */}
+        <View style={styles.indicators}>
           {Array.from({ length: totalPages }).map((_, index) => (
             <View
               key={index}
               style={[
-                styles.pageIndicator,
-                currentPage === index && styles.pageIndicatorActive,
+                styles.indicator,
+                currentPage === index && styles.indicatorActive,
               ]}
             />
           ))}
         </View>
 
-        {/* Next/Skip Button */}
-        {currentPage < totalPages - 1 && (
-          <TouchableOpacity
-            style={[
-              styles.navButton,
-              isRTL ? styles.navButtonLeft : styles.navButtonRight,
-              !canProceed() && styles.navButtonDisabled,
-            ]}
-            onPress={goToNextPage}
-            disabled={!canProceed()}
-          >
-            {currentPage === 0 || currentPage === 2 ? (
-              <Text style={styles.skipText}>{t('skip')}</Text>
-            ) : (
-              <Feather
-                name={isRTL ? 'arrow-left' : 'arrow-right'}
-                size={24}
-                color="#ffffff"
+        {/* Right Action (Next) */}
+        <View style={styles.footerAction}>
+          {currentPage < totalPages - 1 && (
+            <TouchableOpacity 
+              onPress={goToNextPage}
+              disabled={!canProceed()}
+              style={[
+                styles.navButton,
+                !canProceed() && styles.navButtonDisabled,
+                { backgroundColor: canProceed() ? '#ffffff' : 'rgba(255,255,255,0.1)' }
+              ]}
+            >
+              <Feather 
+                name={isRTL ? "arrow-left" : "arrow-right"} 
+                size={24} 
+                color={canProceed() ? "#000" : "rgba(255,255,255,0.3)"} 
               />
-            )}
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          )}
+        </View>
+
       </View>
     </View>
   );
@@ -494,206 +456,194 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   background: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    letterSpacing: 1,
   },
   scrollContent: {
-    flexDirection: 'row',
+    flexGrow: 1,
   },
   page: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
   },
   pageContent: {
-    width: '100%',
-    maxWidth: 400,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 32,
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#fff',
     marginBottom: 12,
   },
-  description: {
+  subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: 32,
     lineHeight: 24,
   },
-  languageOptions: {
-    gap: 16,
+  cardContainer: {
+    gap: 12,
   },
-  languageOption: {
+  selectionCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  languageOptionActive: {
-    borderColor: '#ffffff',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  languageContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  languageText: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontWeight: '600',
-  },
-  languageTextActive: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  readingOptions: {
-    gap: 12,
-  },
-  readingOption: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 12,
-    padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  readingOptionActive: {
-    borderColor: '#3b82f6',
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+  selectionCardActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: '#ffffff',
   },
-  readingContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  cardRow: {
     alignItems: 'center',
   },
-  readingText: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontWeight: '500',
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
     flex: 1,
   },
-  readingTextActive: {
+  activeText: {
     color: '#ffffff',
-    fontWeight: '700',
+    fontWeight: 'bold',
   },
-  featuresContainer: {
-    gap: 16,
+  checkIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#3b82f6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  featureItem: {
-    flexDirection: 'row',
+  // Timeline Styles
+  timelineContainer: {
+    paddingHorizontal: 4,
+  },
+  timelineItem: {
     alignItems: 'flex-start',
-    gap: 16,
+    marginBottom: 24,
+    position: 'relative',
   },
-  featureIconContainer: {
+  timelineLine: {
+    position: 'absolute',
+    top: 48,
+    width: 2,
+    height: 30, // Connects to next item
+    zIndex: -1,
+  },
+  timelineIconBox: {
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  featureTextContainer: {
+  timelineContent: {
     flex: 1,
+    paddingTop: 2,
   },
-  featureTitle: {
+  timelineTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',
     marginBottom: 4,
   },
-  featureDescription: {
+  timelineDesc: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'rgba(255,255,255,0.5)',
+    lineHeight: 20,
   },
-  notificationActions: {
-    gap: 16,
-    marginTop: 32,
-  },
-  primaryButton: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 18,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  secondaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 18,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  navigation: {
-    position: 'absolute',
-    bottom: 60,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
+  // Footer / Nav
+  footer: {
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 32,
   },
+  footerAction: {
+    width: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   navButton: {
-    position: 'absolute',
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  navButtonLeft: {
-    left: 32,
-  },
-  navButtonRight: {
-    right: 32,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   navButtonDisabled: {
-    opacity: 0.3,
+    opacity: 0.5,
   },
-  skipText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  pageIndicators: {
+  indicators: {
     flexDirection: 'row',
     gap: 8,
   },
-  pageIndicator: {
+  indicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  pageIndicatorActive: {
-    backgroundColor: '#ffffff',
+  indicatorActive: {
     width: 24,
+    backgroundColor: '#fff',
+  },
+  // Notification Page specific
+  iconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  primaryButton: {
+    backgroundColor: '#ffffff',
+    paddingVertical: 18,
+    paddingHorizontal: 48,
+    borderRadius: 30,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  primaryButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  textButton: {
+    padding: 12,
+  },
+  textButtonText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
