@@ -178,7 +178,7 @@ const createStyles = (isRTL: boolean) =>
     },
     contentContainer: {
       padding: 24,
-      paddingTop: 60,
+      paddingTop: 80,
     },
     header: {
       marginBottom: 32,
