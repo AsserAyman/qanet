@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -139,12 +139,6 @@ export default function CalculatorScreen() {
       >
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <Ionicons
-            name="calculator-outline"
-            size={80}
-            color="rgba(255,255,255,0.8)"
-            style={styles.heroIcon}
-          />
           <Text style={styles.heroTitle}>{t('verseCalculator')}</Text>
           <Text style={styles.heroSubtitle}>
             {t('calculateYourNightPrayerVerses')}
@@ -270,12 +264,14 @@ export default function CalculatorScreen() {
                 {t('ayah')} {range.startAyah}
               </Text>
             </View>
-            <Feather
-              name={isRTL ? 'arrow-left' : 'arrow-right'}
-              size={20}
-              color="#ffffff"
-              style={{ opacity: 0.5 }}
-            />
+            <View style={{ paddingHorizontal: 12, justifyContent: 'center' }}>
+              <Feather
+                name={isRTL ? 'arrow-left' : 'arrow-right'}
+                size={24}
+                color="#ffffff"
+                style={{ opacity: 0.5 }}
+              />
+            </View>
             <View style={styles.rangeItem}>
               <Text style={styles.rangeSurah}>
                 {getSurahName(range.endSurah)}
@@ -376,6 +372,7 @@ const createStyles = (isRTL: boolean) =>
     heroSection: {
       alignItems: 'center',
       marginBottom: 32,
+      marginTop: 32,
     },
     heroIcon: {
       marginBottom: 16,
@@ -395,7 +392,7 @@ const createStyles = (isRTL: boolean) =>
     },
     // Range Display
     rangeDisplayCard: {
-      backgroundColor: '#0f0f0f',
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 20,
       padding: 20,
       marginTop: 16,
@@ -445,7 +442,7 @@ const createStyles = (isRTL: boolean) =>
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     controlsContainer: {
-      backgroundColor: '#0f0f0f',
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 24,
       padding: 24,
       borderWidth: 1,
