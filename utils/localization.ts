@@ -120,6 +120,8 @@ export const translations = {
     lastNight: 'Last Night',
     bestNight: 'Best Night',
     average: 'Average',
+    longestStreak: 'Longest Streak',
+    averageStatus: 'Average Status',
     verseCalculator: 'Calculator',
 
     // Common
@@ -308,6 +310,8 @@ export const translations = {
     lastNight: 'الليلة الماضية',
     bestNight: 'أفضل ليلة',
     average: 'المتوسط',
+    longestStreak: 'أطول سلسلة',
+    averageStatus: 'متوسط الحالة',
     verseCalculator: 'حاسبة الآيات',
 
     // Common

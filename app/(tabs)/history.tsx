@@ -59,6 +59,10 @@ export default function HistoryScreen() {
     return stats.reduce((acc, curr) => acc + curr.count, 0);
   }, [stats]);
 
+  const totalVerses = React.useMemo(() => {
+    return Object.values(yearlyData).reduce((sum, day) => sum + day.verses, 0);
+  }, [yearlyData]);
+
   if (authLoading || !isInitialized || logsLoading || statsLoading) {
     return (
       <View
@@ -131,6 +135,7 @@ export default function HistoryScreen() {
         <StatsOverview
           streak={streak}
           totalNights={totalNights}
+          totalVerses={totalVerses}
           data={Object.fromEntries(
             Object.entries(yearlyData).map(([date, dayData]) => [
               date,

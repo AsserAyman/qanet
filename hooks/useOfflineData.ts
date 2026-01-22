@@ -160,15 +160,17 @@ export function useOfflineStats() {
   } = useQuery({
     queryKey: ['offlineStats'],
     queryFn: async () => {
-      const [statsData, streakData, yearData, monthData] = await Promise.all([
+      const [statsData, streakData, longestStreakData, yearData, monthData] = await Promise.all([
         offlineDataManager.getStatusStats(),
         offlineDataManager.getCurrentStreak(),
+        offlineDataManager.getLongestStreak(),
         offlineDataManager.getYearlyData(),
         offlineDataManager.getMonthlyData(),
       ]);
       return {
         stats: statsData,
         streak: streakData,
+        longestStreak: longestStreakData,
         yearlyData: yearData,
         monthlyData: monthData,
       };
@@ -178,6 +180,7 @@ export function useOfflineStats() {
   return {
     stats: data?.stats || [],
     streak: data?.streak || 0,
+    longestStreak: data?.longestStreak || 0,
     yearlyData: data?.yearlyData || {},
     monthlyData: data?.monthlyData || {},
     loading,

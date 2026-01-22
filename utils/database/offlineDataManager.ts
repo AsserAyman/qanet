@@ -242,6 +242,61 @@ class OfflineDataManager {
     return streak;
   }
 
+  async getLongestStreak(): Promise<number> {
+    await this.ensureInitialized();
+
+    const userId = await this.getCurrentUserId();
+    const logs = await sqliteManager.getPrayerLogs(userId, 1000); // Fetch enough logs
+
+    // Group logs by date
+    const dateSet = new Set(logs.map(log => log.prayer_date));
+    const dates = Array.from(dateSet).sort((a, b) => a.localeCompare(b)); // Ascending order
+
+    if (dates.length === 0) return 0;
+
+    let maxStreak = 0;
+    let currentStreak = 0;
+    let prevDate: Date | null = null;
+
+    for (const dateStr of dates) {
+      const currentDate = new Date(dateStr);
+      
+      // Calculate status for this day
+      const dayLogs = logs.filter(log => log.prayer_date === dateStr);
+      const dayTotal = dayLogs.reduce((sum, log) =>
+        sum + this.calculateTotalAyahs(log.recitations), 0
+      );
+      const status = this.getStatusFromAyahCount(dayTotal);
+
+      if (status === 'Negligent') {
+        currentStreak = 0;
+        prevDate = null;
+        continue;
+      }
+
+      if (prevDate) {
+        const diffTime = Math.abs(currentDate.getTime() - prevDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          currentStreak++;
+        } else {
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+
+      if (currentStreak > maxStreak) {
+        maxStreak = currentStreak;
+      }
+
+      prevDate = currentDate;
+    }
+
+    return maxStreak;
+  }
+
   async getYearlyData(): Promise<{ [key: string]: { verses: number; status: string } }> {
     await this.ensureInitialized();
 

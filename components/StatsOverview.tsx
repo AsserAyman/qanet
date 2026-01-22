@@ -3,12 +3,13 @@ import { format, subDays } from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../contexts/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface StatsOverviewProps {
   streak: number;
   totalNights: number;
+  totalVerses: number;
   data: { [key: string]: number };
   stats: { status: string; count: number }[];
 }
@@ -16,6 +17,7 @@ interface StatsOverviewProps {
 export function StatsOverview({
   streak,
   totalNights,
+  totalVerses,
   data,
   stats,
 }: StatsOverviewProps) {
@@ -50,6 +52,16 @@ export function StatsOverview({
     <View style={styles.container}>
       <Text style={styles.title}>{t('trackerOverview')}</Text>
 
+      <View style={[styles.metricsRow, { marginTop: -8 }]}>
+        <View style={[styles.metricCard, { flex: 1 }]}>
+          <View style={styles.metricHeader}>
+            <Feather name="book-open" size={24} color="#eab308" />
+          </View>
+          <Text style={styles.metricTitle}>{t('totalVerses')}</Text>
+          <Text style={styles.metricValue}>{totalVerses.toLocaleString()}</Text>
+        </View>
+      </View>
+      
       <View style={styles.metricsRow}>
         <View style={styles.metricCard}>
           <View style={styles.metricHeader}>
@@ -71,6 +83,8 @@ export function StatsOverview({
           <Text style={styles.metricValue}>{totalNights}</Text>
         </View>
       </View>
+
+
 
       <View style={styles.largeMetricCard}>
         <View style={styles.largeMetricHeader}>

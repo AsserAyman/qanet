@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -13,28 +13,62 @@ import {
 } from 'react-native';
 import { useI18n } from '../../contexts/I18nContext';
 import {
+  calculateTotalAyahs,
   useLastNightStats,
   useOfflineStats,
   usePrayerLogs,
-  calculateTotalAyahs,
 } from '../../hooks/useOfflineData';
 import { LocalPrayerLog } from '../../utils/database/schema';
-import { getVerseStatus, formatLogSummary } from '../../utils/quranData';
+import { formatLogSummary, getVerseStatus } from '../../utils/quranData';
 
 export default function NightPrayerScreen() {
   const { t, isRTL } = useI18n();
   const { logs, deleteLog } = usePrayerLogs();
-  const { streak, yearlyData, refresh: refreshStats } = useOfflineStats();
+  const { streak, longestStreak, yearlyData, refresh: refreshStats } = useOfflineStats();
   const { totalVerses: lastNightTotal, gradientColors } = useLastNightStats();
 
   // Calculate stats from yearlyData
   const computedStats = React.useMemo(() => {
-    const values = Object.values(yearlyData).map((d) => d.verses);
-    const totalAyahs = values.reduce((sum, v) => sum + v, 0);
-    const bestNight = values.length > 0 ? Math.max(...values) : 0;
-    const averageAyahs =
-      values.length > 0 ? Math.round(totalAyahs / values.length) : 0;
-    return { totalAyahs, bestNight, averageAyahs };
+    const entries = Object.values(yearlyData);
+    const totalAyahs = entries.reduce((sum, d) => sum + d.verses, 0);
+    const bestNight = entries.length > 0 ? Math.max(...entries.map(d => d.verses)) : 0;
+    
+    if (entries.length > 0) {
+      // Count frequency of each status
+      const statusCounts: Record<string, number> = {};
+      entries.forEach(d => {
+        statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
+      });
+
+      // Find the dominant status (mode)
+      let dominantStatusName = entries[0].status;
+      let maxCount = 0;
+      
+      for (const status in statusCounts) {
+        if (statusCounts[status] > maxCount) {
+          maxCount = statusCounts[status];
+          dominantStatusName = status;
+        }
+      }
+
+      // Map dominant status name back to its status object (for color and localization)
+      const representativeVerses = 
+        dominantStatusName === 'Mokantar' ? 1000 :
+        dominantStatusName === 'Qanet' ? 100 :
+        dominantStatusName === 'Not Negligent' ? 10 : 0;
+
+      const averageStatus = getVerseStatus(representativeVerses);
+      const averageAyahs = Math.round(totalAyahs / entries.length);
+      
+      return { totalAyahs, bestNight, averageAyahs, averageStatus };
+    }
+    
+    return { 
+      totalAyahs: 0, 
+      bestNight: 0, 
+      averageAyahs: 0, 
+      averageStatus: getVerseStatus(0) 
+    };
   }, [yearlyData]);
 
   const styles = createStyles(isRTL);
@@ -97,9 +131,9 @@ export default function NightPrayerScreen() {
             <View style={styles.dashboardItem}>
               <View style={styles.streakContainer}>
                 <Text style={styles.streakNumber}>{streak}</Text>
-                <Text style={styles.streakEmoji}>🔥</Text>
+                <MaterialIcons name="local-fire-department" size={32} color="#ef4444" />
               </View>
-              <Text style={styles.dashboardLabel}>{t('currentStreak')}</Text>
+              <Text style={styles.dashboardLabel}>{t('currentStreak').toUpperCase()}</Text>
             </View>
 
             <View style={styles.dashboardDivider} />
@@ -108,12 +142,12 @@ export default function NightPrayerScreen() {
               {lastNightTotal > 0 ? (
                 <>
                   <Text style={styles.lastEntryNumber}>{lastNightTotal}</Text>
-                  <Text style={styles.dashboardLabel}>{t('lastNight')}</Text>
+                  <Text style={styles.dashboardLabel}>{t('lastNight').toUpperCase()}</Text>
                 </>
               ) : (
                 <>
                   <Text style={styles.lastEntryNumber}>—</Text>
-                  <Text style={styles.dashboardLabel}>{t('lastNight')}</Text>
+                  <Text style={styles.dashboardLabel}>{t('lastNight').toUpperCase()}</Text>
                 </>
               )}
             </View>
@@ -124,21 +158,53 @@ export default function NightPrayerScreen() {
         <View style={styles.quickStatsRow}>
           <View style={styles.quickStatCard}>
             <Text style={styles.quickStatNumber}>
-              {computedStats.totalAyahs.toLocaleString()}
+              {longestStreak}
             </Text>
-            <Text style={styles.quickStatLabel}>{t('totalVerses')}</Text>
+            <Text 
+              style={styles.quickStatLabel} 
+              numberOfLines={1} 
+              adjustsFontSizeToFit
+            >
+              {t('longestStreak')}
+            </Text>
           </View>
+          
           <View style={styles.quickStatCard}>
             <Text style={styles.quickStatNumber}>
               {computedStats.bestNight}
             </Text>
-            <Text style={styles.quickStatLabel}>{t('bestNight')}</Text>
-          </View>
-          <View style={styles.quickStatCard}>
-            <Text style={styles.quickStatNumber}>
-              {computedStats.averageAyahs}
+            <Text 
+              style={styles.quickStatLabel} 
+              numberOfLines={1} 
+              adjustsFontSizeToFit
+            >
+              {t('bestNight')}
             </Text>
-            <Text style={styles.quickStatLabel}>{t('average')}</Text>
+          </View>
+          
+          <View style={styles.quickStatCard}>
+            <Text 
+              style={[
+                styles.quickStatNumber, 
+                { 
+                  color: computedStats.averageStatus.color,
+                  fontSize: 18,
+                  marginTop: 2,
+                  marginBottom: 8
+                }
+              ]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {t(computedStats.averageStatus.status.toLowerCase().replace(' ', ''))}
+            </Text>
+            <Text 
+              style={styles.quickStatLabel} 
+              numberOfLines={1} 
+              adjustsFontSizeToFit
+            >
+              {t('averageStatus')}
+            </Text>
           </View>
         </View>
 
@@ -372,9 +438,11 @@ const createStyles = (isRTL: boolean) =>
       color: '#ffffff',
     },
     dashboardLabel: {
-      fontSize: 14,
+      fontSize: 12,
+      fontWeight: '600',
       color: 'rgba(255,255,255,0.5)',
-      marginTop: 4,
+      marginTop: 8,
+      letterSpacing: 1,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     // Quick Stats
@@ -385,24 +453,28 @@ const createStyles = (isRTL: boolean) =>
     },
     quickStatCard: {
       flex: 1,
-      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-      borderRadius: 16,
-      padding: 16,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: 20,
+      padding: 12,
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.08)',
+      borderColor: 'rgba(255,255,255,0.1)',
+      justifyContent: 'center',
+      minHeight: 110,
     },
     quickStatNumber: {
-      fontSize: 20,
+      fontSize: 24,
       fontWeight: 'bold',
       color: '#ffffff',
       marginBottom: 4,
+      textAlign: 'center',
     },
     quickStatLabel: {
-      fontSize: 11,
+      fontSize: 10,
       color: 'rgba(255,255,255,0.5)',
       textTransform: 'uppercase',
       letterSpacing: 0.5,
+      textAlign: 'center',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     // Recent History Section
