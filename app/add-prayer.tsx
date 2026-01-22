@@ -14,6 +14,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -204,7 +205,10 @@ export default function AddPrayerScreen() {
   };
 
   const onDateChange = (_event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+    // On Android, close the picker immediately. On iOS, keep it open.
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -354,17 +358,6 @@ export default function AddPrayerScreen() {
               color="rgba(255,255,255,0.5)"
             />
           </TouchableOpacity>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              onChange={onDateChange}
-              style={styles.datePicker}
-              textColor="#ffffff"
-              themeVariant="dark"
-            />
-          )}
         </View>
 
         {/* Reading Range Inputs */}
@@ -568,6 +561,38 @@ export default function AddPrayerScreen() {
         title={t('ayah')}
         showSearch={false}
       />
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.datePickerModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDatePicker(false)}
+        >
+          <View style={styles.datePickerModalContent}>
+            <View style={styles.datePickerHeader}>
+              <Text style={styles.datePickerTitle}>{t('prayerDate')}</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onDateChange}
+              textColor="#ffffff"
+              themeVariant="dark"
+              style={styles.datePickerInModal}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -849,5 +874,37 @@ const createStyles = (isRTL: boolean) =>
       color: '#ffffff',
       fontWeight: '500',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    datePickerModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    datePickerModalContent: {
+      backgroundColor: '#2a2a2a',
+      borderRadius: 24,
+      padding: 24,
+      width: '100%',
+      maxWidth: 400,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    datePickerHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    datePickerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#ffffff',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    datePickerInModal: {
+      width: '100%',
+      height: Platform.OS === 'ios' ? 200 : undefined,
     },
   });
