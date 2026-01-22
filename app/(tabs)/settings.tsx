@@ -1,14 +1,15 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Alert
 } from 'react-native';
 import { Language, useI18n } from '../../contexts/I18nContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -18,6 +19,7 @@ import {
   useOfflineData,
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
+import { onboardingManager } from '../../utils/onboarding';
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
@@ -28,9 +30,47 @@ export default function SettingsScreen() {
   const { gradientColors } = useLastNightStats(themedColorsEnabled);
   const { notificationsEnabled, toggleNotifications, permissionStatus } =
     useNotifications();
+  const [headerPressCount, setHeaderPressCount] = useState(0);
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
+  };
+
+  const handleHeaderPress = () => {
+    const newCount = headerPressCount + 1;
+    setHeaderPressCount(newCount);
+
+    // Reset onboarding after 5 taps (hidden dev feature)
+    if (newCount === 5) {
+      Alert.alert(
+        'Reset Onboarding',
+        'Do you want to reset the onboarding flow? This is for testing purposes.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setHeaderPressCount(0),
+          },
+          {
+            text: 'Reset',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await onboardingManager.resetOnboarding();
+                Alert.alert('Success', 'Onboarding reset. Please restart the app.');
+                setHeaderPressCount(0);
+              } catch (error) {
+                Alert.alert('Error', 'Failed to reset onboarding');
+                setHeaderPressCount(0);
+              }
+            },
+          },
+        ]
+      );
+    }
+
+    // Reset counter after 2 seconds
+    setTimeout(() => setHeaderPressCount(0), 2000);
   };
 
 
@@ -46,12 +86,16 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.header}
+          onPress={handleHeaderPress}
+          activeOpacity={0.9}
+        >
           <Text style={styles.headerTitle}>{t('settings')}</Text>
           <Text style={styles.headerSubtitle}>
             {t('customizeYourAppExperience')}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         {/* Appearance Settings */}
         <View style={styles.card}>

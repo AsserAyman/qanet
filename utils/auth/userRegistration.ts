@@ -160,3 +160,34 @@ export async function hasEmailLinked(): Promise<boolean> {
   const userRecord = await getCustomUserRecord();
   return userRecord?.email !== null;
 }
+
+/**
+ * Save user's reading per night preference
+ * Called during onboarding or when user updates preference
+ *
+ * @param readingPerNight Reading volume: <10, 10-100, 100-1000, 1000+
+ */
+export async function saveReadingPreference(
+  readingPerNight: '<10' | '10-100' | '100-1000' | '1000+'
+): Promise<void> {
+  const customUserId = await getCachedCustomUserId();
+  if (!customUserId) {
+    throw new Error('No custom user ID found. Cannot save reading preference.');
+  }
+
+  // Update custom users table
+  const { error } = await supabase
+    .from('users')
+    .update({
+      reading_per_night: readingPerNight,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', customUserId);
+
+  if (error) {
+    console.error('Failed to save reading preference:', error);
+    throw new Error(`Failed to save reading preference: ${error.message}`);
+  }
+
+  console.log('✅ Reading preference saved:', readingPerNight);
+}
