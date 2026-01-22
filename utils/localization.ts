@@ -220,6 +220,19 @@ export const translations = {
     enableNotificationsDesc: 'Get daily reminders to log your night prayer',
     enableLater: 'Enable Later',
     finish: 'Finish',
+
+    // Feedback
+    sendFeedback: 'Send Feedback',
+    sendFeedbackDesc: 'Share your thoughts and suggestions',
+    feedbackPlaceholder: 'Tell us what you think about the app...',
+    feedbackSubmit: 'Submit Feedback',
+    feedbackSubmitting: 'Submitting...',
+    feedbackSubmitted: 'Thank you! Your feedback has been submitted.',
+    feedbackRequiresInternet: 'Internet connection required to send feedback',
+    feedbackSubmitError: 'Failed to submit feedback. Please try again.',
+    feedbackTooLong: 'Feedback is too long (maximum 5000 characters)',
+    authRequired: 'Please sign in to submit feedback',
+    charactersRemaining: '{{count}} / 5000 characters',
   },
   ar: {
     // Navigation
@@ -440,5 +453,18 @@ export const translations = {
     enableNotificationsDesc: 'احصل على تذكيرات يومية لتسجيل صلاة الليل',
     enableLater: 'تفعيل لاحقاً',
     finish: 'إنهاء',
+
+    // Feedback
+    sendFeedback: 'إرسال ملاحظات',
+    sendFeedbackDesc: 'شاركنا أفكارك واقتراحاتك',
+    feedbackPlaceholder: 'أخبرنا برأيك في التطبيق...',
+    feedbackSubmit: 'إرسال الملاحظات',
+    feedbackSubmitting: 'جاري الإرسال...',
+    feedbackSubmitted: 'شكراً لك! تم إرسال ملاحظاتك.',
+    feedbackRequiresInternet: 'الاتصال بالإنترنت مطلوب لإرسال الملاحظات',
+    feedbackSubmitError: 'فشل إرسال الملاحظات. يرجى المحاولة مرة أخرى.',
+    feedbackTooLong: 'الملاحظات طويلة جداً (الحد الأقصى 5000 حرف)',
+    authRequired: 'يرجى تسجيل الدخول لإرسال الملاحظات',
+    charactersRemaining: '{{count}} / 5000 حرف',
   },
 };

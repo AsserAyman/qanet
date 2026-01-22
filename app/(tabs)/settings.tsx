@@ -20,6 +20,7 @@ import {
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
 import { onboardingManager } from '../../utils/onboarding';
+import { FeedbackModal } from '../../components/FeedbackModal';
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
@@ -31,6 +32,7 @@ export default function SettingsScreen() {
   const { notificationsEnabled, toggleNotifications, permissionStatus } =
     useNotifications();
   const [headerPressCount, setHeaderPressCount] = useState(0);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
@@ -234,6 +236,33 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Send Feedback */}
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={() => setFeedbackModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.notificationTitleContainer}>
+              <Feather
+                name="message-square"
+                size={24}
+                color="#ffffff"
+                style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                  {t('sendFeedback')}
+                </Text>
+                <Text style={styles.notificationSubtitle}>
+                  {t('sendFeedbackDesc')}
+                </Text>
+              </View>
+            </View>
+            <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.5)" />
+          </TouchableOpacity>
+        </View>
+
         {/* Prayer Status Information */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('prayerStatusLevels')}</Text>
@@ -324,6 +353,15 @@ export default function SettingsScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      <FeedbackModal
+        visible={feedbackModalVisible}
+        onClose={() => setFeedbackModalVisible(false)}
+        onSuccess={() => {
+          setFeedbackModalVisible(false);
+          Alert.alert(t('success'), t('feedbackSubmitted'));
+        }}
+      />
     </View>
   );
 }
@@ -557,5 +595,10 @@ const createStyles = (isRTL: boolean) =>
       lineHeight: 18,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    feedbackButton: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
   });
