@@ -131,7 +131,7 @@ export default function NightPrayerScreen() {
             <View style={styles.dashboardItem}>
               <View style={styles.streakContainer}>
                 <Text style={styles.streakNumber}>{streak}</Text>
-                <MaterialIcons name="local-fire-department" size={32} color="#ef4444" />
+                <MaterialIcons name="local-fire-department" size={32} color="#ffffff" />
               </View>
               <Text style={styles.dashboardLabel}>{t('currentStreak').toUpperCase()}</Text>
             </View>
