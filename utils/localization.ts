@@ -8,7 +8,7 @@ export const translations = {
 
     // Home Screen
     nightPrayerCalculator: 'Night Prayer Calculator',
-    calculateYourNightPrayerVerses: 'Calculate your night prayer verses',
+    calculateYourNightPrayerVerses: 'Your daily night prayer companion',
     targetVerses: 'Target Verses',
     customRange: 'Custom Range',
     startingSurah: 'Starting Surah',
@@ -200,7 +200,7 @@ export const translations = {
 
     // Home Screen
     nightPrayerCalculator: 'حاسبة صلاة الليل',
-    calculateYourNightPrayerVerses: 'احسب آيات صلاة الليل',
+    calculateYourNightPrayerVerses: 'رفيقك اليومي في قيام الليل',
     targetVerses: 'الآيات المستهدفة',
     customRange: 'نطاق مخصص',
     startingSurah: 'السورة الأولى',

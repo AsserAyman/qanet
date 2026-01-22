@@ -3,13 +3,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { Language, useI18n } from '../../contexts/I18nContext';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -18,7 +17,6 @@ import {
   useOfflineData,
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
-import { supabase } from '../../utils/supabase';
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
@@ -85,7 +83,6 @@ export default function SettingsScreen() {
               ]}
               onPress={() => handleLanguageChange('en')}
             >
-              <Text style={styles.languageFlag}>🇺🇸</Text>
               <Text
                 style={[
                   styles.languageOptionText,
@@ -106,7 +103,6 @@ export default function SettingsScreen() {
               ]}
               onPress={() => handleLanguageChange('ar')}
             >
-              <Text style={styles.languageFlag}>🇸🇦</Text>
               <Text
                 style={[
                   styles.languageOptionText,
@@ -133,7 +129,9 @@ export default function SettingsScreen() {
                 style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
               />
               <View style={{ flex: 1 }}>
-                <Text style={styles.sectionTitle}>{t('notifications')}</Text>
+                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                  {t('notifications')}
+                </Text>
                 <Text style={styles.notificationSubtitle}>
                   {t('dailyReminderDesc')}
                 </Text>
@@ -454,7 +452,7 @@ const createStyles = (isRTL: boolean) =>
     },
     notificationTitleContainer: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       flex: 1,
       marginRight: isRTL ? 0 : 16,
       marginLeft: isRTL ? 16 : 0,
