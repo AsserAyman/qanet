@@ -11,6 +11,7 @@ import {
   View
 } from 'react-native';
 import { Language, useI18n } from '../../contexts/I18nContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import {
   useLastNightStats,
@@ -20,10 +21,11 @@ import {
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
+  const { themedColorsEnabled, toggleThemedColors } = useTheme();
   const router = useRouter();
   const { isInitialized } = useOfflineData();
   const { logs, loading: logsLoading } = usePrayerLogs();
-  const { gradientColors } = useLastNightStats();
+  const { gradientColors } = useLastNightStats(themedColorsEnabled);
   const { notificationsEnabled, toggleNotifications, permissionStatus } =
     useNotifications();
 
@@ -34,27 +36,6 @@ export default function SettingsScreen() {
 
   // Force dark styles
   const styles = createStyles(isRTL);
-
-  if (!isInitialized || logsLoading) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: 'center', alignItems: 'center' },
-        ]}
-      >
-        <LinearGradient colors={gradientColors} style={styles.background} />
-        <Text
-          style={{
-            color: '#ffffff',
-            fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
-          }}
-        >
-          {t('loading')}
-        </Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -70,6 +51,35 @@ export default function SettingsScreen() {
           <Text style={styles.headerSubtitle}>
             {t('customizeYourAppExperience')}
           </Text>
+        </View>
+
+        {/* Appearance Settings */}
+        <View style={styles.card}>
+          <View style={styles.notificationHeader}>
+            <View style={styles.notificationTitleContainer}>
+              <Feather
+                name="droplet"
+                size={24}
+                color="#ffffff"
+                style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                  {t('themedColors')}
+                </Text>
+                <Text style={styles.notificationSubtitle}>
+                  {t('themedColorsDesc')}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={themedColorsEnabled}
+              onValueChange={toggleThemedColors}
+              trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#3b82f6' }}
+              thumbColor={themedColorsEnabled ? '#ffffff' : '#f4f3f4'}
+              ios_backgroundColor="rgba(255,255,255,0.1)"
+            />
+          </View>
         </View>
 
         {/* Language Settings */}

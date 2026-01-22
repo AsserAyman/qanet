@@ -12,6 +12,7 @@ import {
 import { PickerModal, PickerOption } from '../../components/PickerModal';
 import { SelectField } from '../../components/SelectField';
 import { useI18n } from '../../contexts/I18nContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useLastNightStats, usePrayerLogs } from '../../hooks/useOfflineData';
 import {
   calculateVerseRange,
@@ -39,8 +40,9 @@ export default function CalculatorScreen() {
   const [showEndAyahPicker, setShowEndAyahPicker] = useState(false);
 
   const { t, isRTL } = useI18n();
+  const { themedColorsEnabled } = useTheme();
   const { logs } = usePrayerLogs();
-  const { gradientColors } = useLastNightStats();
+  const { gradientColors } = useLastNightStats(themedColorsEnabled);
 
   const lastEntry = logs.length > 0 ? logs[0] : null;
 

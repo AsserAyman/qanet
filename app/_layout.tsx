@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
 import { supabase } from '../utils/supabase';
@@ -11,6 +12,14 @@ import { NotificationProvider } from '../contexts/NotificationContext';
 import { useOfflineData } from '../hooks/useOfflineData';
 import { View, ActivityIndicator } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Keep the native splash screen visible while we load resources
+try {
+  SplashScreen.preventAutoHideAsync();
+} catch (e) {
+  // During hot refresh, splash screen might already be hidden
+  console.warn('SplashScreen.preventAutoHideAsync error:', e);
+}
 
 const queryClient = new QueryClient();
 
@@ -24,18 +33,16 @@ function AppContent() {
     'NotoNaskhArabic-Bold': NotoNaskhArabic_700Bold,
   });
 
-  // Show loading indicator while fonts are loading, auth state is being determined, or offline data is initializing
+  // Hide splash screen when everything is loaded
+  useEffect(() => {
+    if (fontsLoaded && !loading && !offlineLoading && isInitialized) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, loading, offlineLoading, isInitialized]);
+
+  // Keep native splash visible while loading (return null instead of ActivityIndicator)
   if (!fontsLoaded || loading || offlineLoading || !isInitialized) {
-    return (
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        backgroundColor: theme.background
-      }}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
+    return null;
   }
 
   return (

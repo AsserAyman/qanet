@@ -13,6 +13,7 @@ import { StatsOverview } from '../../components/StatsOverview';
 import { YearlyGraph } from '../../components/YearlyGraph';
 
 import { useI18n } from '../../contexts/I18nContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
   useLastNightStats,
@@ -24,6 +25,7 @@ import {
 export default function HistoryScreen() {
   const { session, loading: authLoading } = useAuth();
   const { t, isRTL } = useI18n();
+  const { themedColorsEnabled } = useTheme();
   const { isInitialized } = useOfflineData();
   const { logs, loading: logsLoading, refresh: refreshLogs } = usePrayerLogs();
   const {
@@ -53,7 +55,7 @@ export default function HistoryScreen() {
     }
   }, [refreshLogs, refreshStats]);
 
-  const { gradientColors } = useLastNightStats();
+  const { gradientColors } = useLastNightStats(themedColorsEnabled);
 
   const totalNights = React.useMemo(() => {
     return stats.reduce((acc, curr) => acc + curr.count, 0);

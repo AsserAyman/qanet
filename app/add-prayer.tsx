@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PickerModal, PickerOption } from '../components/PickerModal';
 import { SelectField } from '../components/SelectField';
 import { useI18n } from '../contexts/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { usePrayerLogs } from '../hooks/useOfflineData';
 import {
   calculateVersesBetween,
@@ -39,6 +40,7 @@ import {
 
 export default function AddPrayerScreen() {
   const { isRTL, t } = useI18n();
+  const { themedColorsEnabled } = useTheme();
   const insets = useSafeAreaInsets();
   const { createLog } = usePrayerLogs();
 
@@ -58,7 +60,7 @@ export default function AddPrayerScreen() {
     startSurah: 'Al-Baqara',
     startAyah: 1,
     endSurah: 'Al-Baqara',
-    endAyah: 1,
+    endAyah: 2,
     isWholeSurah: false,
   }]);
   const [activeRangeId, setActiveRangeId] = useState<string>('1');
@@ -128,8 +130,8 @@ export default function AddPrayerScreen() {
 
   const status = getVerseStatus(totalVerses);
   const gradientColors = useMemo(
-    () => getGradientColors(totalVerses),
-    [totalVerses]
+    () => getGradientColors(totalVerses, themedColorsEnabled),
+    [totalVerses, themedColorsEnabled]
   );
 
   const updateRange = (id: string, updates: Partial<typeof ranges[0]>) => {

@@ -200,14 +200,14 @@ export function calculateTotalAyahs(recitations: LocalRecitation[]): number {
   }, 0);
 }
 
-export function useLastNightStats() {
+export function useLastNightStats(themedColorsEnabled: boolean = true) {
   const { logs, loading } = usePrayerLogs();
 
   const stats = useMemo(() => {
     if (logs.length === 0) {
       return {
         totalVerses: 0,
-        gradientColors: getGradientColors(0),
+        gradientColors: getGradientColors(0, themedColorsEnabled),
         date: null,
       };
     }
@@ -221,10 +221,10 @@ export function useLastNightStats() {
 
     return {
       totalVerses: lastNightTotal,
-      gradientColors: getGradientColors(lastNightTotal),
+      gradientColors: getGradientColors(lastNightTotal, themedColorsEnabled),
       date: lastEntry.prayer_date,
     };
-  }, [logs]);
+  }, [logs, themedColorsEnabled]);
 
   return { ...stats, loading };
 }

@@ -5,6 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-base.jpeg",
+    "splash": {
+      "image": "./assets/images/splash-moon.jpeg",
+      "resizeMode": "cover",
+      "backgroundColor": "#1a1a1a"
+    },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

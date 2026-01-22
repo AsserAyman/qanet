@@ -58,6 +58,8 @@ export const translations = {
     // Settings Screen
     customizeYourAppExperience: 'Customize your app experience',
     appearance: 'Appearance',
+    themedColors: 'Themed Colors',
+    themedColorsDesc: 'Change background colors based on your verse count',
     language: 'Language',
     light: 'Light',
     dark: 'Dark',
@@ -250,6 +252,8 @@ export const translations = {
     // Settings Screen
     customizeYourAppExperience: 'خصص تجربة التطبيق الخاصة بك',
     appearance: 'المظهر',
+    themedColors: 'الألوان المتغيرة',
+    themedColorsDesc: 'تغيير ألوان الخلفية بناءً على عدد الآيات',
     language: 'اللغة',
     light: 'فاتح',
     dark: 'داكن',

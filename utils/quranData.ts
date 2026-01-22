@@ -222,15 +222,21 @@ export function getVerseStatus(verseCount: number): {
   }
 }
 
-export function getGradientColors(verseCount: number): readonly [string, string, string] {
-  if (verseCount >= 1000) {
-    return ['#492d52', '#210e2b', '#000000'];
-  } else if (verseCount >= 100) {
-    return ['#114a28', '#052b14', '#000000'];
-  } else if (verseCount >= 10) {
-    return ['#0e2a4a', '#05122b', '#000000'];
+export function getGradientColors(verseCount: number, themedColorsEnabled: boolean = true): readonly [string, string, string] {
+  // If themed colors are disabled, always return neutral dark gradient
+  if (!themedColorsEnabled) {
+    return ['#1a1a1a', '#0a0a0a', '#000000'];
   }
-  return ['#4a0e0e', '#2b0505', '#000000'];
+
+  // Otherwise, return themed colors based on verse count
+  if (verseCount >= 1000) {
+    return ['#492d52', '#210e2b', '#000000']; // Purple for Mokantar
+  } else if (verseCount >= 100) {
+    return ['#114a28', '#052b14', '#000000']; // Green for Qanet
+  } else if (verseCount >= 10) {
+    return ['#0e2a4a', '#05122b', '#000000']; // Blue for Not Negligent
+  }
+  return ['#4a0e0e', '#2b0505', '#000000']; // Red for Negligent (<10 verses)
 }
 
 // =====================================================

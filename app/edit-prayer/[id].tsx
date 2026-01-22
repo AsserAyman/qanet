@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useI18n } from '../../contexts/I18nContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { usePrayerLogs, useOfflineStats, calculateTotalAyahs } from '../../hooks/useOfflineData';
 import { PickerModal, PickerOption } from '../../components/PickerModal';
 import { SelectField } from '../../components/SelectField';
@@ -32,6 +33,7 @@ import {
 export default function EditPrayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isRTL, t } = useI18n();
+  const { themedColorsEnabled } = useTheme();
   const insets = useSafeAreaInsets();
   const { logs, updateLog, deleteLog } = usePrayerLogs();
   const { refresh: refreshStats } = useOfflineStats();
@@ -147,8 +149,8 @@ export default function EditPrayerScreen() {
 
   const status = getVerseStatus(totalVerses);
   const gradientColors = useMemo(
-    () => getGradientColors(totalVerses),
-    [totalVerses]
+    () => getGradientColors(totalVerses, themedColorsEnabled),
+    [totalVerses, themedColorsEnabled]
   );
 
   const updateRange = (id: string, updates: Partial<typeof ranges[0]>) => {

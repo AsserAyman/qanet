@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useI18n } from '../../contexts/I18nContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   calculateTotalAyahs,
   useLastNightStats,
@@ -23,9 +24,10 @@ import { formatLogSummary, getVerseStatus } from '../../utils/quranData';
 
 export default function NightPrayerScreen() {
   const { t, isRTL } = useI18n();
+  const { themedColorsEnabled } = useTheme();
   const { logs, deleteLog } = usePrayerLogs();
   const { streak, longestStreak, yearlyData, refresh: refreshStats } = useOfflineStats();
-  const { totalVerses: lastNightTotal, gradientColors } = useLastNightStats();
+  const { totalVerses: lastNightTotal, gradientColors } = useLastNightStats(themedColorsEnabled);
 
   // Calculate stats from yearlyData
   const computedStats = React.useMemo(() => {

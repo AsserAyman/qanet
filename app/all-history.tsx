@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LocalPrayerLog } from '../utils/database/schema';
 
 import { useI18n } from '../contexts/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   useLastNightStats,
   useOfflineData,
@@ -26,6 +27,7 @@ import { getVerseStatus, formatLogSummary } from '../utils/quranData';
 export default function AllHistoryScreen() {
   const insets = useSafeAreaInsets();
   const { t, isRTL } = useI18n();
+  const { themedColorsEnabled } = useTheme();
   const { isInitialized } = useOfflineData();
   const {
     logs,
@@ -57,7 +59,7 @@ export default function AllHistoryScreen() {
     router.push(`/edit-prayer/${log.id}`);
   }, []);
 
-  const { gradientColors } = useLastNightStats();
+  const { gradientColors } = useLastNightStats(themedColorsEnabled);
 
   if (!isInitialized || logsLoading) {
     return (
