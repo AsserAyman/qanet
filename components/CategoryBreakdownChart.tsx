@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../contexts/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CategoryBreakdownChartProps {
   stats: { status: string; count: number }[];
@@ -18,9 +18,9 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
   // Map our status categories to the display format
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'Mokantar':
+      case 'Muqantar':
         return {
-          title: t('mokantar'),
+          title: t('muqantar'),
           icon: 'star',
           color: '#a855f7',
           description: t('consistentAndComplete'),
@@ -70,7 +70,7 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
           const config = getStatusConfig(stat.status);
           const percentage =
             totalCount > 0 ? Math.round((stat.count / totalCount) * 100) : 0;
-          
+
           return (
             <View key={stat.status} style={styles.card}>
               <View style={styles.cardHeader}>
@@ -90,7 +90,9 @@ export function CategoryBreakdownChart({ stats }: CategoryBreakdownChartProps) {
               </View>
 
               <Text style={styles.percentage}>{percentage}%</Text>
-              <Text style={styles.count}>{stat.count} {t('days')}</Text>
+              <Text style={styles.count}>
+                {stat.count} {t('days')}
+              </Text>
               <Text style={styles.description}>{config.description}</Text>
 
               <View style={styles.barContainer}>

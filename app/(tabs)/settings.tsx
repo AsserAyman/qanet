@@ -3,24 +3,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   TouchableOpacity,
   View,
-  Alert
 } from 'react-native';
+import { FeedbackModal } from '../../components/FeedbackModal';
 import { Language, useI18n } from '../../contexts/I18nContext';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   useLastNightStats,
   useOfflineData,
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
 import { onboardingManager } from '../../utils/onboarding';
-import { FeedbackModal } from '../../components/FeedbackModal';
 
 export default function SettingsScreen() {
   const { t, language, setLanguage, isRTL } = useI18n();
@@ -59,7 +59,10 @@ export default function SettingsScreen() {
             onPress: async () => {
               try {
                 await onboardingManager.resetOnboarding();
-                Alert.alert('Success', 'Onboarding reset. Please restart the app.');
+                Alert.alert(
+                  'Success',
+                  'Onboarding reset. Please restart the app.',
+                );
                 setHeaderPressCount(0);
               } catch (error) {
                 Alert.alert('Error', 'Failed to reset onboarding');
@@ -67,14 +70,13 @@ export default function SettingsScreen() {
               }
             },
           },
-        ]
+        ],
       );
     }
 
     // Reset counter after 2 seconds
     setTimeout(() => setHeaderPressCount(0), 2000);
   };
-
 
   // Force dark styles
   const styles = createStyles(isRTL);
@@ -107,7 +109,10 @@ export default function SettingsScreen() {
                 name="droplet"
                 size={24}
                 color="#ffffff"
-                style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+                style={{
+                  marginRight: isRTL ? 0 : 12,
+                  marginLeft: isRTL ? 12 : 0,
+                }}
               />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
@@ -182,7 +187,10 @@ export default function SettingsScreen() {
                 name="bell"
                 size={24}
                 color="#ffffff"
-                style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+                style={{
+                  marginRight: isRTL ? 0 : 12,
+                  marginLeft: isRTL ? 12 : 0,
+                }}
               />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
@@ -208,7 +216,10 @@ export default function SettingsScreen() {
                 name="clock"
                 size={16}
                 color="rgba(255,255,255,0.6)"
-                style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+                style={{
+                  marginRight: isRTL ? 0 : 8,
+                  marginLeft: isRTL ? 8 : 0,
+                }}
               />
               <Text style={styles.notificationInfoText}>
                 {t('reminderTime')}
@@ -222,7 +233,10 @@ export default function SettingsScreen() {
                 name="warning"
                 size={20}
                 color="#ef4444"
-                style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+                style={{
+                  marginRight: isRTL ? 0 : 8,
+                  marginLeft: isRTL ? 8 : 0,
+                }}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.permissionWarningTitle}>
@@ -248,7 +262,10 @@ export default function SettingsScreen() {
                 name="message-square"
                 size={24}
                 color="#ffffff"
-                style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+                style={{
+                  marginRight: isRTL ? 0 : 12,
+                  marginLeft: isRTL ? 12 : 0,
+                }}
               />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
@@ -259,7 +276,11 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
-            <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.5)" />
+            <Feather
+              name="chevron-right"
+              size={20}
+              color="rgba(255,255,255,0.5)"
+            />
           </TouchableOpacity>
         </View>
 
@@ -337,10 +358,10 @@ export default function SettingsScreen() {
               <MaterialIcons name="military-tech" size={24} color="#a855f7" />
             </View>
             <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>{t('mokantar')}</Text>
-              <Text style={styles.statusSubtitle}>{t('mokantarDesc')}</Text>
+              <Text style={styles.statusTitle}>{t('muqantar')}</Text>
+              <Text style={styles.statusSubtitle}>{t('muqantarDesc')}</Text>
               <Text style={styles.statusDescription}>
-                {t('mokantarExplanation')}
+                {t('muqantarExplanation')}
               </Text>
             </View>
           </View>

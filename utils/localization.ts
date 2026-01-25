@@ -83,13 +83,13 @@ export const translations = {
     negligent: 'Negligent',
     notnegligent: 'Not Negligent',
     qanet: 'Qanet',
-    mokantar: 'Mokantar',
+    muqantar: 'Muqantar',
 
     // Status descriptions
     negligentDesc: 'Less than 10 verses',
     notnegligentDesc: '10-99 verses',
     qanetDesc: '100-999 verses',
-    mokantarDesc: '1000+ verses',
+    muqantarDesc: '1000+ verses',
 
     // Status explanations
     negligentExplanation:
@@ -98,7 +98,7 @@ export const translations = {
       'Reading 10 or more verses keeps you from being recorded among the negligent.',
     qanetExplanation:
       'Reading 100 verses records you among those who are obedient to Allah.',
-    mokantarExplanation: 'Reading 1000 verses earns you huge rewards.',
+    muqantarExplanation: 'Reading 1000 verses earns you huge rewards.',
 
     // Hadith
     hadith: 'Hadith',
@@ -213,7 +213,8 @@ export const translations = {
     trackYourJourney: 'Track Your Journey',
     trackYourJourneyDesc: 'Easily add, edit, and delete your prayer logs',
     understandYourProgress: 'Understand Your Progress',
-    understandYourProgressDesc: 'See how your reading reflects in the app theme',
+    understandYourProgressDesc:
+      'See how your reading reflects in the app theme',
     stayMotivated: 'Stay Motivated',
     stayMotivatedDesc: 'Enable reminders and track your trends over time',
     enableNotifications: 'Enable Notifications',
@@ -306,7 +307,8 @@ export const translations = {
     dailyReminderDesc: 'ذكرني بتسجيل صلاة الليل',
     reminderTime: 'التذكير في 9:00 مساءً',
     notificationTitle: 'حان وقت صلاة الليل',
-    notificationBody: 'لا تنسى تسجيل قراءتك في صلاة الليل. اجتهد في قراءة 10 آيات على الأقل!',
+    notificationBody:
+      'لا تنسى تسجيل قراءتك في صلاة الليل. اجتهد في قراءة 10 آيات على الأقل!',
     notificationPermissionDenied: 'تم رفض الإذن',
     notificationPermissionDeniedDesc:
       'يرجى تفعيل الإشعارات في إعدادات جهازك لتلقي التذكيرات اليومية.',
@@ -317,13 +319,13 @@ export const translations = {
     negligent: 'غافل',
     notnegligent: 'غير غافل',
     qanet: 'قانت',
-    mokantar: 'مقنطر',
+    muqantar: 'مقنطر',
 
     // Status descriptions
     negligentDesc: 'أقل من 10 آيات',
     notnegligentDesc: '10-99 آية',
     qanetDesc: '100-999 آية',
-    mokantarDesc: '1000+ آية',
+    muqantarDesc: '1000+ آية',
 
     // Status explanations
     negligentExplanation:
@@ -331,7 +333,7 @@ export const translations = {
     notnegligentExplanation:
       'قراءة 10 آيات أو أكثر تجعلك لا تُكتب من المهملين.',
     qanetExplanation: 'قراءة 100 آية تجعلك تُكتب من القانتين المطيعين لله.',
-    mokantarExplanation: 'قراءة 1000 آية تكسبك أجراً عظيماً.',
+    muqantarExplanation: 'قراءة 1000 آية تكسبك أجراً عظيماً.',
 
     // Hadith
     hadith: 'الحديث',

@@ -132,7 +132,7 @@ export interface VerseRange {
 export function calculateVerseRange(
   startSurah: string,
   startAyah: number,
-  targetVerses: number
+  targetVerses: number,
 ): VerseRange {
   let currentSurahIndex = quranData.findIndex((s) => s.name === startSurah);
   let remainingVerses = targetVerses;
@@ -164,7 +164,7 @@ export function calculateVersesBetween(
   startSurah: string,
   startAyah: number,
   endSurah: string,
-  endAyah: number
+  endAyah: number,
 ): number {
   let totalVerses = 0;
   let currentSurahIndex = quranData.findIndex((s) => s.name === startSurah);
@@ -197,7 +197,7 @@ export function getVerseStatus(verseCount: number): {
 } {
   if (verseCount >= 1000) {
     return {
-      status: 'Mokantar',
+      status: 'Muqantar',
       color: '#a855f7',
       descriptionKey: 'hugeRewardsAwaitYou',
     };
@@ -222,7 +222,10 @@ export function getVerseStatus(verseCount: number): {
   }
 }
 
-export function getGradientColors(verseCount: number, themedColorsEnabled: boolean = true): readonly [string, string, string] {
+export function getGradientColors(
+  verseCount: number,
+  themedColorsEnabled: boolean = true,
+): readonly [string, string, string] {
   // If themed colors are disabled, always return neutral dark gradient
   if (!themedColorsEnabled) {
     return ['#1a1a1a', '#0a0a0a', '#000000'];
@@ -230,7 +233,7 @@ export function getGradientColors(verseCount: number, themedColorsEnabled: boole
 
   // Otherwise, return themed colors based on verse count
   if (verseCount >= 1000) {
-    return ['#492d52', '#210e2b', '#000000']; // Purple for Mokantar
+    return ['#492d52', '#210e2b', '#000000']; // Purple for Muqantar
   } else if (verseCount >= 100) {
     return ['#114a28', '#052b14', '#000000']; // Green for Qanet
   } else if (verseCount >= 10) {
@@ -261,14 +264,19 @@ export const TOTAL_QURAN_AYAHS = totalCount;
  * @param ayahNumber - Ayah number within the surah (1-based)
  * @returns Global ayah index (1-6236)
  */
-export function surahAyahToGlobalIndex(surahName: string, ayahNumber: number): number {
-  const surahIndex = quranData.findIndex(s => s.name === surahName);
+export function surahAyahToGlobalIndex(
+  surahName: string,
+  ayahNumber: number,
+): number {
+  const surahIndex = quranData.findIndex((s) => s.name === surahName);
   if (surahIndex === -1) {
     throw new Error(`Unknown surah: ${surahName}`);
   }
   const surah = quranData[surahIndex];
   if (ayahNumber < 1 || ayahNumber > surah.ayahs) {
-    throw new Error(`Invalid ayah number ${ayahNumber} for surah ${surahName} (has ${surah.ayahs} ayahs)`);
+    throw new Error(
+      `Invalid ayah number ${ayahNumber} for surah ${surahName} (has ${surah.ayahs} ayahs)`,
+    );
   }
   return cumulativeAyahCounts[surahIndex] + ayahNumber;
 }
@@ -285,7 +293,9 @@ export function globalIndexToSurahAyah(globalIndex: number): {
   surahIndex: number;
 } {
   if (globalIndex < 1 || globalIndex > TOTAL_QURAN_AYAHS) {
-    throw new Error(`Invalid global index: ${globalIndex}. Must be between 1 and ${TOTAL_QURAN_AYAHS}`);
+    throw new Error(
+      `Invalid global index: ${globalIndex}. Must be between 1 and ${TOTAL_QURAN_AYAHS}`,
+    );
   }
 
   // Binary search for the surah
@@ -315,12 +325,15 @@ export function globalIndexToSurahAyah(globalIndex: number): {
 /**
  * Calculate total ayahs between two global indices (inclusive)
  */
-export function calculateAyahsBetweenIndices(startGlobal: number, endGlobal: number): number {
+export function calculateAyahsBetweenIndices(
+  startGlobal: number,
+  endGlobal: number,
+): number {
   if (endGlobal >= startGlobal) {
     return endGlobal - startGlobal + 1;
   } else {
     // Wrap around case (e.g. from end of Quran to beginning)
-    return (TOTAL_QURAN_AYAHS - startGlobal + 1) + endGlobal;
+    return TOTAL_QURAN_AYAHS - startGlobal + 1 + endGlobal;
   }
 }
 
@@ -334,7 +347,7 @@ export function calculateAyahsBetweenIndices(startGlobal: number, endGlobal: num
 export function formatRecitationRange(
   startGlobal: number,
   endGlobal: number,
-  useArabic: boolean = false
+  useArabic: boolean = false,
 ): string {
   const start = globalIndexToSurahAyah(startGlobal);
   const end = globalIndexToSurahAyah(endGlobal);
@@ -352,12 +365,16 @@ export function formatRecitationRange(
 export function formatLogSummary(
   recitations: { start_ayah: number; end_ayah: number }[],
   useArabic: boolean = false,
-  moreText: string = 'more' // Localized "more" string
+  moreText: string = 'more', // Localized "more" string
 ): string {
   if (!recitations || recitations.length === 0) return '';
 
   const firstRec = recitations[0];
-  const mainRange = formatRecitationRange(firstRec.start_ayah, firstRec.end_ayah, useArabic);
+  const mainRange = formatRecitationRange(
+    firstRec.start_ayah,
+    firstRec.end_ayah,
+    useArabic,
+  );
 
   if (recitations.length > 1) {
     const remainingCount = recitations.length - 1;

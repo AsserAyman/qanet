@@ -26,26 +26,33 @@ export default function NightPrayerScreen() {
   const { t, isRTL } = useI18n();
   const { themedColorsEnabled } = useTheme();
   const { logs, deleteLog } = usePrayerLogs();
-  const { streak, longestStreak, yearlyData, refresh: refreshStats } = useOfflineStats();
-  const { totalVerses: lastNightTotal, gradientColors } = useLastNightStats(themedColorsEnabled);
+  const {
+    streak,
+    longestStreak,
+    yearlyData,
+    refresh: refreshStats,
+  } = useOfflineStats();
+  const { totalVerses: lastNightTotal, gradientColors } =
+    useLastNightStats(themedColorsEnabled);
 
   // Calculate stats from yearlyData
   const computedStats = React.useMemo(() => {
     const entries = Object.values(yearlyData);
     const totalAyahs = entries.reduce((sum, d) => sum + d.verses, 0);
-    const bestNight = entries.length > 0 ? Math.max(...entries.map(d => d.verses)) : 0;
-    
+    const bestNight =
+      entries.length > 0 ? Math.max(...entries.map((d) => d.verses)) : 0;
+
     if (entries.length > 0) {
       // Count frequency of each status
       const statusCounts: Record<string, number> = {};
-      entries.forEach(d => {
+      entries.forEach((d) => {
         statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
       });
 
       // Find the dominant status (mode)
       let dominantStatusName = entries[0].status;
       let maxCount = 0;
-      
+
       for (const status in statusCounts) {
         if (statusCounts[status] > maxCount) {
           maxCount = statusCounts[status];
@@ -54,22 +61,26 @@ export default function NightPrayerScreen() {
       }
 
       // Map dominant status name back to its status object (for color and localization)
-      const representativeVerses = 
-        dominantStatusName === 'Mokantar' ? 1000 :
-        dominantStatusName === 'Qanet' ? 100 :
-        dominantStatusName === 'Not Negligent' ? 10 : 0;
+      const representativeVerses =
+        dominantStatusName === 'Muqantar'
+          ? 1000
+          : dominantStatusName === 'Qanet'
+            ? 100
+            : dominantStatusName === 'Not Negligent'
+              ? 10
+              : 0;
 
       const averageStatus = getVerseStatus(representativeVerses);
       const averageAyahs = Math.round(totalAyahs / entries.length);
-      
+
       return { totalAyahs, bestNight, averageAyahs, averageStatus };
     }
-    
-    return { 
-      totalAyahs: 0, 
-      bestNight: 0, 
-      averageAyahs: 0, 
-      averageStatus: getVerseStatus(0) 
+
+    return {
+      totalAyahs: 0,
+      bestNight: 0,
+      averageAyahs: 0,
+      averageStatus: getVerseStatus(0),
     };
   }, [yearlyData]);
 
@@ -97,7 +108,7 @@ export default function NightPrayerScreen() {
         },
       ]);
     },
-    [deleteLog, refreshStats, t]
+    [deleteLog, refreshStats, t],
   );
 
   const handleEdit = React.useCallback((log: LocalPrayerLog) => {
@@ -133,9 +144,15 @@ export default function NightPrayerScreen() {
             <View style={styles.dashboardItem}>
               <View style={styles.streakContainer}>
                 <Text style={styles.streakNumber}>{streak}</Text>
-                <MaterialIcons name="local-fire-department" size={32} color="#ffffff" />
+                <MaterialIcons
+                  name="local-fire-department"
+                  size={32}
+                  color="#ffffff"
+                />
               </View>
-              <Text style={styles.dashboardLabel}>{t('currentStreak').toUpperCase()}</Text>
+              <Text style={styles.dashboardLabel}>
+                {t('currentStreak').toUpperCase()}
+              </Text>
             </View>
 
             <View style={styles.dashboardDivider} />
@@ -144,12 +161,16 @@ export default function NightPrayerScreen() {
               {lastNightTotal > 0 ? (
                 <>
                   <Text style={styles.lastEntryNumber}>{lastNightTotal}</Text>
-                  <Text style={styles.dashboardLabel}>{t('lastNight').toUpperCase()}</Text>
+                  <Text style={styles.dashboardLabel}>
+                    {t('lastNight').toUpperCase()}
+                  </Text>
                 </>
               ) : (
                 <>
                   <Text style={styles.lastEntryNumber}>—</Text>
-                  <Text style={styles.dashboardLabel}>{t('lastNight').toUpperCase()}</Text>
+                  <Text style={styles.dashboardLabel}>
+                    {t('lastNight').toUpperCase()}
+                  </Text>
                 </>
               )}
             </View>
@@ -159,50 +180,52 @@ export default function NightPrayerScreen() {
         {/* Quick Stats */}
         <View style={styles.quickStatsRow}>
           <View style={styles.quickStatCard}>
-            <Text style={styles.quickStatNumber}>
-              {longestStreak}
-            </Text>
-            <Text 
-              style={styles.quickStatLabel} 
-              numberOfLines={1} 
+            <Text style={styles.quickStatNumber}>{longestStreak}</Text>
+            <Text
+              style={styles.quickStatLabel}
+              numberOfLines={1}
               adjustsFontSizeToFit
             >
               {t('longestStreak')}
             </Text>
           </View>
-          
+
           <View style={styles.quickStatCard}>
             <Text style={styles.quickStatNumber}>
               {computedStats.bestNight}
             </Text>
-            <Text 
-              style={styles.quickStatLabel} 
-              numberOfLines={1} 
+            <Text
+              style={styles.quickStatLabel}
+              numberOfLines={1}
               adjustsFontSizeToFit
             >
               {t('bestNight')}
             </Text>
           </View>
-          
+
           <View style={styles.quickStatCard}>
-            <Text 
+            <Text
               style={[
-                styles.quickStatNumber, 
-                { 
+                styles.quickStatNumber,
+                {
                   color: computedStats.averageStatus.color,
                   fontSize: 18,
                   marginTop: 2,
-                  marginBottom: 8
-                }
+                  marginBottom: 8,
+                },
               ]}
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {t(computedStats.averageStatus.status.toLowerCase().replace(' ', ''))}
+              {t(
+                computedStats.averageStatus.status
+                  .toLowerCase()
+                  .replace(' ', ''),
+              )}
             </Text>
-            <Text 
-              style={styles.quickStatLabel} 
-              numberOfLines={1} 
+            <Text
+              style={styles.quickStatLabel}
+              numberOfLines={1}
               adjustsFontSizeToFit
             >
               {t('averageStatus')}
@@ -229,8 +252,13 @@ export default function NightPrayerScreen() {
 
               // Calculate total verses for this date (from all logs)
               const dailyTotal = logs
-                .filter((l) => new Date(l.prayer_date).toDateString() === dateStr)
-                .reduce((sum, l) => sum + calculateTotalAyahs(l.recitations), 0);
+                .filter(
+                  (l) => new Date(l.prayer_date).toDateString() === dateStr,
+                )
+                .reduce(
+                  (sum, l) => sum + calculateTotalAyahs(l.recitations),
+                  0,
+                );
 
               const dailyStatus = getVerseStatus(dailyTotal);
               const logTotalAyahs = calculateTotalAyahs(log.recitations);
@@ -241,7 +269,7 @@ export default function NightPrayerScreen() {
                   weekday: 'long',
                   month: 'short',
                   day: 'numeric',
-                }
+                },
               );
 
               return (
@@ -308,7 +336,7 @@ export default function NightPrayerScreen() {
                               styles.syncIndicator,
                               {
                                 backgroundColor: getSyncStatusColor(
-                                  log.sync_status
+                                  log.sync_status,
                                 ),
                               },
                             ]}

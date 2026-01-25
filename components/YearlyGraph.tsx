@@ -1,4 +1,12 @@
-import { differenceInDays, format, startOfYear, addMonths, differenceInWeeks, endOfYear, isSameYear } from 'date-fns';
+import {
+  addMonths,
+  differenceInDays,
+  differenceInWeeks,
+  endOfYear,
+  format,
+  isSameYear,
+  startOfYear,
+} from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
 import React from 'react';
 import {
@@ -9,8 +17,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../contexts/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface YearlyGraphProps {
   data: { [key: string]: { verses: number; status: string } }; // date string -> { verses, status }
@@ -39,7 +47,7 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Mokantar':
+      case 'Muqantar':
         return '#a855f7';
       case 'Qanet':
         return '#22c55e';
@@ -51,7 +59,7 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
   };
 
   const getColor = (status: string, verses: number) => {
-    if (verses === 0) return theme.border + '30'; 
+    if (verses === 0) return theme.border + '30';
     return getStatusColor(status);
   };
 
@@ -82,14 +90,14 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
               },
             ]}
             activeOpacity={0.7}
-          />
+          />,
         );
       }
 
       grid.push(
         <View key={week} style={styles.week}>
           {weekColumn}
-        </View>
+        </View>,
       );
     }
 
@@ -101,10 +109,10 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
     const date = addMonths(yearStart, i);
     const weekIndex = differenceInWeeks(date, yearStart);
     const position = weekIndex * (cellSize + 4);
-    
+
     monthLabels.push({
       label: format(date, 'MMM', { locale }),
-      left: position
+      left: position,
     });
   }
 
@@ -115,27 +123,30 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
       <View style={styles.header}>
         <Text style={styles.title}>{t('prayerActivity')}</Text>
         <Text style={styles.subtitle}>
-          {t('versesThisYear').replace('verses', Object.values(data).reduce(
-            (sum, dayData) => sum + dayData.verses,
-            0
-          ).toString())}
+          {t('versesThisYear').replace(
+            'verses',
+            Object.values(data)
+              .reduce((sum, dayData) => sum + dayData.verses, 0)
+              .toString(),
+          )}
         </Text>
       </View>
 
       <View style={styles.graphContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={isRTL ? { flexDirection: 'row-reverse' } : {}}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={isRTL ? { flexDirection: 'row-reverse' } : {}}
+        >
           <View>
             <View style={styles.monthLabels}>
               {monthLabels.map((month, index) => {
-                const positionStyle = isRTL 
+                const positionStyle = isRTL
                   ? { right: month.left }
                   : { left: month.left };
 
                 return (
-                  <Text
-                    key={index}
-                    style={[styles.monthLabel, positionStyle]}
-                  >
+                  <Text key={index} style={[styles.monthLabel, positionStyle]}>
                     {month.label}
                   </Text>
                 );
@@ -149,10 +160,30 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
       <View style={styles.legend}>
         <Text style={styles.legendText}>{t('less')}</Text>
         <View style={styles.legendItems}>
-          <View style={[styles.legendItem, { backgroundColor: theme.border + '30' }]} />
-          <View style={[styles.legendItem, { backgroundColor: getStatusColor('Not Negligent') }]} />
-          <View style={[styles.legendItem, { backgroundColor: getStatusColor('Qanet') }]} />
-          <View style={[styles.legendItem, { backgroundColor: getStatusColor('Mokantar') }]} />
+          <View
+            style={[
+              styles.legendItem,
+              { backgroundColor: theme.border + '30' },
+            ]}
+          />
+          <View
+            style={[
+              styles.legendItem,
+              { backgroundColor: getStatusColor('Not Negligent') },
+            ]}
+          />
+          <View
+            style={[
+              styles.legendItem,
+              { backgroundColor: getStatusColor('Qanet') },
+            ]}
+          />
+          <View
+            style={[
+              styles.legendItem,
+              { backgroundColor: getStatusColor('Muqantar') },
+            ]}
+          />
         </View>
         <Text style={styles.legendText}>{t('more')}</Text>
       </View>

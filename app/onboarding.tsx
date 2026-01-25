@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Language, useI18n } from '../contexts/I18nContext';
@@ -39,9 +39,10 @@ export default function OnboardingScreen() {
 
   const totalPages = 4;
 
-  const gradientColors = useMemo(() => 
-    ['#020617', '#172554', '#1e1b4b'] as const, 
-  []);
+  const gradientColors = useMemo(
+    () => ['#020617', '#172554', '#1e1b4b'] as const,
+    [],
+  );
 
   const handleLanguageSelect = async (lang: Language) => {
     setSelectedLanguage(lang);
@@ -134,7 +135,9 @@ export default function OnboardingScreen() {
         <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
           {t('chooseYourLanguage')}
         </Text>
-        <Text style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}>
+        <Text
+          style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}
+        >
           {t('chooseLanguageDesc')}
         </Text>
 
@@ -147,15 +150,31 @@ export default function OnboardingScreen() {
             onPress={() => handleLanguageSelect('en')}
             activeOpacity={0.8}
           >
-            <View style={[styles.cardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.iconBox, { backgroundColor: '#3b82f620', marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }]}>
+            <View
+              style={[
+                styles.cardRow,
+                { flexDirection: isRTL ? 'row-reverse' : 'row' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconBox,
+                  {
+                    backgroundColor: '#3b82f620',
+                    marginRight: isRTL ? 0 : 16,
+                    marginLeft: isRTL ? 16 : 0,
+                  },
+                ]}
+              >
                 <Text style={{ fontSize: 24 }}>🇺🇸</Text>
               </View>
-              <Text style={[
-                styles.cardTitle, 
-                selectedLanguage === 'en' && styles.activeText,
-                { textAlign: isRTL ? 'right' : 'left' }
-              ]}>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  selectedLanguage === 'en' && styles.activeText,
+                  { textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
                 English
               </Text>
               {selectedLanguage === 'en' && (
@@ -174,15 +193,31 @@ export default function OnboardingScreen() {
             onPress={() => handleLanguageSelect('ar')}
             activeOpacity={0.8}
           >
-            <View style={[styles.cardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={[styles.iconBox, { backgroundColor: '#10b98120', marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }]}>
+            <View
+              style={[
+                styles.cardRow,
+                { flexDirection: isRTL ? 'row-reverse' : 'row' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconBox,
+                  {
+                    backgroundColor: '#10b98120',
+                    marginRight: isRTL ? 0 : 16,
+                    marginLeft: isRTL ? 16 : 0,
+                  },
+                ]}
+              >
                 <Text style={{ fontSize: 24 }}>🇸🇦</Text>
               </View>
-              <Text style={[
-                styles.cardTitle, 
-                selectedLanguage === 'ar' && styles.activeText,
-                { textAlign: isRTL ? 'right' : 'left' }
-              ]}>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  selectedLanguage === 'ar' && styles.activeText,
+                  { textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
                 العربية
               </Text>
               {selectedLanguage === 'ar' && (
@@ -203,37 +238,49 @@ export default function OnboardingScreen() {
         <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
           {t('tellUsAboutYourReading')}
         </Text>
-        <Text style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}>
+        <Text
+          style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}
+        >
           {t('readingVolumeDesc')}
         </Text>
 
         <View style={styles.cardContainer}>
-          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map((volume) => (
-            <TouchableOpacity
-              key={volume}
-              style={[
-                styles.selectionCard,
-                selectedReadingVolume === volume && styles.selectionCardActive,
-              ]}
-              onPress={() => handleReadingVolumeSelect(volume)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.cardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <Text style={[
-                  styles.cardTitle, 
-                  selectedReadingVolume === volume && styles.activeText,
-                  { textAlign: isRTL ? 'right' : 'left' }
-                ]}>
-                  {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
-                </Text>
-                {selectedReadingVolume === volume && (
-                   <View style={styles.checkIcon}>
-                     <Feather name="check" size={16} color="#fff" />
-                   </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map(
+            (volume) => (
+              <TouchableOpacity
+                key={volume}
+                style={[
+                  styles.selectionCard,
+                  selectedReadingVolume === volume &&
+                    styles.selectionCardActive,
+                ]}
+                onPress={() => handleReadingVolumeSelect(volume)}
+                activeOpacity={0.8}
+              >
+                <View
+                  style={[
+                    styles.cardRow,
+                    { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.cardTitle,
+                      selectedReadingVolume === volume && styles.activeText,
+                      { textAlign: isRTL ? 'right' : 'left' },
+                    ]}
+                  >
+                    {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
+                  </Text>
+                  {selectedReadingVolume === volume && (
+                    <View style={styles.checkIcon}>
+                      <Feather name="check" size={16} color="#fff" />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ),
+          )}
         </View>
       </View>
     </View>
@@ -247,7 +294,7 @@ export default function OnboardingScreen() {
         iconType: MaterialIcons,
         color: '#ef4444',
         title: t('negligent'),
-        desc: t('negligentDesc')
+        desc: t('negligentDesc'),
       },
       {
         id: 'notnegligent',
@@ -255,7 +302,7 @@ export default function OnboardingScreen() {
         iconType: Feather,
         color: '#3b82f6',
         title: t('notnegligent'),
-        desc: t('notnegligentDesc')
+        desc: t('notnegligentDesc'),
       },
       {
         id: 'qanet',
@@ -263,61 +310,90 @@ export default function OnboardingScreen() {
         iconType: MaterialIcons,
         color: '#22c55e',
         title: t('qanet'),
-        desc: t('qanetDesc')
+        desc: t('qanetDesc'),
       },
       {
-        id: 'mokantar',
+        id: 'muqantar',
         icon: 'military-tech',
         iconType: MaterialIcons,
         color: '#a855f7',
-        title: t('mokantar'),
-        desc: t('mokantarDesc')
-      }
+        title: t('muqantar'),
+        desc: t('muqantarDesc'),
+      },
     ];
-    
+
     return (
       <View style={[styles.page, { width: SCREEN_WIDTH }]}>
         <View style={styles.pageContent}>
-          <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center', marginBottom: 24 }]}>
+          <Text
+            style={[
+              styles.title,
+              { textAlign: isRTL ? 'right' : 'center', marginBottom: 24 },
+            ]}
+          >
             {t('trackYourJourney')}
           </Text>
-          
+
           <View style={styles.timelineContainer}>
             {features.map((feature, index) => {
               const Icon = feature.iconType;
               return (
-                <View 
-                  key={feature.id} 
+                <View
+                  key={feature.id}
                   style={[
-                    styles.timelineItem, 
-                    { flexDirection: isRTL ? 'row-reverse' : 'row' }
+                    styles.timelineItem,
+                    { flexDirection: isRTL ? 'row-reverse' : 'row' },
                   ]}
                 >
                   {/* Timeline Connector */}
                   {index !== features.length - 1 && (
-                    <View style={[styles.timelineLine, { 
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                      left: isRTL ? undefined : 24,
-                      right: isRTL ? 24 : undefined
-                    }]} />
+                    <View
+                      style={[
+                        styles.timelineLine,
+                        {
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                          left: isRTL ? undefined : 24,
+                          right: isRTL ? 24 : undefined,
+                        },
+                      ]}
+                    />
                   )}
-                  
-                  <View style={[
-                    styles.timelineIconBox, 
-                    { 
-                      backgroundColor: `${feature.color}20`,
-                      marginRight: isRTL ? 0 : 16,
-                      marginLeft: isRTL ? 16 : 0
-                    }
-                  ]}>
-                    <Icon name={feature.icon as any} size={20} color={feature.color} />
+
+                  <View
+                    style={[
+                      styles.timelineIconBox,
+                      {
+                        backgroundColor: `${feature.color}20`,
+                        marginRight: isRTL ? 0 : 16,
+                        marginLeft: isRTL ? 16 : 0,
+                      },
+                    ]}
+                  >
+                    <Icon
+                      name={feature.icon as any}
+                      size={20}
+                      color={feature.color}
+                    />
                   </View>
-                  
+
                   <View style={styles.timelineContent}>
-                    <Text style={[styles.timelineTitle, { textAlign: isRTL ? 'right' : 'left', color: feature.color }]}>
+                    <Text
+                      style={[
+                        styles.timelineTitle,
+                        {
+                          textAlign: isRTL ? 'right' : 'left',
+                          color: feature.color,
+                        },
+                      ]}
+                    >
                       {feature.title}
                     </Text>
-                    <Text style={[styles.timelineDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    <Text
+                      style={[
+                        styles.timelineDesc,
+                        { textAlign: isRTL ? 'right' : 'left' },
+                      ]}
+                    >
                       {feature.desc}
                     </Text>
                   </View>
@@ -332,7 +408,12 @@ export default function OnboardingScreen() {
 
   const renderNotificationsPage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+      <View
+        style={[
+          styles.pageContent,
+          { alignItems: 'center', justifyContent: 'center', flex: 1 },
+        ]}
+      >
         <View style={[styles.iconCircle, { marginBottom: 32 }]}>
           <Feather name="bell" size={64} color="#fff" />
         </View>
@@ -355,7 +436,9 @@ export default function OnboardingScreen() {
           {isCompleting ? (
             <ActivityIndicator color="#000" />
           ) : (
-            <Text style={styles.primaryButtonText}>{t('enableNotifications')}</Text>
+            <Text style={styles.primaryButtonText}>
+              {t('enableNotifications')}
+            </Text>
           )}
         </TouchableOpacity>
 
@@ -373,14 +456,14 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={gradientColors} style={styles.background} />
-      
+
       {renderHeader()}
 
       <ScrollView
         ref={scrollViewRef}
         horizontal
         pagingEnabled
-        scrollEnabled={false} 
+        scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -391,22 +474,27 @@ export default function OnboardingScreen() {
       </ScrollView>
 
       {/* Navigation Footer */}
-      <View style={[
-        styles.footer, 
-        { 
-          paddingBottom: insets.bottom + 20,
-          flexDirection: isRTL ? 'row-reverse' : 'row' 
-        }
-      ]}>
-        
+      <View
+        style={[
+          styles.footer,
+          {
+            paddingBottom: insets.bottom + 20,
+            flexDirection: isRTL ? 'row-reverse' : 'row',
+          },
+        ]}
+      >
         {/* Left Action (Back) */}
         <View style={styles.footerAction}>
           {currentPage > 0 && currentPage < totalPages - 1 && (
-            <TouchableOpacity 
-              onPress={goToPreviousPage} 
+            <TouchableOpacity
+              onPress={goToPreviousPage}
               style={styles.navButton}
             >
-              <Feather name={isRTL ? "arrow-right" : "arrow-left"} size={24} color="#fff" />
+              <Feather
+                name={isRTL ? 'arrow-right' : 'arrow-left'}
+                size={24}
+                color="#fff"
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -427,24 +515,27 @@ export default function OnboardingScreen() {
         {/* Right Action (Next) */}
         <View style={styles.footerAction}>
           {currentPage < totalPages - 1 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={goToNextPage}
               disabled={!canProceed()}
               style={[
                 styles.navButton,
                 !canProceed() && styles.navButtonDisabled,
-                { backgroundColor: canProceed() ? '#ffffff' : 'rgba(255,255,255,0.1)' }
+                {
+                  backgroundColor: canProceed()
+                    ? '#ffffff'
+                    : 'rgba(255,255,255,0.1)',
+                },
               ]}
             >
-              <Feather 
-                name={isRTL ? "arrow-left" : "arrow-right"} 
-                size={24} 
-                color={canProceed() ? "#000" : "rgba(255,255,255,0.3)"} 
+              <Feather
+                name={isRTL ? 'arrow-left' : 'arrow-right'}
+                size={24}
+                color={canProceed() ? '#000' : 'rgba(255,255,255,0.3)'}
               />
             </TouchableOpacity>
           )}
         </View>
-
       </View>
     </View>
   );

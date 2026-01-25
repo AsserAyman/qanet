@@ -29,7 +29,7 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Mokantar':
+      case 'Muqantar':
         return '#a855f7';
       case 'Qanet':
         return '#22c55e';
