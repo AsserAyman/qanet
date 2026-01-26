@@ -216,3 +216,39 @@ export async function saveOnboardingPreferences(
     readingPerNight,
   );
 }
+
+/**
+ * Update user language preference (lightweight sync)
+ * Fire-and-forget update when user changes language in settings
+ * Silent fail if offline or no user - language is stored in AsyncStorage as source of truth
+ *
+ * @param language User language: 'en' or 'ar'
+ */
+export async function updateUserLanguage(
+  language: 'en' | 'ar',
+): Promise<void> {
+  const customUserId = await getCachedCustomUserId();
+  if (!customUserId) {
+    // No user yet - silent fail (language is in AsyncStorage anyway)
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        language: language,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', customUserId);
+
+    if (error) {
+      console.warn('Failed to sync language preference:', error);
+    } else {
+      console.log('✅ Language preference synced:', language);
+    }
+  } catch (error) {
+    // Silent fail - language is stored locally, will sync eventually
+    console.warn('Failed to sync language preference:', error);
+  }
+}

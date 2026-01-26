@@ -20,6 +20,7 @@ import {
   useOfflineData,
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
+import { updateUserLanguage } from '../../utils/auth/userRegistration';
 import { onboardingManager } from '../../utils/onboarding';
 
 export default function SettingsScreen() {
@@ -36,6 +37,8 @@ export default function SettingsScreen() {
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
+    // Fire-and-forget sync to database (silent fail if offline)
+    updateUserLanguage(lang).catch(() => {});
   };
 
   const handleHeaderPress = () => {
