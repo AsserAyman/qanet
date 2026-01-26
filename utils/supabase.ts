@@ -22,9 +22,23 @@ export interface Feedback {
   user_id: string;
   feedback_text: string;
   created_at: string;
+  device_os?: string;
+  device_os_version?: string;
+  app_version?: string;
+  expo_update_id?: string;
 }
 
-export async function submitFeedback(feedbackText: string): Promise<Feedback> {
+export interface FeedbackDebugInfo {
+  device_os: 'ios' | 'android';
+  device_os_version: string;
+  app_version: string;
+  expo_update_id?: string;
+}
+
+export async function submitFeedback(
+  feedbackText: string,
+  debugInfo: FeedbackDebugInfo
+): Promise<Feedback> {
   // Validate input
   const trimmedText = feedbackText.trim();
   if (trimmedText.length === 0 || trimmedText.length > 5000) {
@@ -45,6 +59,10 @@ export async function submitFeedback(feedbackText: string): Promise<Feedback> {
       {
         feedback_text: trimmedText,
         user_id: customUserId,
+        device_os: debugInfo.device_os,
+        device_os_version: debugInfo.device_os_version,
+        app_version: debugInfo.app_version,
+        expo_update_id: debugInfo.expo_update_id,
       },
     ])
     .select()

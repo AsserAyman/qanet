@@ -1,15 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../contexts/I18nContext';
@@ -63,7 +65,15 @@ export function FeedbackModal({
     setIsSubmitting(true);
 
     try {
-      await submitFeedback(trimmedText);
+      // Capture debug information
+      const debugInfo = {
+        device_os: (Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : 'android') as 'ios' | 'android',
+        device_os_version: Platform.Version.toString(),
+        app_version: Constants.expoConfig?.version || '1.0.0',
+        expo_update_id: Updates.updateId || undefined,
+      };
+
+      await submitFeedback(trimmedText, debugInfo);
       setFeedbackText('');
       setError('');
       onSuccess();
@@ -160,9 +170,7 @@ export function FeedbackModal({
             {isSubmitting ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.submitButtonText}>
-                {t('feedbackSubmit')}
-              </Text>
+              <Text style={styles.submitButtonText}>{t('feedbackSubmit')}</Text>
             )}
           </TouchableOpacity>
         </View>

@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import { deviceIdentityManager } from './deviceIdentity';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 const CUSTOM_USER_ID_KEY = '@custom_user_id';
 
@@ -37,10 +38,14 @@ export async function registerOrGetCustomUser(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
   const authUserId = user?.id || null;
 
+  // Get device OS (ios or android)
+  const deviceOs = Platform.OS;
+
   // Call Supabase RPC to get or create custom user
   const { data, error } = await supabase.rpc('get_or_create_user_by_device_id', {
     p_device_id: deviceId,
-    p_auth_user_id: authUserId
+    p_auth_user_id: authUserId,
+    p_device_os: deviceOs
   });
 
   if (error) {
