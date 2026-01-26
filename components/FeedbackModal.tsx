@@ -16,7 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../contexts/I18nContext';
 import { networkManager } from '../utils/network/networkManager';
-import { submitFeedback } from '../utils/supabase';
+import { submitFeedback } from '../utils/feedback';
 
 interface FeedbackModalProps {
   visible: boolean;
