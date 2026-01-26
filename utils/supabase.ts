@@ -1,6 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getCachedCustomUserId } from './auth/userRegistration';
+import { createClient } from '@supabase/supabase-js';
+import {
+  getCachedCustomUserId,
+  registerOrGetCustomUser,
+} from './auth/userRegistration';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
@@ -29,9 +32,11 @@ export async function submitFeedback(feedbackText: string): Promise<Feedback> {
   }
 
   // Get custom user ID (matches pattern used by prayer logs)
-  const customUserId = await getCachedCustomUserId();
+  let customUserId = await getCachedCustomUserId();
   if (!customUserId) {
-    throw new Error('User not found. Please try again.');
+    // Cache might not be populated yet (e.g., before first sync completes)
+    // Try to register/get user from server
+    customUserId = await registerOrGetCustomUser();
   }
 
   const { data, error } = await supabase
