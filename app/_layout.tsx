@@ -1,20 +1,22 @@
-import { useEffect, useState } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { useFonts, NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
-import { supabase } from '../utils/supabase';
-import { useAuth } from '../hooks/useAuth';
-import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+import {
+  NotoNaskhArabic_400Regular,
+  NotoNaskhArabic_700Bold,
+  useFonts,
+} from '@expo-google-fonts/noto-naskh-arabic';
+import * as Sentry from '@sentry/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { vexo } from 'vexo-analytics';
 import { I18nProvider } from '../contexts/I18nContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
 import { useOfflineData } from '../hooks/useOfflineData';
-import { View, ActivityIndicator } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { onboardingManager } from '../utils/onboarding';
-import * as Sentry from '@sentry/react-native';
-import { vexo } from 'vexo-analytics';
 
 Sentry.init({
   dsn: 'https://c6310cd0708c17bdeadb13cc6366c018@o4510776666095616.ingest.de.sentry.io/4510776674222160',
@@ -54,7 +56,9 @@ function AppContent() {
   const { loading } = useAuth();
   const { theme, isDark } = useTheme();
   const { isInitialized, isLoading: offlineLoading } = useOfflineData();
-  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState<boolean | null>(null);
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState<
+    boolean | null
+  >(null);
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(false);
   const router = useRouter();
   const segments = useSegments();
@@ -90,7 +94,9 @@ function AppContent() {
 
     // If we just navigated to tabs, re-check status to be sure
     if (inTabs && !isOnboardingCompleted) {
-      console.log('🔄 Re-checking onboarding status after navigation to tabs...');
+      console.log(
+        '🔄 Re-checking onboarding status after navigation to tabs...',
+      );
       setIsCheckingOnboarding(true);
       onboardingManager.isOnboardingCompleted().then((completed) => {
         console.log('🔄 Updated onboarding status:', completed);
@@ -119,13 +125,31 @@ function AppContent() {
 
   // Hide splash screen when everything is loaded
   useEffect(() => {
-    if (fontsLoaded && !loading && !offlineLoading && isInitialized && isOnboardingCompleted !== null) {
+    if (
+      fontsLoaded &&
+      !loading &&
+      !offlineLoading &&
+      isInitialized &&
+      isOnboardingCompleted !== null
+    ) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, loading, offlineLoading, isInitialized, isOnboardingCompleted]);
+  }, [
+    fontsLoaded,
+    loading,
+    offlineLoading,
+    isInitialized,
+    isOnboardingCompleted,
+  ]);
 
   // Keep native splash visible while loading (return null instead of ActivityIndicator)
-  if (!fontsLoaded || loading || offlineLoading || !isInitialized || isOnboardingCompleted === null) {
+  if (
+    !fontsLoaded ||
+    loading ||
+    offlineLoading ||
+    !isInitialized ||
+    isOnboardingCompleted === null
+  ) {
     return null;
   }
 
@@ -156,7 +180,7 @@ function AppContent() {
           }}
         />
       </Stack>
-      <StatusBar style={isDark ? "light" : "dark"} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
     </>
   );
 }
