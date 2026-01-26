@@ -1,7 +1,7 @@
-import { supabase } from '../supabase';
-import { deviceIdentityManager } from './deviceIdentity';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { supabase } from '../supabase';
+import { deviceIdentityManager } from './deviceIdentity';
 
 const CUSTOM_USER_ID_KEY = '@custom_user_id';
 
@@ -35,18 +35,23 @@ export async function registerOrGetCustomUser(): Promise<string> {
   const deviceId = deviceIdentityManager.getDeviceId();
 
   // Get auth session (if available)
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const authUserId = user?.id || null;
 
   // Get device OS (ios or android)
   const deviceOs = Platform.OS;
 
   // Call Supabase RPC to get or create custom user
-  const { data, error } = await supabase.rpc('get_or_create_user_by_device_id', {
-    p_device_id: deviceId,
-    p_auth_user_id: authUserId,
-    p_device_os: deviceOs
-  });
+  const { data, error } = await supabase.rpc(
+    'get_or_create_user_by_device_id',
+    {
+      p_device_id: deviceId,
+      p_auth_user_id: authUserId,
+      p_device_os: deviceOs,
+    },
+  );
 
   if (error) {
     console.error('Failed to register custom user:', error);
@@ -97,7 +102,7 @@ export async function clearCustomUserId(): Promise<void> {
  */
 export async function linkEmailToCustomUser(
   email: string,
-  authUserId: string
+  authUserId: string,
 ): Promise<void> {
   const customUserId = await getCachedCustomUserId();
   if (!customUserId) {
@@ -111,7 +116,7 @@ export async function linkEmailToCustomUser(
       email,
       auth_user_id: authUserId,
       email_verified: false, // Will be set to true after email verification
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('id', customUserId);
 
@@ -167,32 +172,47 @@ export async function hasEmailLinked(): Promise<boolean> {
 }
 
 /**
- * Save user's reading per night preference
- * Called during onboarding or when user updates preference
+ * Save all onboarding preferences in a single database call
+ * Called during onboarding completion
  *
+ * @param isMale User gender: true for male, false for female
+ * @param language User language: 'en' or 'ar'
  * @param readingPerNight Reading volume: <10, 10-100, 100-1000, 1000+
  */
-export async function saveReadingPreference(
-  readingPerNight: '<10' | '10-100' | '100-1000' | '1000+'
+export async function saveOnboardingPreferences(
+  isMale: boolean,
+  language: 'en' | 'ar',
+  readingPerNight: '<10' | '10-100' | '100-1000' | '1000+',
 ): Promise<void> {
   const customUserId = await getCachedCustomUserId();
   if (!customUserId) {
-    throw new Error('No custom user ID found. Cannot save reading preference.');
+    throw new Error(
+      'No custom user ID found. Cannot save onboarding preferences.',
+    );
   }
 
-  // Update custom users table
+  // Update custom users table with all preferences at once
   const { error } = await supabase
     .from('users')
     .update({
+      is_male: isMale,
+      language: language,
       reading_per_night: readingPerNight,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('id', customUserId);
 
   if (error) {
-    console.error('Failed to save reading preference:', error);
-    throw new Error(`Failed to save reading preference: ${error.message}`);
+    console.error('Failed to save onboarding preferences:', error);
+    throw new Error(`Failed to save onboarding preferences: ${error.message}`);
   }
 
-  console.log('✅ Reading preference saved:', readingPerNight);
+  console.log(
+    '✅ Onboarding preferences saved - Gender:',
+    isMale ? 'Male' : 'Female',
+    'Language:',
+    language,
+    'Reading:',
+    readingPerNight,
+  );
 }

@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Language, useI18n } from '../contexts/I18nContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import { saveReadingPreference } from '../utils/auth/userRegistration';
+import { saveOnboardingPreferences } from '../utils/auth/userRegistration';
 import {
   OnboardingData,
   onboardingManager,
@@ -33,11 +33,12 @@ export default function OnboardingScreen() {
 
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const [selectedGender, setSelectedGender] = useState<boolean | null>(null);
   const [selectedReadingVolume, setSelectedReadingVolume] =
     useState<ReadingVolume | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const totalPages = 4;
+  const totalPages = 5;
 
   const gradientColors = useMemo(
     () => ['#020617', '#172554', '#1e1b4b'] as const,
@@ -48,6 +49,10 @@ export default function OnboardingScreen() {
     setSelectedLanguage(lang);
     await setLanguage(lang);
     await onboardingManager.saveTemporaryData({ language: lang });
+  };
+
+  const handleGenderSelect = (isMale: boolean) => {
+    setSelectedGender(isMale);
   };
 
   const handleReadingVolumeSelect = (volume: ReadingVolume) => {
@@ -77,19 +82,21 @@ export default function OnboardingScreen() {
   };
 
   const canProceed = () => {
-    if (currentPage === 0) return true;
-    if (currentPage === 1) return selectedReadingVolume !== null;
+    if (currentPage === 0) return true; // Language page
+    if (currentPage === 1) return selectedGender !== null; // Gender page
+    if (currentPage === 2) return selectedReadingVolume !== null; // Reading volume page
     return true;
   };
 
   const handleComplete = async (enableNotifications: boolean = false) => {
-    if (!selectedReadingVolume) return;
+    if (!selectedReadingVolume || selectedGender === null) return;
 
     setIsCompleting(true);
 
     try {
       const onboardingData: OnboardingData = {
         language: selectedLanguage,
+        isMale: selectedGender,
         readingPerNight: selectedReadingVolume,
         notificationsEnabled: enableNotifications,
         completedAt: new Date().toISOString(),
@@ -98,9 +105,13 @@ export default function OnboardingScreen() {
       await onboardingManager.completeOnboarding(onboardingData);
 
       try {
-        await saveReadingPreference(selectedReadingVolume);
+        await saveOnboardingPreferences(
+          selectedGender,
+          selectedLanguage,
+          selectedReadingVolume
+        );
       } catch (err) {
-        console.warn('⚠️  Failed to save reading preference:', err);
+        console.warn('⚠️  Failed to save onboarding preferences:', err);
       }
 
       if (enableNotifications) {
@@ -221,6 +232,109 @@ export default function OnboardingScreen() {
                 العربية
               </Text>
               {selectedLanguage === 'ar' && (
+                <View style={styles.checkIcon}>
+                  <Feather name="check" size={16} color="#fff" />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderGenderPage = () => (
+    <View style={[styles.page, { width: SCREEN_WIDTH }]}>
+      <View style={styles.pageContent}>
+        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
+          {t('selectYourGender')}
+        </Text>
+        <Text
+          style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}
+        >
+          {t('genderDesc')}
+        </Text>
+
+        <View style={styles.cardContainer}>
+          <TouchableOpacity
+            style={[
+              styles.selectionCard,
+              selectedGender === true && styles.selectionCardActive,
+            ]}
+            onPress={() => handleGenderSelect(true)}
+            activeOpacity={0.8}
+          >
+            <View
+              style={[
+                styles.cardRow,
+                { flexDirection: isRTL ? 'row-reverse' : 'row' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconBox,
+                  {
+                    backgroundColor: '#3b82f620',
+                    marginRight: isRTL ? 0 : 16,
+                    marginLeft: isRTL ? 16 : 0,
+                  },
+                ]}
+              >
+                <Text style={{ fontSize: 24 }}>👨</Text>
+              </View>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  selectedGender === true && styles.activeText,
+                  { textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t('male')}
+              </Text>
+              {selectedGender === true && (
+                <View style={styles.checkIcon}>
+                  <Feather name="check" size={16} color="#fff" />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.selectionCard,
+              selectedGender === false && styles.selectionCardActive,
+            ]}
+            onPress={() => handleGenderSelect(false)}
+            activeOpacity={0.8}
+          >
+            <View
+              style={[
+                styles.cardRow,
+                { flexDirection: isRTL ? 'row-reverse' : 'row' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconBox,
+                  {
+                    backgroundColor: '#ec489620',
+                    marginRight: isRTL ? 0 : 16,
+                    marginLeft: isRTL ? 16 : 0,
+                  },
+                ]}
+              >
+                <Text style={{ fontSize: 24 }}>👩</Text>
+              </View>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  selectedGender === false && styles.activeText,
+                  { textAlign: isRTL ? 'right' : 'left' },
+                ]}
+              >
+                {t('female')}
+              </Text>
+              {selectedGender === false && (
                 <View style={styles.checkIcon}>
                   <Feather name="check" size={16} color="#fff" />
                 </View>
@@ -468,6 +582,7 @@ export default function OnboardingScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {renderLanguagePage()}
+        {renderGenderPage()}
         {renderVolumePage()}
         {renderFeaturesPage()}
         {renderNotificationsPage()}

@@ -12,6 +12,7 @@ export type ReadingVolume = '<10' | '10-100' | '100-1000' | '1000+';
 
 export interface OnboardingData {
   language: Language;
+  isMale: boolean;
   readingPerNight: ReadingVolume;
   notificationsEnabled?: boolean;
   completedAt: string;
