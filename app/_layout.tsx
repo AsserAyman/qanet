@@ -13,6 +13,26 @@ import { useOfflineData } from '../hooks/useOfflineData';
 import { View, ActivityIndicator } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { onboardingManager } from '../utils/onboarding';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://c6310cd0708c17bdeadb13cc6366c018@o4510776666095616.ingest.de.sentry.io/4510776674222160',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 // Keep the native splash screen visible while we load resources
 try {
@@ -135,7 +155,7 @@ function AppContent() {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   useFrameworkReady();
 
   return (
@@ -149,4 +169,4 @@ export default function RootLayout() {
       </I18nProvider>
     </QueryClientProvider>
   );
-}
+});
