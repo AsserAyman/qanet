@@ -14,6 +14,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { onboardingManager } from '../utils/onboarding';
 import * as Sentry from '@sentry/react-native';
+import { vexo } from 'vexo-analytics';
 
 Sentry.init({
   dsn: 'https://c6310cd0708c17bdeadb13cc6366c018@o4510776666095616.ingest.de.sentry.io/4510776674222160',
@@ -33,6 +34,11 @@ Sentry.init({
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
 });
+
+// Initialize Vexo analytics
+if (!__DEV__) {
+  vexo(process.env.EXPO_PUBLIC_VEXO_API_KEY!);
+}
 
 // Keep the native splash screen visible while we load resources
 try {
