@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { DeleteDataModal } from '../../components/DeleteDataModal';
 import { FeedbackModal } from '../../components/FeedbackModal';
 import { Language, useI18n } from '../../contexts/I18nContext';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -34,6 +35,7 @@ export default function SettingsScreen() {
     useNotifications();
   const [headerPressCount, setHeaderPressCount] = useState(0);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [deleteDataModalVisible, setDeleteDataModalVisible] = useState(false);
 
   const handleLanguageChange = async (lang: Language) => {
     await setLanguage(lang);
@@ -370,6 +372,40 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Delete All Data */}
+        <View style={styles.deleteDataCard}>
+          <TouchableOpacity
+            style={styles.deleteDataButton}
+            onPress={() => setDeleteDataModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.notificationTitleContainer}>
+              <Feather
+                name="trash-2"
+                size={24}
+                color="#ef4444"
+                style={{
+                  marginRight: isRTL ? 0 : 12,
+                  marginLeft: isRTL ? 12 : 0,
+                }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.deleteDataTitle, { marginBottom: 4 }]}>
+                  {t('deleteAllData')}
+                </Text>
+                <Text style={styles.deleteDataSubtitle}>
+                  {t('deleteDataDesc')}
+                </Text>
+              </View>
+            </View>
+            <Feather
+              name="chevron-right"
+              size={20}
+              color="rgba(239, 68, 68, 0.5)"
+            />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.hadithCard}>
           <Text style={styles.hadithTitle}>{t('hadith')}</Text>
           <Text style={styles.hadithText}>{t('hadithText')}</Text>
@@ -385,6 +421,11 @@ export default function SettingsScreen() {
           setFeedbackModalVisible(false);
           Alert.alert(t('success'), t('feedbackSubmitted'));
         }}
+      />
+
+      <DeleteDataModal
+        visible={deleteDataModalVisible}
+        onClose={() => setDeleteDataModalVisible(false)}
       />
     </View>
   );
@@ -624,5 +665,31 @@ const createStyles = (isRTL: boolean) =>
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+    },
+    deleteDataCard: {
+      backgroundColor: 'rgba(239, 68, 68, 0.08)',
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    deleteDataButton: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    deleteDataTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#ef4444',
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    deleteDataSubtitle: {
+      fontSize: 14,
+      color: 'rgba(239, 68, 68, 0.8)',
+      textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

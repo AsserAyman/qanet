@@ -20,10 +20,12 @@ class DeviceIdentityManager {
   private deviceId: string | null = null;
   private deviceSecret: string | null = null;
   private isInitialized = false;
+  private initPromise: Promise<string> | null = null;
 
   /**
    * Initialize the device identity system
    * Creates a new device ID if one doesn't exist, or loads existing ID
+   * Thread-safe: concurrent calls will wait for the same initialization
    *
    * @returns The device ID (UUID)
    */
@@ -32,6 +34,23 @@ class DeviceIdentityManager {
       return this.deviceId;
     }
 
+    // Prevent race condition: if initialization is in progress, wait for it
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    // Start initialization and store the promise
+    this.initPromise = this.doInitialize();
+
+    try {
+      return await this.initPromise;
+    } finally {
+      // Clear the promise after completion (success or failure)
+      this.initPromise = null;
+    }
+  }
+
+  private async doInitialize(): Promise<string> {
     try {
       // Try to get existing device ID
       let deviceId = await SecureStore.getItemAsync(DEVICE_ID_KEY);

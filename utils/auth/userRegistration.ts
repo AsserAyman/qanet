@@ -31,7 +31,8 @@ export async function registerOrGetCustomUser(): Promise<string> {
     return cachedUserId;
   }
 
-  // Get device_id from SecureStore
+  // Ensure device identity is initialized, then get device_id
+  await deviceIdentityManager.initialize();
   const deviceId = deviceIdentityManager.getDeviceId();
 
   // Get auth session (if available)

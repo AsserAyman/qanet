@@ -238,6 +238,19 @@ export const translations = {
     feedbackTooLong: 'Feedback is too long (maximum 5000 characters)',
     authRequired: 'Please sign in to submit feedback',
     charactersRemaining: '{{count}} / 5000 characters',
+
+    // Delete Data
+    deleteAllData: 'Delete All My Data',
+    deleteDataDesc: 'Permanently remove your data',
+    deleteDataTitle: 'Delete all my data?',
+    deleteDataWarning:
+      'This will permanently delete your prayer history and settings from this device and our servers.',
+    deleteDataIrreversible: 'This action cannot be undone.',
+    deleteDataConfirmCheckbox: 'I understand this action is irreversible',
+    deleteDataButton: 'Delete Everything',
+    deleteDataRequiresInternet: 'You must be online to delete your data',
+    deleteDataError: 'Failed to delete data. Please try again.',
+    restartingApp: 'Restarting...',
   },
   ar: {
     // Navigation
@@ -476,5 +489,18 @@ export const translations = {
     feedbackTooLong: 'الملاحظات طويلة جداً (الحد الأقصى 5000 حرف)',
     authRequired: 'يرجى تسجيل الدخول لإرسال الملاحظات',
     charactersRemaining: '{{count}} / 5000 حرف',
+
+    // Delete Data
+    deleteAllData: 'حذف جميع بياناتي',
+    deleteDataDesc: 'إزالة بياناتك نهائياً',
+    deleteDataTitle: 'حذف جميع بياناتي؟',
+    deleteDataWarning:
+      'سيؤدي هذا إلى حذف سجل صلاتك وإعداداتك نهائياً من هذا الجهاز ومن خوادمنا.',
+    deleteDataIrreversible: 'لا يمكن التراجع عن هذا الإجراء.',
+    deleteDataConfirmCheckbox: 'أفهم أن هذا الإجراء لا رجعة فيه',
+    deleteDataButton: 'حذف كل شيء',
+    deleteDataRequiresInternet: 'يجب أن تكون متصلاً بالإنترنت لحذف بياناتك',
+    deleteDataError: 'فشل حذف البيانات. يرجى المحاولة مرة أخرى.',
+    restartingApp: 'جاري إعادة التشغيل...',
   },
 };
