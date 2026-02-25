@@ -130,113 +130,95 @@ export default function OnboardingScreen() {
   };
 
   const renderHeader = () => (
-    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-      <Image
-        source={require('../assets/images/moon-image.png')}
-        style={styles.headerImage}
-        contentFit="contain"
-      />
-      <Text style={styles.headerTitle}>Qanet</Text>
+    <View style={[styles.header, { paddingTop: currentPage === 0 ? insets.top + 40 : insets.top + 16 }]}>
+      {currentPage === 0 ? (
+        <>
+          <Image
+            source={require('../assets/images/moon-image.png')}
+            style={styles.headerImageLarge}
+            contentFit="contain"
+          />
+          <Text style={styles.headerTitle}>Qanet</Text>
+        </>
+      ) : (
+        <>
+          <Image
+            source={require('../assets/images/moon-image.png')}
+            style={styles.headerImage}
+            contentFit="contain"
+          />
+          <Text style={styles.headerTitleSmall}>Qanet</Text>
+        </>
+      )}
     </View>
   );
 
   const renderLanguagePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={styles.pageContent}>
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
+      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        <Image
+          source={require('../assets/images/moon-image.png')}
+          style={styles.headerImageLarge}
+          contentFit="contain"
+        />
+        <Text style={styles.headerTitle}>Qanet</Text>
+
+        <View style={{ height: 32 }} />
+
+        <Text style={[styles.title, { textAlign: 'center' }]}>
           {t('chooseYourLanguage')}
         </Text>
         <Text
-          style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}
+          style={[styles.subtitle, { textAlign: 'center' }]}
         >
           {t('chooseLanguageDesc')}
         </Text>
 
-        <View style={styles.cardContainer}>
+        <View style={[styles.cardContainer, { width: '100%' }]}>
           <TouchableOpacity
             style={[
-              styles.selectionCard,
-              selectedLanguage === 'en' && styles.selectionCardActive,
+              styles.langCard,
+              selectedLanguage === 'en' && styles.langCardActive,
             ]}
             onPress={() => handleLanguageSelect('en')}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <View
+            <Text
               style={[
-                styles.cardRow,
-                { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                styles.langText,
+                selectedLanguage === 'en' && styles.langTextActive,
               ]}
             >
-              <View
-                style={[
-                  styles.iconBox,
-                  {
-                    backgroundColor: '#3b82f620',
-                    marginRight: isRTL ? 0 : 16,
-                    marginLeft: isRTL ? 16 : 0,
-                  },
-                ]}
-              >
-                <Text style={{ fontSize: 24 }}>🇺🇸</Text>
+              English
+            </Text>
+            {selectedLanguage === 'en' && (
+              <View style={styles.checkIcon}>
+                <Feather name="check" size={14} color="#fff" />
               </View>
-              <Text
-                style={[
-                  styles.cardTitle,
-                  selectedLanguage === 'en' && styles.activeText,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                English
-              </Text>
-              {selectedLanguage === 'en' && (
-                <View style={styles.checkIcon}>
-                  <Feather name="check" size={16} color="#fff" />
-                </View>
-              )}
-            </View>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
-              styles.selectionCard,
-              selectedLanguage === 'ar' && styles.selectionCardActive,
+              styles.langCard,
+              selectedLanguage === 'ar' && styles.langCardActive,
             ]}
             onPress={() => handleLanguageSelect('ar')}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <View
+            <Text
               style={[
-                styles.cardRow,
-                { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                styles.langText,
+                selectedLanguage === 'ar' && styles.langTextActive,
               ]}
             >
-              <View
-                style={[
-                  styles.iconBox,
-                  {
-                    backgroundColor: '#10b98120',
-                    marginRight: isRTL ? 0 : 16,
-                    marginLeft: isRTL ? 16 : 0,
-                  },
-                ]}
-              >
-                <Text style={{ fontSize: 24 }}>🇸🇦</Text>
+              العربية
+            </Text>
+            {selectedLanguage === 'ar' && (
+              <View style={styles.checkIcon}>
+                <Feather name="check" size={14} color="#fff" />
               </View>
-              <Text
-                style={[
-                  styles.cardTitle,
-                  selectedLanguage === 'ar' && styles.activeText,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                العربية
-              </Text>
-              {selectedLanguage === 'ar' && (
-                <View style={styles.checkIcon}>
-                  <Feather name="check" size={16} color="#fff" />
-                </View>
-              )}
-            </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -571,7 +553,7 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <LinearGradient colors={gradientColors} style={styles.background} />
 
-      {renderHeader()}
+      {currentPage !== 0 && renderHeader()}
 
       <ScrollView
         ref={scrollViewRef}
@@ -666,15 +648,26 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+  headerImageLarge: {
+    width: 180,
+    height: 180,
+    marginBottom: 20,
   },
   headerImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 10,
+    width: 100,
+    height: 100,
+    marginBottom: 8,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+    letterSpacing: 1.5,
+  },
+  headerTitleSmall: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
     letterSpacing: 1,
@@ -735,6 +728,30 @@ const styles = StyleSheet.create({
   activeText: {
     color: '#ffffff',
     fontWeight: 'bold',
+  },
+  langCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  langCardActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  langText: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  langTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
   },
   checkIcon: {
     width: 24,
