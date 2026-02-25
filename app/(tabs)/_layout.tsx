@@ -110,6 +110,7 @@ export default function TabLayout() {
         tintColor={'white'}
         backgroundColor="#0f0f0f"
         disableTransparentOnScrollEdge={true}
+        disableIndicator={true}
       >
         {orderedTabs.map((tab) => (
           <NativeTabs.Trigger key={tab.name} name={tab.name}>
