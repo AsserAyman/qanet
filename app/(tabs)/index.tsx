@@ -20,6 +20,7 @@ import {
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
 import { LocalPrayerLog } from '../../utils/database/schema';
+import { useStoreReview } from '../../hooks/useStoreReview';
 import { formatLogSummary, getVerseStatus } from '../../utils/quranData';
 
 export default function NightPrayerScreen() {
@@ -34,6 +35,8 @@ export default function NightPrayerScreen() {
   } = useOfflineStats();
   const { totalVerses: lastNightTotal, gradientColors } =
     useLastNightStats(themedColorsEnabled);
+
+  useStoreReview(streak, lastNightTotal);
 
   // Calculate stats from yearlyData
   const computedStats = React.useMemo(() => {
