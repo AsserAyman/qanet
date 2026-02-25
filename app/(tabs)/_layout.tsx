@@ -10,7 +10,7 @@ import {
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../contexts/I18nContext';
-import { usePrayerLogs, calculateTotalAyahs } from '../../hooks/useOfflineData';
+import { calculateTotalAyahs, usePrayerLogs } from '../../hooks/useOfflineData';
 import { getVerseStatus } from '../../utils/quranData';
 
 type TabWithPlatformIcons = {
@@ -69,8 +69,6 @@ export default function TabLayout() {
     },
   ];
 
-  const orderedTabs = isRTL ? [...tabs].reverse() : tabs;
-
   const renderIcon = (tab: Tab) => {
     if (hasVectorIcon(tab)) {
       return (
@@ -112,7 +110,7 @@ export default function TabLayout() {
         disableTransparentOnScrollEdge={true}
         disableIndicator={true}
       >
-        {orderedTabs.map((tab) => (
+        {tabs.map((tab) => (
           <NativeTabs.Trigger key={tab.name} name={tab.name}>
             <Label>{tab.label}</Label>
             {renderIcon(tab)}

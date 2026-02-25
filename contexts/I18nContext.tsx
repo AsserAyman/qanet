@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
 import { I18n } from 'i18n-js';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { I18nManager } from 'react-native';
 
 import { translations } from '../utils/localization';
 
@@ -33,14 +32,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadLanguage();
   }, []);
-
-  useEffect(() => {
-    // Update RTL layout when language changes
-    if (I18nManager.isRTL !== isRTL) {
-      I18nManager.allowRTL(isRTL);
-      I18nManager.forceRTL(isRTL);
-    }
-  }, [isRTL]);
 
   const loadLanguage = async () => {
     try {
