@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import {
   Alert,
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,8 +20,8 @@ import {
   useOfflineStats,
   usePrayerLogs,
 } from '../../hooks/useOfflineData';
-import { LocalPrayerLog } from '../../utils/database/schema';
 import { useStoreReview } from '../../hooks/useStoreReview';
+import { LocalPrayerLog } from '../../utils/database/schema';
 import { formatLogSummary, getVerseStatus } from '../../utils/quranData';
 
 export default function NightPrayerScreen() {
@@ -35,6 +36,22 @@ export default function NightPrayerScreen() {
   } = useOfflineStats();
   const { totalVerses: lastNightTotal, gradientColors } =
     useLastNightStats(themedColorsEnabled);
+
+  // Animate gradient color transitions via cross-fade between two stacked gradients
+  const prevGradientColors = React.useRef(gradientColors);
+  const fadeAnim = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    if (prevGradientColors.current === gradientColors) return;
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1200,
+      useNativeDriver: true,
+    }).start(() => {
+      prevGradientColors.current = gradientColors;
+    });
+  }, [gradientColors, fadeAnim]);
 
   useStoreReview(streak, lastNightTotal);
 
@@ -120,7 +137,18 @@ export default function NightPrayerScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={gradientColors} style={styles.background} />
+      {/* Previous gradient stays visible underneath */}
+      <LinearGradient
+        colors={prevGradientColors.current}
+        style={styles.background}
+      />
+      {/* New gradient fades in on top */}
+      <Animated.View style={[styles.background, { opacity: fadeAnim }]}>
+        <LinearGradient
+          colors={gradientColors}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
 
       <ScrollView
         style={styles.scrollView}
