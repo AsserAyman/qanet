@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import {
   Dimensions,
   ScrollView,
@@ -132,7 +132,7 @@ export default function CalculatorScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={gradientColors} style={styles.background} />
+      <AnimatedGradientBackground colors={gradientColors} />
 
       <ScrollView
         style={styles.scrollView}
@@ -355,13 +355,6 @@ const createStyles = (isRTL: boolean) =>
     container: {
       flex: 1,
       backgroundColor: '#000',
-    },
-    background: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      top: 0,
-      height: '100%',
     },
     scrollView: {
       flex: 1,

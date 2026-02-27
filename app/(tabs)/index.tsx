@@ -1,17 +1,16 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
 import {
   Alert,
-  Animated,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import { useI18n } from '../../contexts/I18nContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
@@ -36,22 +35,6 @@ export default function NightPrayerScreen() {
   } = useOfflineStats();
   const { totalVerses: lastNightTotal, gradientColors } =
     useLastNightStats(themedColorsEnabled);
-
-  // Animate gradient color transitions via cross-fade between two stacked gradients
-  const prevGradientColors = React.useRef(gradientColors);
-  const fadeAnim = React.useRef(new Animated.Value(1)).current;
-
-  React.useEffect(() => {
-    if (prevGradientColors.current === gradientColors) return;
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1200,
-      useNativeDriver: true,
-    }).start(() => {
-      prevGradientColors.current = gradientColors;
-    });
-  }, [gradientColors, fadeAnim]);
 
   useStoreReview(streak, lastNightTotal);
 
@@ -137,18 +120,7 @@ export default function NightPrayerScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Previous gradient stays visible underneath */}
-      <LinearGradient
-        colors={prevGradientColors.current}
-        style={styles.background}
-      />
-      {/* New gradient fades in on top */}
-      <Animated.View style={[styles.background, { opacity: fadeAnim }]}>
-        <LinearGradient
-          colors={gradientColors}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
+      <AnimatedGradientBackground colors={gradientColors} />
 
       <ScrollView
         style={styles.scrollView}
@@ -417,13 +389,6 @@ const createStyles = (isRTL: boolean) =>
     container: {
       flex: 1,
       backgroundColor: '#000',
-    },
-    background: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      top: 0,
-      height: '100%',
     },
     scrollView: {
       flex: 1,

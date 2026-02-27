@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import {
   RefreshControl,
@@ -7,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import { Calendar } from '../../components/Calendar';
 import { CategoryBreakdownChart } from '../../components/CategoryBreakdownChart';
 import { StatsOverview } from '../../components/StatsOverview';
@@ -73,7 +73,7 @@ export default function HistoryScreen() {
           { justifyContent: 'center', alignItems: 'center' },
         ]}
       >
-        <LinearGradient colors={gradientColors} style={styles.background} />
+        <AnimatedGradientBackground colors={gradientColors} />
         <Text
           style={{
             color: '#ffffff',
@@ -94,7 +94,7 @@ export default function HistoryScreen() {
           { justifyContent: 'center', alignItems: 'center' },
         ]}
       >
-        <LinearGradient colors={gradientColors} style={styles.background} />
+        <AnimatedGradientBackground colors={gradientColors} />
         <Text
           style={[
             styles.errorText,
@@ -112,7 +112,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={gradientColors} style={styles.background} />
+      <AnimatedGradientBackground colors={gradientColors} />
 
       <ScrollView
         style={styles.scrollView}
@@ -167,13 +167,6 @@ const createStyles = (isRTL: boolean) =>
     container: {
       flex: 1,
       backgroundColor: '#000',
-    },
-    background: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      top: 0,
-      height: '100%',
     },
     scrollView: {
       flex: 1,
