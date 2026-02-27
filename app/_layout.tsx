@@ -43,12 +43,8 @@ if (!__DEV__) {
 }
 
 // Keep the native splash screen visible while we load resources
-try {
-  SplashScreen.preventAutoHideAsync();
-} catch (e) {
-  // During hot refresh, splash screen might already be hidden
-  console.warn('SplashScreen.preventAutoHideAsync error:', e);
-}
+SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 500, fade: true });
 
 const queryClient = new QueryClient();
 
@@ -132,7 +128,7 @@ function AppContent() {
       isInitialized &&
       isOnboardingCompleted !== null
     ) {
-      SplashScreen.hideAsync();
+      SplashScreen.hide();
     }
   }, [
     fontsLoaded,
