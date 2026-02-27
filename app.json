@@ -22,6 +22,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "To calculate the start time of the Last Third of the night based on your location."
+        }
+      ],
       "@react-native-community/datetimepicker",
       "expo-font",
       "expo-localization",
