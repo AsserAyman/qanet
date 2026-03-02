@@ -1,16 +1,30 @@
 import { Feather } from '@expo/vector-icons';
-import { Coordinates, CalculationMethod, HighLatitudeRule, PrayerTimes, SunnahTimes } from 'adhan';
-import * as Location from 'expo-location';
-import React, { useEffect, useMemo, useState } from 'react';
-import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import {
+  CalculationMethod,
+  Coordinates,
+  HighLatitudeRule,
+  PrayerTimes,
+  SunnahTimes,
+} from 'adhan';
+import * as Location from 'expo-location';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  AppState,
   Dimensions,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import { PickerModal, PickerOption } from '../../components/PickerModal';
 import { SelectField } from '../../components/SelectField';
 import { useI18n } from '../../contexts/I18nContext';
@@ -55,11 +69,10 @@ export default function CalculatorScreen() {
   useEffect(() => {
     if (lastEntry && lastEntry.recitations.length > 0) {
       // Get the last recitation's end position
-      const lastRecitation = lastEntry.recitations[lastEntry.recitations.length - 1];
+      const lastRecitation =
+        lastEntry.recitations[lastEntry.recitations.length - 1];
       const endInfo = globalIndexToSurahAyah(lastRecitation.end_ayah);
-      const endSurahData = quranData.find(
-        (s) => s.name === endInfo.surahName
-      );
+      const endSurahData = quranData.find((s) => s.name === endInfo.surahName);
       if (endSurahData) {
         // Check if we need to move to the next surah
         if (endInfo.ayahNumber >= endSurahData.ayahs) {
@@ -76,30 +89,48 @@ export default function CalculatorScreen() {
     }
   }, [lastEntry?.id]); // Only run when the last entry changes
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationDenied(true);
-        return;
-      }
-      const position = await Location.getCurrentPositionAsync({});
-      const coords = new Coordinates(
-        position.coords.latitude,
-        position.coords.longitude
-      );
-      const params = CalculationMethod.MuslimWorldLeague();
-      params.highLatitudeRule = HighLatitudeRule.recommended(coords);
-      const prayerTimes = new PrayerTimes(coords, new Date(), params);
-      const sunnahTimes = new SunnahTimes(prayerTimes);
-      setLastThirdTime(
-        sunnahTimes.lastThirdOfTheNight.toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      );
-    })();
+  const calculateLastThird = useCallback(async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      setLocationDenied(true);
+      setLastThirdTime(null);
+      return;
+    }
+    setLocationDenied(false);
+    const position = await Location.getCurrentPositionAsync({});
+    const coords = new Coordinates(
+      position.coords.latitude,
+      position.coords.longitude,
+    );
+    const params = CalculationMethod.MuslimWorldLeague();
+    params.highLatitudeRule = HighLatitudeRule.recommended(coords);
+    const prayerTimes = new PrayerTimes(coords, new Date(), params);
+    const sunnahTimes = new SunnahTimes(prayerTimes);
+    setLastThirdTime(
+      sunnahTimes.lastThirdOfTheNight.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    );
   }, []);
+
+  useEffect(() => {
+    calculateLastThird();
+  }, [calculateLastThird]);
+
+  const appState = useRef(AppState.currentState);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        calculateLastThird();
+      }
+      appState.current = nextAppState;
+    });
+    return () => subscription.remove();
+  }, [calculateLastThird]);
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);
@@ -117,7 +148,7 @@ export default function CalculatorScreen() {
         value: surah.name,
         searchTerms: `${surah.name} ${surah.nameAr}`,
       })),
-    [isRTL]
+    [isRTL],
   );
 
   // Ayah picker options for start surah
@@ -127,7 +158,7 @@ export default function CalculatorScreen() {
         label: String(i + 1),
         value: String(i + 1),
       })),
-    [currentSurah]
+    [currentSurah],
   );
 
   // Ayah picker options for end surah
@@ -137,7 +168,7 @@ export default function CalculatorScreen() {
         label: String(i + 1),
         value: String(i + 1),
       })),
-    [endCurrentSurah]
+    [endCurrentSurah],
   );
 
   const range =
@@ -152,7 +183,7 @@ export default function CalculatorScreen() {
             selectedSurah,
             selectedAyah,
             endSurah,
-            endAyah
+            endAyah,
           ),
         };
 
@@ -185,9 +216,11 @@ export default function CalculatorScreen() {
           <View style={styles.lastThirdContent}>
             <Text style={styles.lastThirdLabel}>{t('lastThirdOfNight')}</Text>
             {locationDenied ? (
-              <Text style={styles.lastThirdDenied}>
-                {t('locationPermissionDenied')}
-              </Text>
+              <TouchableOpacity onPress={() => Linking.openSettings()}>
+                <Text style={styles.lastThirdDenied}>
+                  {t('locationPermissionDenied')}
+                </Text>
+              </TouchableOpacity>
             ) : lastThirdTime ? (
               <Text style={styles.lastThirdTime}>{lastThirdTime}</Text>
             ) : (
