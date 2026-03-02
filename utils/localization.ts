@@ -125,6 +125,8 @@ export const translations = {
     longestStreak: 'Longest Streak',
     averageStatus: 'Average Status',
     verseCalculator: 'Calculator',
+    lastThirdOfNight: 'Last Third Begins',
+    locationPermissionDenied: 'Enable location to see prayer times',
 
     // Common
     seeAll: 'See All',
@@ -377,6 +379,8 @@ export const translations = {
     longestStreak: 'أطول سلسلة',
     averageStatus: 'متوسط الحالة',
     verseCalculator: 'حاسبة الآيات',
+    lastThirdOfNight: 'يبدأ الثلث الأخير',
+    locationPermissionDenied: 'فعّل الموقع لرؤية أوقات الصلاة',
 
     // Common
     seeAll: 'عرض الكل',

@@ -1,4 +1,6 @@
 import { Feather } from '@expo/vector-icons';
+import { Coordinates, CalculationMethod, HighLatitudeRule, PrayerTimes, SunnahTimes } from 'adhan';
+import * as Location from 'expo-location';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import {
@@ -39,6 +41,9 @@ export default function CalculatorScreen() {
   const [showEndSurahPicker, setShowEndSurahPicker] = useState(false);
   const [showEndAyahPicker, setShowEndAyahPicker] = useState(false);
 
+  const [lastThirdTime, setLastThirdTime] = useState<string | null>(null);
+  const [locationDenied, setLocationDenied] = useState(false);
+
   const { t, isRTL } = useI18n();
   const { themedColorsEnabled } = useTheme();
   const { logs } = usePrayerLogs();
@@ -70,6 +75,31 @@ export default function CalculatorScreen() {
       }
     }
   }, [lastEntry?.id]); // Only run when the last entry changes
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationDenied(true);
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({});
+      const coords = new Coordinates(
+        position.coords.latitude,
+        position.coords.longitude
+      );
+      const params = CalculationMethod.MuslimWorldLeague();
+      params.highLatitudeRule = HighLatitudeRule.recommended(coords);
+      const prayerTimes = new PrayerTimes(coords, new Date(), params);
+      const sunnahTimes = new SunnahTimes(prayerTimes);
+      setLastThirdTime(
+        sunnahTimes.lastThirdOfTheNight.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      );
+    })();
+  }, []);
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);
@@ -145,6 +175,25 @@ export default function CalculatorScreen() {
           <Text style={styles.heroSubtitle}>
             {t('calculateYourNightPrayerVerses')}
           </Text>
+        </View>
+
+        {/* Last Third of the Night */}
+        <View style={styles.lastThirdCard}>
+          <View style={styles.lastThirdIconContainer}>
+            <Feather name="moon" size={20} color="rgba(255,255,255,0.7)" />
+          </View>
+          <View style={styles.lastThirdContent}>
+            <Text style={styles.lastThirdLabel}>{t('lastThirdOfNight')}</Text>
+            {locationDenied ? (
+              <Text style={styles.lastThirdDenied}>
+                {t('locationPermissionDenied')}
+              </Text>
+            ) : lastThirdTime ? (
+              <Text style={styles.lastThirdTime}>{lastThirdTime}</Text>
+            ) : (
+              <Text style={styles.lastThirdDenied}>{t('loading')}</Text>
+            )}
+          </View>
         </View>
 
         {/* Controls Container */}
@@ -510,5 +559,45 @@ const createStyles = (isRTL: boolean) =>
     pickerRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 12,
+    },
+    lastThirdCard: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: 20,
+      padding: 20,
+      marginTop: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+      gap: 16,
+    },
+    lastThirdIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    lastThirdContent: {
+      flex: 1,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
+    },
+    lastThirdLabel: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.5)',
+      marginBottom: 4,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    lastThirdTime: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: '#ffffff',
+    },
+    lastThirdDenied: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.4)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });
