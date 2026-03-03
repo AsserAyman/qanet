@@ -129,27 +129,15 @@ export default function OnboardingScreen() {
     }
   };
 
-  const renderHeader = () => (
-    <View style={[styles.header, { paddingTop: currentPage === 0 ? insets.top + 40 : insets.top + 16 }]}>
-      {currentPage === 0 ? (
-        <>
-          <Image
-            source={require('../assets/images/moon-image.png')}
-            style={styles.headerImageLarge}
-            contentFit="contain"
-          />
-          <Text style={styles.headerTitle}>Qanet</Text>
-        </>
-      ) : (
-        <>
-          <Image
-            source={require('../assets/images/moon-image.png')}
-            style={styles.headerImage}
-            contentFit="contain"
-          />
-          <Text style={styles.headerTitleSmall}>Qanet</Text>
-        </>
-      )}
+  const renderPageHeader = () => (
+    <View style={styles.pageHeader}>
+      <Image
+        source={require('../assets/images/moon-image.png')}
+        style={styles.headerImageLarge}
+        contentFit="contain"
+      />
+      <Text style={styles.headerTitle}>Qanet</Text>
+      <View style={{ height: 32 }} />
     </View>
   );
 
@@ -227,102 +215,37 @@ export default function OnboardingScreen() {
 
   const renderGenderPage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={styles.pageContent}>
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
+      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        {renderPageHeader()}
+
+        <Text style={[styles.title, { textAlign: 'center' }]}>
           {t('selectYourGender')}
         </Text>
-        <Text
-          style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}
-        >
+        <Text style={[styles.subtitle, { textAlign: 'center' }]}>
           {t('genderDesc')}
         </Text>
 
-        <View style={styles.cardContainer}>
-          <TouchableOpacity
-            style={[
-              styles.selectionCard,
-              selectedGender === true && styles.selectionCardActive,
-            ]}
-            onPress={() => handleGenderSelect(true)}
-            activeOpacity={0.8}
-          >
-            <View
-              style={[
-                styles.cardRow,
-                { flexDirection: isRTL ? 'row-reverse' : 'row' },
-              ]}
+        <View style={[styles.cardContainer, { width: '100%' }]}>
+          {([
+            { value: true, label: t('male') },
+            { value: false, label: t('female') },
+          ] as { value: boolean; label: string }[]).map(({ value, label }) => (
+            <TouchableOpacity
+              key={String(value)}
+              style={[styles.langCard, selectedGender === value && styles.langCardActive]}
+              onPress={() => handleGenderSelect(value)}
+              activeOpacity={0.7}
             >
-              <View
-                style={[
-                  styles.iconBox,
-                  {
-                    backgroundColor: '#3b82f620',
-                    marginRight: isRTL ? 0 : 16,
-                    marginLeft: isRTL ? 16 : 0,
-                  },
-                ]}
-              >
-                <Text style={{ fontSize: 24 }}>👨</Text>
-              </View>
-              <Text
-                style={[
-                  styles.cardTitle,
-                  selectedGender === true && styles.activeText,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('male')}
+              <Text style={[styles.langText, selectedGender === value && styles.langTextActive]}>
+                {label}
               </Text>
-              {selectedGender === true && (
+              {selectedGender === value && (
                 <View style={styles.checkIcon}>
-                  <Feather name="check" size={16} color="#fff" />
+                  <Feather name="check" size={14} color="#fff" />
                 </View>
               )}
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.selectionCard,
-              selectedGender === false && styles.selectionCardActive,
-            ]}
-            onPress={() => handleGenderSelect(false)}
-            activeOpacity={0.8}
-          >
-            <View
-              style={[
-                styles.cardRow,
-                { flexDirection: isRTL ? 'row-reverse' : 'row' },
-              ]}
-            >
-              <View
-                style={[
-                  styles.iconBox,
-                  {
-                    backgroundColor: '#ec489620',
-                    marginRight: isRTL ? 0 : 16,
-                    marginLeft: isRTL ? 16 : 0,
-                  },
-                ]}
-              >
-                <Text style={{ fontSize: 24 }}>👩</Text>
-              </View>
-              <Text
-                style={[
-                  styles.cardTitle,
-                  selectedGender === false && styles.activeText,
-                  { textAlign: isRTL ? 'right' : 'left' },
-                ]}
-              >
-                {t('female')}
-              </Text>
-              {selectedGender === false && (
-                <View style={styles.checkIcon}>
-                  <Feather name="check" size={16} color="#fff" />
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     </View>
@@ -330,53 +253,34 @@ export default function OnboardingScreen() {
 
   const renderVolumePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={styles.pageContent}>
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'center' }]}>
+      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        {renderPageHeader()}
+
+        <Text style={[styles.title, { textAlign: 'center' }]}>
           {t('tellUsAboutYourReading')}
         </Text>
-        <Text
-          style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'center' }]}
-        >
+        <Text style={[styles.subtitle, { textAlign: 'center' }]}>
           {t('readingVolumeDesc')}
         </Text>
 
-        <View style={styles.cardContainer}>
-          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map(
-            (volume) => (
-              <TouchableOpacity
-                key={volume}
-                style={[
-                  styles.selectionCard,
-                  selectedReadingVolume === volume &&
-                    styles.selectionCardActive,
-                ]}
-                onPress={() => handleReadingVolumeSelect(volume)}
-                activeOpacity={0.8}
-              >
-                <View
-                  style={[
-                    styles.cardRow,
-                    { flexDirection: isRTL ? 'row-reverse' : 'row' },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.cardTitle,
-                      selectedReadingVolume === volume && styles.activeText,
-                      { textAlign: isRTL ? 'right' : 'left' },
-                    ]}
-                  >
-                    {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
-                  </Text>
-                  {selectedReadingVolume === volume && (
-                    <View style={styles.checkIcon}>
-                      <Feather name="check" size={16} color="#fff" />
-                    </View>
-                  )}
+        <View style={[styles.cardContainer, { width: '100%' }]}>
+          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map((volume) => (
+            <TouchableOpacity
+              key={volume}
+              style={[styles.langCard, selectedReadingVolume === volume && styles.langCardActive]}
+              onPress={() => handleReadingVolumeSelect(volume)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.langText, selectedReadingVolume === volume && styles.langTextActive]}>
+                {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
+              </Text>
+              {selectedReadingVolume === volume && (
+                <View style={styles.checkIcon}>
+                  <Feather name="check" size={14} color="#fff" />
                 </View>
-              </TouchableOpacity>
-            ),
-          )}
+              )}
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     </View>
@@ -420,78 +324,29 @@ export default function OnboardingScreen() {
 
     return (
       <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-        <View style={styles.pageContent}>
-          <Text
-            style={[
-              styles.title,
-              { textAlign: isRTL ? 'right' : 'center', marginBottom: 24 },
-            ]}
-          >
+        <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+          {renderPageHeader()}
+          <Text style={[styles.title, { textAlign: 'center', marginBottom: 24 }]}>
             {t('trackYourJourney')}
           </Text>
 
-          <View style={styles.timelineContainer}>
-            {features.map((feature, index) => {
+          <View style={[styles.cardContainer, { width: '100%' }]}>
+            {features.map((feature) => {
               const Icon = feature.iconType;
               return (
-                <View
-                  key={feature.id}
-                  style={[
-                    styles.timelineItem,
-                    { flexDirection: isRTL ? 'row-reverse' : 'row' },
-                  ]}
-                >
-                  {/* Timeline Connector */}
-                  {index !== features.length - 1 && (
-                    <View
-                      style={[
-                        styles.timelineLine,
-                        {
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                          left: isRTL ? undefined : 24,
-                          right: isRTL ? 24 : undefined,
-                        },
-                      ]}
-                    />
-                  )}
-
-                  <View
-                    style={[
-                      styles.timelineIconBox,
-                      {
-                        backgroundColor: `${feature.color}20`,
-                        marginRight: isRTL ? 0 : 16,
-                        marginLeft: isRTL ? 16 : 0,
-                      },
-                    ]}
-                  >
-                    <Icon
-                      name={feature.icon as any}
-                      size={20}
-                      color={feature.color}
-                    />
-                  </View>
-
-                  <View style={styles.timelineContent}>
-                    <Text
-                      style={[
-                        styles.timelineTitle,
-                        {
-                          textAlign: isRTL ? 'right' : 'left',
-                          color: feature.color,
-                        },
-                      ]}
-                    >
-                      {feature.title}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.timelineDesc,
-                        { textAlign: isRTL ? 'right' : 'left' },
-                      ]}
-                    >
-                      {feature.desc}
-                    </Text>
+                <View key={feature.id} style={styles.featureCard}>
+                  <View style={[styles.featureCardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <View style={[styles.featureIconBox, { backgroundColor: `${feature.color}15` }]}>
+                      <Icon name={feature.icon as any} size={18} color={feature.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.featureTitle, { color: feature.color, textAlign: isRTL ? 'right' : 'left' }]}>
+                        {feature.title}
+                      </Text>
+                      <Text style={[styles.featureDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
+                        {feature.desc}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               );
@@ -504,12 +359,9 @@ export default function OnboardingScreen() {
 
   const renderNotificationsPage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View
-        style={[
-          styles.pageContent,
-          { alignItems: 'center', justifyContent: 'center', flex: 1 },
-        ]}
-      >
+      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        {renderPageHeader()}
+
         <View style={[styles.iconCircle, { marginBottom: 32 }]}>
           <Feather name="bell" size={64} color="#fff" />
         </View>
@@ -524,7 +376,7 @@ export default function OnboardingScreen() {
         <View style={{ height: 40 }} />
 
         <TouchableOpacity
-          style={styles.primaryButton}
+          style={[styles.primaryButton, { width: '100%' }]}
           onPress={() => handleComplete(true)}
           disabled={isCompleting}
           activeOpacity={0.9}
@@ -552,8 +404,6 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={gradientColors} style={styles.background} />
-
-      {currentPage !== 0 && renderHeader()}
 
       <ScrollView
         ref={scrollViewRef}
@@ -646,31 +496,19 @@ const styles = StyleSheet.create({
   background: {
     ...StyleSheet.absoluteFillObject,
   },
-  header: {
+  pageHeader: {
     alignItems: 'center',
-    marginBottom: 8,
   },
   headerImageLarge: {
     width: 180,
     height: 180,
     marginBottom: 20,
   },
-  headerImage: {
-    width: 100,
-    height: 100,
-    marginBottom: 8,
-  },
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
     letterSpacing: 1.5,
-  },
-  headerTitleSmall: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -697,37 +535,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     gap: 12,
-  },
-  selectionCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  selectionCardActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderColor: '#ffffff',
-  },
-  cardRow: {
-    alignItems: 'center',
-  },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.7)',
-    flex: 1,
-  },
-  activeText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
   },
   langCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -761,44 +568,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Timeline Styles
-  timelineContainer: {
-    paddingHorizontal: 4,
+  // Feature Cards
+  featureCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
   },
-  timelineItem: {
+  featureCardRow: {
     alignItems: 'flex-start',
-    marginBottom: 24,
-    position: 'relative',
+    gap: 12,
   },
-  timelineLine: {
-    position: 'absolute',
-    top: 48,
-    width: 2,
-    height: 30, // Connects to next item
-    zIndex: -1,
-  },
-  timelineIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  featureIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
-  timelineContent: {
-    flex: 1,
-    paddingTop: 2,
-  },
-  timelineTitle: {
-    fontSize: 16,
+  featureTitle: {
+    fontSize: 15,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  timelineDesc: {
-    fontSize: 14,
+  featureDesc: {
+    fontSize: 13,
     color: 'rgba(255,255,255,0.5)',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   // Footer / Nav
   footer: {
