@@ -208,32 +208,48 @@ class OfflineDataManager {
     const userId = await this.getCurrentUserId();
     const logs = await sqliteManager.getPrayerLogs(userId, 365);
 
-    // Group logs by date
-    const dateSet = new Set(logs.map(log => log.prayer_date));
-    const dates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
+    if (logs.length === 0) return 0;
+
+    // Pre-aggregate daily totals so lookups are O(1) instead of O(n) per day
+    const dailyTotals = new Map<string, number>();
+    for (const log of logs) {
+      dailyTotals.set(
+        log.prayer_date,
+        (dailyTotals.get(log.prayer_date) ?? 0) + this.calculateTotalAyahs(log.recitations),
+      );
+    }
+    const dateSet = new Set(dailyTotals.keys());
+
+    // Use UTC dates — consistent with how prayer_date is stored via toISOString()
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+    // Night-prayer buffer: if tonight hasn't been logged yet, don't break the streak.
+    // The user may still pray tonight, so start counting from yesterday.
+    // Only reset to 0 if yesterday is also missing (a night was truly skipped).
+    let startOffset = 0;
+    if (!dateSet.has(todayStr)) {
+      if (dateSet.has(yesterdayStr)) {
+        startOffset = 1;
+      } else {
+        return 0;
+      }
+    }
 
     let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    for (let i = startOffset; i < dateSet.size + startOffset; i++) {
+      const d = new Date(now);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
 
-    for (let i = 0; i < dates.length; i++) {
-      const expectedDate = new Date(today);
-      expectedDate.setDate(today.getDate() - i);
-      const expectedDateStr = expectedDate.toISOString().split('T')[0];
+      if (!dateSet.has(dateStr)) break;
 
-      if (dates.includes(expectedDateStr)) {
-        // Check if the day wasn't 'Negligent'
-        const dayLogs = logs.filter(log => log.prayer_date === expectedDateStr);
-        const dayTotal = dayLogs.reduce((sum, log) =>
-          sum + this.calculateTotalAyahs(log.recitations), 0
-        );
-        const status = this.getStatusFromAyahCount(dayTotal);
-
-        if (status !== 'Negligent') {
-          streak++;
-        } else {
-          break;
-        }
+      const dayTotal = dailyTotals.get(dateStr) ?? 0;
+      if (this.getStatusFromAyahCount(dayTotal) !== 'Negligent') {
+        streak++;
       } else {
         break;
       }
@@ -246,43 +262,41 @@ class OfflineDataManager {
     await this.ensureInitialized();
 
     const userId = await this.getCurrentUserId();
-    const logs = await sqliteManager.getPrayerLogs(userId, 1000); // Fetch enough logs
+    const logs = await sqliteManager.getPrayerLogs(userId, 1000);
 
-    // Group logs by date
-    const dateSet = new Set(logs.map(log => log.prayer_date));
-    const dates = Array.from(dateSet).sort((a, b) => a.localeCompare(b)); // Ascending order
+    // Pre-aggregate daily totals
+    const dailyTotals = new Map<string, number>();
+    for (const log of logs) {
+      dailyTotals.set(
+        log.prayer_date,
+        (dailyTotals.get(log.prayer_date) ?? 0) + this.calculateTotalAyahs(log.recitations),
+      );
+    }
+
+    const dates = Array.from(dailyTotals.keys()).sort((a, b) => a.localeCompare(b));
 
     if (dates.length === 0) return 0;
 
     let maxStreak = 0;
     let currentStreak = 0;
-    let prevDate: Date | null = null;
+    let prevDateStr: string | null = null;
 
     for (const dateStr of dates) {
-      const currentDate = new Date(dateStr);
-      
-      // Calculate status for this day
-      const dayLogs = logs.filter(log => log.prayer_date === dateStr);
-      const dayTotal = dayLogs.reduce((sum, log) =>
-        sum + this.calculateTotalAyahs(log.recitations), 0
-      );
-      const status = this.getStatusFromAyahCount(dayTotal);
+      const dayTotal = dailyTotals.get(dateStr) ?? 0;
 
-      if (status === 'Negligent') {
+      if (this.getStatusFromAyahCount(dayTotal) === 'Negligent') {
         currentStreak = 0;
-        prevDate = null;
+        prevDateStr = null;
         continue;
       }
 
-      if (prevDate) {
-        const diffTime = Math.abs(currentDate.getTime() - prevDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) {
-          currentStreak++;
-        } else {
-          currentStreak = 1;
-        }
+      if (prevDateStr) {
+        // new Date("YYYY-MM-DD") parses as UTC midnight — diff is always an exact integer of days
+        const diffDays = Math.round(
+          (new Date(dateStr).getTime() - new Date(prevDateStr).getTime()) /
+            (1000 * 60 * 60 * 24),
+        );
+        currentStreak = diffDays === 1 ? currentStreak + 1 : 1;
       } else {
         currentStreak = 1;
       }
@@ -291,7 +305,7 @@ class OfflineDataManager {
         maxStreak = currentStreak;
       }
 
-      prevDate = currentDate;
+      prevDateStr = dateStr;
     }
 
     return maxStreak;
