@@ -1,9 +1,12 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import React, { useState } from 'react';
 import {
   Alert,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -31,9 +34,31 @@ export default function SettingsScreen() {
   const { isInitialized } = useOfflineData();
   const { logs, loading: logsLoading } = usePrayerLogs();
   const { gradientColors } = useLastNightStats(themedColorsEnabled);
-  const { notificationsEnabled, toggleNotifications, permissionStatus } =
-    useNotifications();
+  const {
+    notificationsEnabled,
+    toggleNotifications,
+    permissionStatus,
+    notificationHour,
+    notificationMinute,
+    setNotificationTime,
+  } = useNotifications();
   const [headerPressCount, setHeaderPressCount] = useState(0);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [pickerDate, setPickerDate] = useState(new Date());
+
+  const openTimePicker = () => {
+    const date = new Date();
+    date.setHours(notificationHour, notificationMinute, 0, 0);
+    setPickerDate(date);
+    setShowTimePicker(true);
+  };
+
+  const formatTime = (hour: number, minute: number) => {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    const displayMinute = minute.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinute} ${period}`;
+  };
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [deleteDataModalVisible, setDeleteDataModalVisible] = useState(false);
 
@@ -216,7 +241,11 @@ export default function SettingsScreen() {
           </View>
 
           {notificationsEnabled && (
-            <View style={styles.notificationInfo}>
+            <TouchableOpacity
+              style={styles.notificationInfo}
+              onPress={openTimePicker}
+              activeOpacity={0.7}
+            >
               <Feather
                 name="clock"
                 size={16}
@@ -226,10 +255,15 @@ export default function SettingsScreen() {
                   marginLeft: isRTL ? 8 : 0,
                 }}
               />
-              <Text style={styles.notificationInfoText}>
-                {t('reminderTime')}
+              <Text style={[styles.notificationInfoText, { flex: 1 }]}>
+                {t('reminderTime')}: {formatTime(notificationHour, notificationMinute)}
               </Text>
-            </View>
+              <Feather
+                name="chevron-right"
+                size={14}
+                color="rgba(255,255,255,0.4)"
+              />
+            </TouchableOpacity>
           )}
 
           {permissionStatus === 'denied' && (
@@ -413,6 +447,57 @@ export default function SettingsScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Time Picker - iOS modal */}
+      {showTimePicker && Platform.OS === 'ios' && (
+        <Modal transparent animationType="slide" visible={showTimePicker}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.timePickerCard}>
+              <View style={styles.timePickerHeader}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.timePickerCancelText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <Text style={styles.timePickerTitle}>{t('setReminderTime')}</Text>
+                <TouchableOpacity
+                  onPress={async () => {
+                    setShowTimePicker(false);
+                    await setNotificationTime(
+                      pickerDate.getHours(),
+                      pickerDate.getMinutes()
+                    );
+                  }}
+                >
+                  <Text style={styles.timePickerConfirmText}>{t('confirm')}</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={pickerDate}
+                mode="time"
+                display="spinner"
+                onChange={(_, date) => date && setPickerDate(date)}
+                textColor="#ffffff"
+                themeVariant="dark"
+                style={{ height: 200 }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Time Picker - Android dialog */}
+      {showTimePicker && Platform.OS === 'android' && (
+        <DateTimePicker
+          value={pickerDate}
+          mode="time"
+          is24Hour={false}
+          onChange={(event, date) => {
+            setShowTimePicker(false);
+            if (event.type === 'set' && date) {
+              setNotificationTime(date.getHours(), date.getMinutes());
+            }
+          }}
+        />
+      )}
 
       <FeedbackModal
         visible={feedbackModalVisible}
@@ -683,6 +768,43 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 14,
       color: 'rgba(239, 68, 68, 0.8)',
       textAlign: isRTL ? 'right' : 'left',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'flex-end',
+    },
+    timePickerCard: {
+      backgroundColor: '#1c1c2e',
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 24,
+      paddingBottom: 40,
+      borderTopWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    timePickerHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    timePickerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+    },
+    timePickerCancelText: {
+      fontSize: 16,
+      color: 'rgba(255,255,255,0.5)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    timePickerConfirmText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#3b82f6',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

@@ -69,7 +69,8 @@ export const translations = {
     notifications: 'Notifications',
     dailyReminder: 'Daily Reminder',
     dailyReminderDesc: 'Remind me to log my night prayer',
-    reminderTime: 'Reminder at 9:00 PM',
+    reminderTime: 'Reminder time',
+    setReminderTime: 'Set Reminder Time',
     notificationTitle: 'Time for Night Prayer',
     notificationBody:
       "Don't forget to log your night prayer reading. Strive to read at least 10 verses!",
@@ -324,7 +325,8 @@ export const translations = {
     notifications: 'الإشعارات',
     dailyReminder: 'تذكير يومي',
     dailyReminderDesc: 'ذكرني بتسجيل صلاة الليل',
-    reminderTime: 'التذكير في 9:00 مساءً',
+    reminderTime: 'وقت التذكير',
+    setReminderTime: 'تعيين وقت التذكير',
     notificationTitle: 'حان وقت صلاة الليل',
     notificationBody:
       'لا تنسى تسجيل قراءتك في صلاة الليل. اجتهد في قراءة 10 آيات على الأقل!',

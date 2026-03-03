@@ -7,6 +7,9 @@ interface NotificationContextType {
   notificationsEnabled: boolean;
   toggleNotifications: () => Promise<void>;
   permissionStatus: Notifications.PermissionStatus | null;
+  notificationHour: number;
+  notificationMinute: number;
+  setNotificationTime: (hour: number, minute: number) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -14,6 +17,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 );
 
 const NOTIFICATION_STORAGE_KEY = '@notification_enabled';
+const NOTIFICATION_TIME_STORAGE_KEY = '@notification_time';
 const NOTIFICATION_ID = 'daily-prayer-reminder';
 
 // Set up notification handler
@@ -35,6 +39,8 @@ export function NotificationProvider({
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [permissionStatus, setPermissionStatus] =
     useState<Notifications.PermissionStatus | null>(null);
+  const [notificationHour, setNotificationHour] = useState(21);
+  const [notificationMinute, setNotificationMinute] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -57,6 +63,18 @@ export function NotificationProvider({
       const { status } = await Notifications.getPermissionsAsync();
       setPermissionStatus(status);
 
+      // Load saved time preference
+      const savedTime = await AsyncStorage.getItem(NOTIFICATION_TIME_STORAGE_KEY);
+      let hour = 21;
+      let minute = 0;
+      if (savedTime) {
+        const parsed = JSON.parse(savedTime);
+        hour = parsed.hour;
+        minute = parsed.minute;
+        setNotificationHour(hour);
+        setNotificationMinute(minute);
+      }
+
       // Load saved preference
       const savedPreference = await AsyncStorage.getItem(
         NOTIFICATION_STORAGE_KEY
@@ -65,7 +83,7 @@ export function NotificationProvider({
 
       if (enabled && status === 'granted') {
         // Re-schedule notification on app startup if it was enabled
-        await scheduleNotification();
+        await scheduleNotification(hour, minute);
       }
 
       setNotificationsEnabled(enabled);
@@ -76,12 +94,11 @@ export function NotificationProvider({
     }
   };
 
-  const scheduleNotification = async () => {
+  const scheduleNotification = async (hour: number = 21, minute: number = 0) => {
     try {
       // Cancel any existing notifications first
       await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_ID);
 
-      // Schedule daily notification at 9PM
       await Notifications.scheduleNotificationAsync({
         identifier: NOTIFICATION_ID,
         content: {
@@ -91,8 +108,8 @@ export function NotificationProvider({
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
-          hour: 21,
-          minute: 0,
+          hour,
+          minute,
         },
       });
     } catch (error) {
@@ -114,7 +131,7 @@ export function NotificationProvider({
         }
 
         // Enable notifications
-        await scheduleNotification();
+        await scheduleNotification(notificationHour, notificationMinute);
         await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, 'true');
         setNotificationsEnabled(true);
       } else {
@@ -128,13 +145,36 @@ export function NotificationProvider({
     }
   };
 
+  const setNotificationTime = async (hour: number, minute: number) => {
+    try {
+      setNotificationHour(hour);
+      setNotificationMinute(minute);
+      await AsyncStorage.setItem(
+        NOTIFICATION_TIME_STORAGE_KEY,
+        JSON.stringify({ hour, minute })
+      );
+      if (notificationsEnabled) {
+        await scheduleNotification(hour, minute);
+      }
+    } catch (error) {
+      console.error('Failed to set notification time:', error);
+    }
+  };
+
   if (!isLoaded) {
     return null; // Wait for initialization
   }
 
   return (
     <NotificationContext.Provider
-      value={{ notificationsEnabled, toggleNotifications, permissionStatus }}
+      value={{
+        notificationsEnabled,
+        toggleNotifications,
+        permissionStatus,
+        notificationHour,
+        notificationMinute,
+        setNotificationTime,
+      }}
     >
       {children}
     </NotificationContext.Provider>
