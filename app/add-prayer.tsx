@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useMemo, useState } from 'react';
 import {
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -14,7 +15,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Modal,
 } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -595,7 +595,7 @@ export default function AddPrayerScreen() {
               style={[styles.saveButtonText, buttonTextStyle]}
               numberOfLines={1}
             >
-              {loading ? t('saving') : t('savePrayerRecord')}
+              {t('savePrayerRecord')}
             </Animated.Text>
           </TouchableOpacity>
         </View>
