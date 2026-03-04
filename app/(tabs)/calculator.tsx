@@ -18,6 +18,7 @@ import {
   AppState,
   Dimensions,
   Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -57,6 +58,7 @@ export default function CalculatorScreen() {
 
   const [lastThirdTime, setLastThirdTime] = useState<string | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
+  const [showHadithModal, setShowHadithModal] = useState(false);
 
   const { t, isRTL } = useI18n();
   const { themedColorsEnabled } = useTheme();
@@ -227,7 +229,41 @@ export default function CalculatorScreen() {
               <Text style={styles.lastThirdDenied}>{t('loading')}</Text>
             )}
           </View>
+          <TouchableOpacity
+            style={styles.hadithInfoButton}
+            onPress={() => setShowHadithModal(true)}
+          >
+            <Feather name="info" size={16} color="rgba(255,255,255,0.5)" />
+          </TouchableOpacity>
         </View>
+
+        {/* Hadith Modal */}
+        <Modal
+          visible={showHadithModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowHadithModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.hadithModalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowHadithModal(false)}
+          >
+            <TouchableOpacity activeOpacity={1} style={styles.hadithModalCard}>
+              <View style={styles.hadithModalHeader}>
+                <Text style={styles.hadithModalTitle}>
+                  {t('lastThirdHadithTitle')}
+                </Text>
+                <TouchableOpacity onPress={() => setShowHadithModal(false)}>
+                  <Feather name="x" size={20} color="rgba(255,255,255,0.6)" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.hadithModalText}>
+                {t('lastThirdHadithText')}
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
 
         {/* Controls Container */}
         <View style={styles.controlsContainer}>
@@ -631,6 +667,48 @@ const createStyles = (isRTL: boolean) =>
     lastThirdDenied: {
       fontSize: 13,
       color: 'rgba(255,255,255,0.4)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    hadithInfoButton: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hadithModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    hadithModalCard: {
+      backgroundColor: '#1a1a2e',
+      borderRadius: 24,
+      padding: 24,
+      width: '100%',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.12)',
+    },
+    hadithModalHeader: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    hadithModalTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#ffffff',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
+      flex: 1,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    hadithModalText: {
+      fontSize: isRTL ? 17 : 15,
+      color: 'rgba(255,255,255,0.85)',
+      lineHeight: isRTL ? 30 : 24,
+      textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

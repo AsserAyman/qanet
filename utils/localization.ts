@@ -127,6 +127,8 @@ export const translations = {
     averageStatus: 'Average Status',
     verseCalculator: 'Calculator',
     lastThirdOfNight: 'Last Third Begins',
+    lastThirdHadithTitle: 'The Virtue of the Last Third',
+    lastThirdHadithText: 'The Prophet (ﷺ) said: "Our Lord, the Blessed, the Superior, comes every night down on the nearest Heaven to us when the last third of the night remains, saying: \'Is there anyone to invoke Me, so that I may respond to invocation? Is there anyone to ask Me, so that I may grant him his request? Is there anyone seeking My forgiveness, so that I may forgive him?\'"',
     locationPermissionDenied: 'Enable location to see prayer times',
 
     // Common
@@ -382,6 +384,8 @@ export const translations = {
     averageStatus: 'متوسط الحالة',
     verseCalculator: 'حاسبة الآيات',
     lastThirdOfNight: 'يبدأ الثلث الأخير',
+    lastThirdHadithTitle: 'فضل الثلث الأخير من الليل',
+    lastThirdHadithText: 'قال النبي ﷺ:\n"يَنْزِلُ رَبُّنَا تَبَارَكَ وَتَعَالَى كُلَّ لَيْلَةٍ إِلَى السَّمَاءِ الدُّنْيَا حِينَ يَبْقَى ثُلُثُ اللَّيْلِ الآخِرُ يَقُولُ مَنْ يَدْعُونِي فَأَسْتَجِيبَ لَهُ مَنْ يَسْأَلُنِي فَأُعْطِيَهُ مَنْ يَسْتَغْفِرُنِي فَأَغْفِرَ لَهُ"',
     locationPermissionDenied: 'فعّل الموقع لرؤية أوقات الصلاة',
 
     // Common
