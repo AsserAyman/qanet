@@ -31,6 +31,8 @@ export const translations = {
     ayah: 'Ayah',
     savingPrayerRecord: 'Saving Prayer Record...',
     savePrayerRecord: 'Save Prayer Record',
+    shafWitr: "Shaf' & Witr",
+    shafWitrDesc: 'Quick preset for common Shaf\' & Witr surahs',
 
     // History Screen
     prayerHistory: 'Prayer History',
@@ -289,6 +291,8 @@ export const translations = {
     ayah: 'الآية',
     savingPrayerRecord: 'جاري حفظ سجل الصلاة...',
     savePrayerRecord: 'حفظ سجل الصلاة',
+    shafWitr: 'الشفع والوتر',
+    shafWitrDesc: 'إعداد سريع لسور الشفع والوتر الشائعة',
 
     // History Screen
     prayerHistory: 'تاريخ الصلاة',

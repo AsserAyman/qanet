@@ -38,6 +38,8 @@ import {
   surahAyahToGlobalIndex,
 } from '../utils/quranData';
 
+const SHAF_WITR_SURAHS = ["Al-A'la", 'Al-Kafiroon', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas'] as const;
+
 export default function AddPrayerScreen() {
   const { isRTL, t } = useI18n();
   const { themedColorsEnabled } = useTheme();
@@ -55,6 +57,7 @@ export default function AddPrayerScreen() {
     endSurah: string;
     endAyah: number;
     isWholeSurah?: boolean;
+    isShafWitr?: boolean;
   }>>([{
     id: '1',
     startSurah: 'Al-Baqara',
@@ -68,6 +71,9 @@ export default function AddPrayerScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Shaf' & Witr preset state
+  const [shafWitrEnabled, setShafWitrEnabled] = useState(false);
+
   // Animation state
   const successAnim = useSharedValue(0); // 0: initial, 1: success
 
@@ -79,9 +85,10 @@ export default function AddPrayerScreen() {
 
   const styles = createStyles(isRTL);
 
-  const activeRange = ranges.find(r => r.id === activeRangeId) || ranges[0];
-  const currentSurah = quranData.find((s) => s.name === activeRange.startSurah);
-  const endCurrentSurah = quranData.find((s) => s.name === activeRange.endSurah);
+  const userRanges = ranges.filter(r => !r.isShafWitr);
+  const activeRange = ranges.find(r => r.id === activeRangeId) || userRanges[0] || ranges[0];
+  const currentSurah = activeRange ? quranData.find((s) => s.name === activeRange.startSurah) : undefined;
+  const endCurrentSurah = activeRange ? quranData.find((s) => s.name === activeRange.endSurah) : undefined;
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);
@@ -139,20 +146,29 @@ export default function AddPrayerScreen() {
   };
 
   const addRange = () => {
-    const lastRange = ranges[ranges.length - 1];
-    setRanges(prev => [...prev, {
-      id: Date.now().toString(),
-      startSurah: lastRange.endSurah,
-      startAyah: lastRange.endAyah, // Continue from where left off
-      endSurah: lastRange.endSurah,
-      endAyah: lastRange.endAyah,
-    }]);
+    const userRanges = ranges.filter(r => !r.isShafWitr);
+    const lastRange = userRanges[userRanges.length - 1];
+    const newRange = lastRange
+      ? {
+          id: Date.now().toString(),
+          startSurah: lastRange.endSurah,
+          startAyah: lastRange.endAyah,
+          endSurah: lastRange.endSurah,
+          endAyah: lastRange.endAyah,
+        }
+      : {
+          id: Date.now().toString(),
+          startSurah: 'Al-Baqara',
+          startAyah: 1,
+          endSurah: 'Al-Baqara',
+          endAyah: 2,
+          isWholeSurah: false,
+        };
+    setRanges(prev => [...prev, newRange]);
   };
 
   const removeRange = (id: string) => {
-    if (ranges.length > 1) {
-      setRanges(prev => prev.filter(r => r.id !== id));
-    }
+    setRanges(prev => prev.filter(r => r.id !== id));
   };
 
   const handleWholeSurahToggle = (id: string, value: boolean) => {
@@ -362,8 +378,91 @@ export default function AddPrayerScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Shaf' & Witr Preset */}
+        <View style={styles.card}>
+          <View style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: 0 }]}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
+              <Ionicons name="moon-outline" size={20} color="rgba(255,255,255,0.7)" />
+              <View>
+                <Text style={styles.cardTitle}>{t('shafWitr')}</Text>
+                {/* {!shafWitrEnabled && (
+                  <Text style={styles.shafWitrDesc}>{t('shafWitrDesc')}</Text>
+                )} */}
+              </View>
+            </View>
+            <Switch
+              value={shafWitrEnabled}
+              onValueChange={(val) => {
+                setShafWitrEnabled(val);
+                if (val) {
+                  // Replace default range with 5 shaf/witr ranges
+                  const shafWitrRanges = SHAF_WITR_SURAHS.map(name => {
+                    const s = quranData.find(q => q.name === name)!;
+                    return { id: `sw-${name}`, startSurah: name, startAyah: 1, endSurah: name, endAyah: s.ayahs, isWholeSurah: true, isShafWitr: true };
+                  });
+                  setRanges(shafWitrRanges);
+                } else {
+                  // Remove shaf/witr ranges, restore default if nothing left
+                  setRanges(prev => {
+                    const userRanges = prev.filter(r => !r.isShafWitr);
+                    return userRanges.length > 0
+                      ? userRanges
+                      : [{ id: Date.now().toString(), startSurah: 'Al-Baqara', startAyah: 1, endSurah: 'Al-Baqara', endAyah: 2, isWholeSurah: false }];
+                  });
+                }
+              }}
+              trackColor={{ false: '#767577', true: '#22c55e' }}
+              thumbColor={shafWitrEnabled ? '#ffffff' : '#f4f3f4'}
+              style={Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}}
+            />
+          </View>
+
+          {shafWitrEnabled && (
+            <View style={styles.pillsContainer}>
+              {SHAF_WITR_SURAHS.map((surahName) => {
+                const surah = quranData.find(s => s.name === surahName)!;
+                const isActive = ranges.some(r => r.isShafWitr && r.startSurah === surahName);
+                return (
+                  <TouchableOpacity
+                    key={surahName}
+                    style={[styles.surahPill, isActive && styles.surahPillActive]}
+                    onPress={() => {
+                      if (isActive) {
+                        const remaining = ranges.filter(r => !(r.isShafWitr && r.startSurah === surahName));
+                        const hasShafWitrLeft = remaining.some(r => r.isShafWitr);
+                        if (!hasShafWitrLeft) {
+                          // All pills deselected — turn off toggle
+                          setShafWitrEnabled(false);
+                          const userRemaining = remaining.filter(r => !r.isShafWitr);
+                          setRanges(userRemaining.length > 0
+                            ? userRemaining
+                            : [{ id: Date.now().toString(), startSurah: 'Al-Baqara', startAyah: 1, endSurah: 'Al-Baqara', endAyah: 2, isWholeSurah: false }]);
+                        } else {
+                          setRanges(remaining);
+                        }
+                      } else {
+                        setRanges(prev => [...prev, { id: `sw-${surahName}`, startSurah: surahName, startAyah: 1, endSurah: surahName, endAyah: surah.ayahs, isWholeSurah: true, isShafWitr: true }]);
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.surahPillText, isActive && styles.surahPillTextActive]}>
+                      {getSurahName(surahName)}
+                    </Text>
+                    <View style={[styles.surahPillBadge, isActive && styles.surahPillBadgeActive]}>
+                      <Text style={[styles.surahPillBadgeText, isActive && styles.surahPillBadgeTextActive]}>
+                        {surah.ayahs}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
         {/* Reading Range Inputs */}
-        {ranges.map((range, index) => (
+        {ranges.filter(r => !r.isShafWitr).map((range, index) => (
           <View key={range.id} style={styles.card}>
             <View style={[styles.cardHeader, { justifyContent: 'space-between' }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -373,10 +472,10 @@ export default function AddPrayerScreen() {
                   color="rgba(255,255,255,0.7)"
                 />
                 <Text style={styles.cardTitle}>
-                  {t('readingRange')} {ranges.length > 1 ? index + 1 : ''}
+                  {t('readingRange')} {ranges.filter(r => !r.isShafWitr).length > 1 ? index + 1 : ''}
                 </Text>
               </View>
-              {ranges.length > 1 && (
+              {(shafWitrEnabled || ranges.filter(r => !r.isShafWitr).length > 1) && (
                 <TouchableOpacity onPress={() => removeRange(range.id)}>
                   <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
                 </TouchableOpacity>
@@ -859,6 +958,59 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 17,
       fontWeight: '700',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    shafWitrDesc: {
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.4)',
+      marginTop: 2,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    pillsContainer: {
+      marginTop: 8,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    surahPill: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+    surahPillActive: {
+      backgroundColor: 'rgba(34, 197, 94, 0.15)',
+      borderColor: 'rgba(34, 197, 94, 0.6)',
+    },
+    surahPillText: {
+      color: 'rgba(255,255,255,0.45)',
+      fontSize: 13,
+      fontWeight: '500',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    surahPillTextActive: {
+      color: '#ffffff',
+    },
+    surahPillBadge: {
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderRadius: 8,
+      paddingHorizontal: 5,
+      paddingVertical: 1,
+    },
+    surahPillBadgeActive: {
+      backgroundColor: 'rgba(34, 197, 94, 0.3)',
+    },
+    surahPillBadgeText: {
+      color: 'rgba(255,255,255,0.3)',
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    surahPillBadgeTextActive: {
+      color: '#22c55e',
     },
     toggleRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
