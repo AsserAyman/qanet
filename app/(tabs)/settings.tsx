@@ -136,92 +136,11 @@ export default function SettingsScreen() {
           <Text style={styles.hadithText}>{t('hadithText')}</Text>
         </View>
 
-        {/* Prayer Status Information */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t('prayerStatusLevels')}</Text>
-
-          <View style={styles.statusItem}>
-            <View
-              style={[
-                styles.statusIconContainer,
-                { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
-              ]}
-            >
-              <MaterialIcons name="warning" size={24} color="#ef4444" />
-            </View>
-            <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>{t('negligent')}</Text>
-              <Text style={styles.statusSubtitle}>{t('negligentDesc')}</Text>
-              <Text style={styles.statusDescription}>
-                {t('negligentExplanation')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.statusItem}>
-            <View
-              style={[
-                styles.statusIconContainer,
-                { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
-              ]}
-            >
-              <Feather name="moon" size={24} color="#3b82f6" />
-            </View>
-            <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>{t('notnegligent')}</Text>
-              <Text style={styles.statusSubtitle}>{t('notnegligentDesc')}</Text>
-              <Text style={styles.statusDescription}>
-                {t('notnegligentExplanation')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.statusItem}>
-            <View
-              style={[
-                styles.statusIconContainer,
-                { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
-              ]}
-            >
-              <MaterialIcons name="military-tech" size={24} color="#22c55e" />
-            </View>
-            <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>{t('qanet')}</Text>
-              <Text style={styles.statusSubtitle}>{t('qanetDesc')}</Text>
-              <Text style={styles.statusDescription}>
-                {t('qanetExplanation')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.statusItem}>
-            <View
-              style={[
-                styles.statusIconContainer,
-                { backgroundColor: 'rgba(168, 85, 247, 0.2)' },
-              ]}
-            >
-              <MaterialIcons name="military-tech" size={24} color="#a855f7" />
-            </View>
-            <View style={styles.statusContent}>
-              <Text style={styles.statusTitle}>{t('muqantar')}</Text>
-              <Text style={styles.statusSubtitle}>{t('muqantarDesc')}</Text>
-              <Text style={styles.statusDescription}>
-                {t('muqantarExplanation')}
-              </Text>
-            </View>
-          </View>
-        </View>
+        
 
         {/* Appearance Settings */}
         <View style={styles.card}>
-          <View style={styles.notificationHeader}>
+          <View style={{...styles.notificationHeader, marginBottom: 0}}>
             <View style={styles.notificationTitleContainer}>
               <Feather
                 name="droplet"
@@ -411,7 +330,88 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        
+        {/* Prayer Status Information */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>{t('prayerStatusLevels')}</Text>
+
+          <View style={styles.statusItem}>
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
+              ]}
+            >
+              <MaterialIcons name="warning" size={24} color="#ef4444" />
+            </View>
+            <View style={styles.statusContent}>
+              <Text style={styles.statusTitle}>{t('negligent')}</Text>
+              <Text style={styles.statusSubtitle}>{t('negligentDesc')}</Text>
+              <Text style={styles.statusDescription}>
+                {t('negligentExplanation')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.statusItem}>
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
+              ]}
+            >
+              <Feather name="moon" size={24} color="#3b82f6" />
+            </View>
+            <View style={styles.statusContent}>
+              <Text style={styles.statusTitle}>{t('notnegligent')}</Text>
+              <Text style={styles.statusSubtitle}>{t('notnegligentDesc')}</Text>
+              <Text style={styles.statusDescription}>
+                {t('notnegligentExplanation')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.statusItem}>
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
+              ]}
+            >
+              <MaterialIcons name="military-tech" size={24} color="#22c55e" />
+            </View>
+            <View style={styles.statusContent}>
+              <Text style={styles.statusTitle}>{t('qanet')}</Text>
+              <Text style={styles.statusSubtitle}>{t('qanetDesc')}</Text>
+              <Text style={styles.statusDescription}>
+                {t('qanetExplanation')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.statusItem}>
+            <View
+              style={[
+                styles.statusIconContainer,
+                { backgroundColor: 'rgba(168, 85, 247, 0.2)' },
+              ]}
+            >
+              <MaterialIcons name="military-tech" size={24} color="#a855f7" />
+            </View>
+            <View style={styles.statusContent}>
+              <Text style={styles.statusTitle}>{t('muqantar')}</Text>
+              <Text style={styles.statusSubtitle}>{t('muqantarDesc')}</Text>
+              <Text style={styles.statusDescription}>
+                {t('muqantarExplanation')}
+              </Text>
+            </View>
+          </View>
+        </View>
 
         {/* Delete All Data */}
         <View style={styles.deleteDataCard}>
