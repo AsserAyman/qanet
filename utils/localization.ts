@@ -32,18 +32,18 @@ export const translations = {
     savingPrayerRecord: 'Saving Prayer Record...',
     savePrayerRecord: 'Save Prayer Record',
     shafWitr: "Shaf' & Witr",
-    shafWitrDesc: 'Quick preset for common Shaf\' & Witr surahs',
+    shafWitrDesc: "Quick preset for common Shaf' & Witr surahs",
 
     // Period Exemption
-    markAsPeriod: 'Mark as Period',
+    markAsPeriod: 'Mark as Monthly Cycle',
     periodExemptionDesc: 'Exempt these days from streak tracking',
     periodStartDate: 'Start Date',
     periodEndDate: 'End Date',
-    periodMarked: 'Period marked successfully',
-    periodDays: 'Period',
-    deletePeriod: 'Delete Period',
-    confirmDeletePeriod: 'Are you sure you want to delete this period?',
-    editPeriod: 'Edit Period',
+    periodMarked: 'Cycle marked successfully',
+    periodDays: 'Montlhy Cycle',
+    deletePeriod: 'Delete Cycle',
+    confirmDeletePeriod: 'Are you sure you want to delete this cycle?',
+    editPeriod: 'Edit Cycle',
 
     // History Screen
     prayerHistory: 'Prayer History',
@@ -141,7 +141,8 @@ export const translations = {
     verseCalculator: 'Calculator',
     lastThirdOfNight: 'Last Third Begins',
     lastThirdHadithTitle: 'The Virtue of the Last Third',
-    lastThirdHadithText: 'The Prophet (ﷺ) said: "Our Lord, the Blessed, the Superior, comes every night down on the nearest Heaven to us when the last third of the night remains, saying: \'Is there anyone to invoke Me, so that I may respond to invocation? Is there anyone to ask Me, so that I may grant him his request? Is there anyone seeking My forgiveness, so that I may forgive him?\'"',
+    lastThirdHadithText:
+      'The Prophet (ﷺ) said: "Our Lord, the Blessed, the Superior, comes every night down on the nearest Heaven to us when the last third of the night remains, saying: \'Is there anyone to invoke Me, so that I may respond to invocation? Is there anyone to ask Me, so that I may grant him his request? Is there anyone seeking My forgiveness, so that I may forgive him?\'"',
     locationPermissionDenied: 'Enable location to see prayer times',
 
     // Common
@@ -306,15 +307,15 @@ export const translations = {
     shafWitrDesc: 'إعداد سريع لسور الشفع والوتر الشائعة',
 
     // Period Exemption
-    markAsPeriod: 'تحديد فترة الحيض',
+    markAsPeriod: 'تحديد فترة الدورة الشهرية',
     periodExemptionDesc: 'إعفاء هذه الأيام من حساب المتابعة',
     periodStartDate: 'تاريخ البداية',
     periodEndDate: 'تاريخ النهاية',
     periodMarked: 'تم تحديد الفترة بنجاح',
-    periodDays: 'فترة حيض',
-    deletePeriod: 'حذف الفترة',
-    confirmDeletePeriod: 'هل أنت متأكدة من حذف هذه الفترة؟',
-    editPeriod: 'تعديل الفترة',
+    periodDays: 'دورة شهرية',
+    deletePeriod: 'حذف الدورة الشهرية',
+    confirmDeletePeriod: 'هل أنت متأكدة من حذف هذه الدورة؟',
+    editPeriod: 'تعديل الدورة الشهرية',
 
     // History Screen
     prayerHistory: 'تاريخ الصلاة',
@@ -411,7 +412,8 @@ export const translations = {
     verseCalculator: 'حاسبة الآيات',
     lastThirdOfNight: 'يبدأ الثلث الأخير',
     lastThirdHadithTitle: 'فضل الثلث الأخير من الليل',
-    lastThirdHadithText: 'قال النبي ﷺ:\n"يَنْزِلُ رَبُّنَا تَبَارَكَ وَتَعَالَى كُلَّ لَيْلَةٍ إِلَى السَّمَاءِ الدُّنْيَا حِينَ يَبْقَى ثُلُثُ اللَّيْلِ الآخِرُ يَقُولُ مَنْ يَدْعُونِي فَأَسْتَجِيبَ لَهُ مَنْ يَسْأَلُنِي فَأُعْطِيَهُ مَنْ يَسْتَغْفِرُنِي فَأَغْفِرَ لَهُ"',
+    lastThirdHadithText:
+      'قال النبي ﷺ:\n"يَنْزِلُ رَبُّنَا تَبَارَكَ وَتَعَالَى كُلَّ لَيْلَةٍ إِلَى السَّمَاءِ الدُّنْيَا حِينَ يَبْقَى ثُلُثُ اللَّيْلِ الآخِرُ يَقُولُ مَنْ يَدْعُونِي فَأَسْتَجِيبَ لَهُ مَنْ يَسْأَلُنِي فَأُعْطِيَهُ مَنْ يَسْتَغْفِرُنِي فَأَغْفِرَ لَهُ"',
     locationPermissionDenied: 'فعّل الموقع لرؤية أوقات الصلاة',
 
     // Common
