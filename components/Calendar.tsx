@@ -35,6 +35,8 @@ export function Calendar({ date, markedDates, onDateChange }: CalendarProps) {
         return '#22c55e';
       case 'Not Negligent':
         return '#3b82f6';
+      case 'Period':
+        return '#f472b6';
       default:
         return '#ef4444';
     }

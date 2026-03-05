@@ -34,6 +34,17 @@ export const translations = {
     shafWitr: "Shaf' & Witr",
     shafWitrDesc: 'Quick preset for common Shaf\' & Witr surahs',
 
+    // Period Exemption
+    markAsPeriod: 'Mark as Period',
+    periodExemptionDesc: 'Exempt these days from streak tracking',
+    periodStartDate: 'Start Date',
+    periodEndDate: 'End Date',
+    periodMarked: 'Period marked successfully',
+    periodDays: 'Period',
+    deletePeriod: 'Delete Period',
+    confirmDeletePeriod: 'Are you sure you want to delete this period?',
+    editPeriod: 'Edit Period',
+
     // History Screen
     prayerHistory: 'Prayer History',
     trackYourProgressAndConsistency: 'Track your progress and consistency',
@@ -293,6 +304,17 @@ export const translations = {
     savePrayerRecord: 'حفظ سجل الصلاة',
     shafWitr: 'الشفع والوتر',
     shafWitrDesc: 'إعداد سريع لسور الشفع والوتر الشائعة',
+
+    // Period Exemption
+    markAsPeriod: 'تحديد فترة الحيض',
+    periodExemptionDesc: 'إعفاء هذه الأيام من حساب المتابعة',
+    periodStartDate: 'تاريخ البداية',
+    periodEndDate: 'تاريخ النهاية',
+    periodMarked: 'تم تحديد الفترة بنجاح',
+    periodDays: 'فترة حيض',
+    deletePeriod: 'حذف الفترة',
+    confirmDeletePeriod: 'هل أنت متأكدة من حذف هذه الفترة؟',
+    editPeriod: 'تعديل الفترة',
 
     // History Screen
     prayerHistory: 'تاريخ الصلاة',

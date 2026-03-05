@@ -53,13 +53,15 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
         return '#22c55e';
       case 'Not Negligent':
         return '#3b82f6';
+      case 'Period':
+        return '#f472b6';
       default:
         return '#ef4444';
     }
   };
 
   const getColor = (status: string, verses: number) => {
-    if (verses === 0) return theme.border + '30';
+    if (verses === 0 && status !== 'Period') return theme.border + '30';
     return getStatusColor(status);
   };
 

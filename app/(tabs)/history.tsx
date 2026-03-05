@@ -16,6 +16,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
+  useExemptPeriods,
   useLastNightStats,
   useOfflineData,
   useOfflineStats,
@@ -37,6 +38,7 @@ export default function HistoryScreen() {
     error: statsError,
     refresh: refreshStats,
   } = useOfflineStats();
+  const { periods } = useExemptPeriods();
 
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [refreshing, setRefreshing] = React.useState(false);
@@ -56,6 +58,39 @@ export default function HistoryScreen() {
   }, [refreshLogs, refreshStats]);
 
   const { gradientColors } = useLastNightStats(themedColorsEnabled);
+
+  // Merge prayer statuses + period dates for calendar display
+  const calendarMarkedDates = React.useMemo(() => {
+    const merged = { ...monthlyData };
+    for (const period of periods) {
+      const start = new Date(period.start_date + 'T00:00:00Z');
+      const end = new Date(period.end_date + 'T00:00:00Z');
+      for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        // Only mark as period if there's no prayer log for that day
+        if (!merged[dateStr]) {
+          merged[dateStr] = 'Period';
+        }
+      }
+    }
+    return merged;
+  }, [monthlyData, periods]);
+
+  // Merge period dates into yearly graph data
+  const yearlyGraphData = React.useMemo(() => {
+    const merged = { ...yearlyData };
+    for (const period of periods) {
+      const start = new Date(period.start_date + 'T00:00:00Z');
+      const end = new Date(period.end_date + 'T00:00:00Z');
+      for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        if (!merged[dateStr]) {
+          merged[dateStr] = { verses: 0, status: 'Period' };
+        }
+      }
+    }
+    return merged;
+  }, [yearlyData, periods]);
 
   const totalNights = React.useMemo(() => {
     return stats.reduce((acc, curr) => acc + curr.count, 0);
@@ -151,10 +186,10 @@ export default function HistoryScreen() {
 
         <Calendar
           date={selectedDate}
-          markedDates={monthlyData}
+          markedDates={calendarMarkedDates}
           onDateChange={setSelectedDate}
         />
-        <YearlyGraph data={yearlyData} />
+        <YearlyGraph data={yearlyGraphData} />
 
         <View style={{ height: 100 }} />
       </ScrollView>

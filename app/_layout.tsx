@@ -170,6 +170,13 @@ function AppContent() {
           }}
         />
         <Stack.Screen
+          name="edit-period/[id]"
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="all-history"
           options={{
             headerShown: false,

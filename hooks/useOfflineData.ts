@@ -191,6 +191,57 @@ export function useOfflineStats() {
   };
 }
 
+export function useExemptPeriods() {
+  const queryClient = useQueryClient();
+
+  const {
+    data: periods = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['exemptPeriods'],
+    queryFn: () => offlineDataManager.getExemptPeriods(),
+  });
+
+  const createPeriodMutation = useMutation({
+    mutationFn: ({ startDate, endDate }: { startDate: string; endDate: string }) =>
+      offlineDataManager.createExemptPeriod(startDate, endDate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exemptPeriods'] });
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
+    },
+  });
+
+  const updatePeriodMutation = useMutation({
+    mutationFn: ({ id, startDate, endDate }: { id: string; startDate: string; endDate: string }) =>
+      offlineDataManager.updateExemptPeriod(id, startDate, endDate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exemptPeriods'] });
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
+    },
+  });
+
+  const deletePeriodMutation = useMutation({
+    mutationFn: (id: string) => offlineDataManager.deleteExemptPeriod(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exemptPeriods'] });
+      queryClient.invalidateQueries({ queryKey: ['offlineStats'] });
+    },
+  });
+
+  return {
+    periods,
+    loading,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    createPeriod: (startDate: string, endDate: string) =>
+      createPeriodMutation.mutateAsync({ startDate, endDate }),
+    updatePeriod: (id: string, startDate: string, endDate: string) =>
+      updatePeriodMutation.mutateAsync({ id, startDate, endDate }),
+    deletePeriod: deletePeriodMutation.mutateAsync,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['exemptPeriods'] }),
+  };
+}
+
 /**
  * Helper function to calculate total ayahs from recitations
  */

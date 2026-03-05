@@ -173,6 +173,10 @@ class SyncEngine {
   }
 
   private async syncCreateOperation(operation: SyncOperation): Promise<void> {
+    if (operation.table_name === TABLES.EXEMPT_PERIODS) {
+      return this.syncCreateExemptPeriod(operation);
+    }
+
     // Read the LATEST data from database instead of using potentially stale operation.data
     const currentLog = await sqliteManager.getPrayerLogById(operation.record_id);
 
@@ -240,6 +244,10 @@ class SyncEngine {
   }
 
   private async syncUpdateOperation(operation: SyncOperation): Promise<void> {
+    if (operation.table_name === TABLES.EXEMPT_PERIODS) {
+      return this.syncUpdateExemptPeriod(operation);
+    }
+
     // Get the current local record
     const currentLog = await sqliteManager.getPrayerLogById(operation.record_id);
 
@@ -310,37 +318,123 @@ class SyncEngine {
   }
 
   private async syncDeleteOperation(operation: SyncOperation): Promise<void> {
-    // Get the current local record to check if it exists
-    const currentLog = await sqliteManager.getPrayerLogById(operation.record_id);
+    const tableName = operation.table_name === TABLES.EXEMPT_PERIODS
+      ? 'exempt_periods'
+      : 'prayer_logs';
 
     try {
-      // Delete from server (recitations will cascade delete)
       const { error } = await supabase
-        .from('prayer_logs')
+        .from(tableName)
         .delete()
         .eq('id', operation.record_id);
 
       if (error) throw error;
 
-      console.log(`[Sync] DELETE successful for ${operation.record_id}`);
+      console.log(`[Sync] DELETE successful for ${operation.record_id} from ${tableName}`);
     } catch (error: any) {
       throw error;
     }
   }
 
+  private async syncCreateExemptPeriod(operation: SyncOperation): Promise<void> {
+    const period = await sqliteManager.getExemptPeriodById(operation.record_id);
+
+    if (!period) {
+      console.log(`[Sync] Skipping CREATE for exempt period ${operation.record_id} - not found`);
+      return;
+    }
+
+    if (period.is_deleted) {
+      console.log(`[Sync] Skipping CREATE for exempt period ${operation.record_id} - deleted`);
+      return;
+    }
+
+    if (period.sync_status === SYNC_STATUS.SYNCED) {
+      console.log(`[Sync] Skipping CREATE for exempt period ${operation.record_id} - already synced`);
+      return;
+    }
+
+    const customUserId = await this.ensureCustomUserExists();
+
+    const { error } = await supabase
+      .from('exempt_periods')
+      .insert({
+        id: period.id,
+        user_id: customUserId,
+        start_date: period.start_date,
+        end_date: period.end_date,
+        created_at: period.created_at,
+        updated_at: period.updated_at,
+      });
+
+    if (error) throw error;
+
+    await sqliteManager.updateExemptPeriod(operation.record_id, {
+      sync_status: SYNC_STATUS.SYNCED,
+    });
+
+    console.log(`[Sync] CREATE successful for exempt period ${operation.record_id}`);
+  }
+
+  private async syncUpdateExemptPeriod(operation: SyncOperation): Promise<void> {
+    const period = await sqliteManager.getExemptPeriodById(operation.record_id);
+
+    if (!period) {
+      console.log(`[Sync] Skipping UPDATE for exempt period ${operation.record_id} - not found`);
+      return;
+    }
+
+    // Skip if there's a pending CREATE for this record
+    const pendingOps = await sqliteManager.getPendingSyncOperations();
+    const hasPendingCreate = pendingOps.some(
+      op => op.record_id === operation.record_id && op.operation === 'create'
+    );
+    if (hasPendingCreate) {
+      console.log(`[Sync] Skipping UPDATE for exempt period ${operation.record_id} - pending CREATE`);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('exempt_periods')
+      .update({
+        start_date: period.start_date,
+        end_date: period.end_date,
+        updated_at: period.updated_at,
+      })
+      .eq('id', period.id);
+
+    if (error) throw error;
+
+    await sqliteManager.updateExemptPeriod(operation.record_id, {
+      sync_status: SYNC_STATUS.SYNCED,
+    });
+
+    console.log(`[Sync] UPDATE successful for exempt period ${operation.record_id}`);
+  }
+
   private async pullServerChanges(): Promise<void> {
     const userId = await this.getCurrentUserId();
+
+    // Pull prayer logs first (critical), then exempt periods (non-blocking)
+    await this.pullPrayerLogs(userId);
+    try {
+      await this.pullExemptPeriods(userId);
+    } catch (err: any) {
+      // Gracefully skip if table doesn't exist yet on server
+      console.warn('[Sync] Skipping exempt periods pull:', err?.message);
+    }
+  }
+
+  private async pullPrayerLogs(userId: string): Promise<void> {
     const metadata = await sqliteManager.getSyncMetadata(TABLES.PRAYER_LOGS);
 
     let lastSync = metadata?.last_sync;
     if (!lastSync) {
-      // First sync - get all data from last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       lastSync = thirtyDaysAgo.toISOString();
     }
 
-    // Fetch changes from server since last sync
     const { data: serverLogs, error } = await supabase
       .from('prayer_logs')
       .select(`
@@ -357,16 +451,71 @@ class SyncEngine {
 
     if (error) throw error;
 
-    // Process server changes
     for (const serverLog of serverLogs || []) {
       await this.processServerLog(serverLog);
     }
 
-    // Update sync metadata
     await sqliteManager.updateSyncMetadata({
       table_name: TABLES.PRAYER_LOGS,
       last_sync: new Date().toISOString(),
     });
+  }
+
+  private async pullExemptPeriods(userId: string): Promise<void> {
+    const metadata = await sqliteManager.getSyncMetadata(TABLES.EXEMPT_PERIODS);
+
+    let lastSync = metadata?.last_sync;
+    if (!lastSync) {
+      const yearAgo = new Date();
+      yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+      lastSync = yearAgo.toISOString();
+    }
+
+    const { data: serverPeriods, error } = await supabase
+      .from('exempt_periods')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('updated_at', lastSync)
+      .order('updated_at', { ascending: true });
+
+    if (error) throw error;
+
+    for (const serverPeriod of serverPeriods || []) {
+      await this.processServerExemptPeriod(serverPeriod, userId);
+    }
+
+    await sqliteManager.updateSyncMetadata({
+      table_name: TABLES.EXEMPT_PERIODS,
+      last_sync: new Date().toISOString(),
+    });
+  }
+
+  private async processServerExemptPeriod(serverPeriod: any, userId: string): Promise<void> {
+    const existing = await sqliteManager.getExemptPeriodById(serverPeriod.id);
+
+    if (existing) {
+      const serverUpdated = new Date(serverPeriod.updated_at);
+      const localUpdated = new Date(existing.updated_at);
+
+      if (serverUpdated > localUpdated) {
+        await sqliteManager.updateExemptPeriod(existing.id, {
+          start_date: serverPeriod.start_date,
+          end_date: serverPeriod.end_date,
+          updated_at: serverPeriod.updated_at,
+          sync_status: SYNC_STATUS.SYNCED,
+        });
+      }
+    } else {
+      await sqliteManager.insertExemptPeriod({
+        user_id: userId,
+        start_date: serverPeriod.start_date,
+        end_date: serverPeriod.end_date,
+        created_at: serverPeriod.created_at,
+        updated_at: serverPeriod.updated_at,
+        sync_status: SYNC_STATUS.SYNCED,
+        is_deleted: false,
+      });
+    }
   }
 
   private async processServerLog(serverLog: any): Promise<void> {

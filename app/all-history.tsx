@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LocalPrayerLog } from '../utils/database/schema';
+import { LocalExemptPeriod, LocalPrayerLog } from '../utils/database/schema';
 
 import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,6 +20,7 @@ import {
   useOfflineData,
   useOfflineStats,
   usePrayerLogs,
+  useExemptPeriods,
   calculateTotalAyahs,
 } from '../hooks/useOfflineData';
 import { getVerseStatus, formatLogSummary } from '../utils/quranData';
@@ -34,6 +35,7 @@ export default function AllHistoryScreen() {
     loading: logsLoading,
     refresh: refreshLogs,
   } = usePrayerLogs();
+  const { periods } = useExemptPeriods();
   const { refresh: refreshStats } = useOfflineStats();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -58,6 +60,34 @@ export default function AllHistoryScreen() {
   const handleEdit = React.useCallback((log: LocalPrayerLog) => {
     router.push(`/edit-prayer/${log.id}`);
   }, []);
+
+  const handleEditPeriod = React.useCallback(
+    (period: LocalExemptPeriod) => {
+      router.push(`/edit-period/${period.id}`);
+    },
+    [],
+  );
+
+  type TimelineItem =
+    | { type: 'prayer'; data: LocalPrayerLog; sortDate: string }
+    | { type: 'period'; data: LocalExemptPeriod; sortDate: string };
+
+  const allItems: TimelineItem[] = React.useMemo(() => {
+    const items: TimelineItem[] = [
+      ...logs.map((log) => ({
+        type: 'prayer' as const,
+        data: log,
+        sortDate: log.prayer_date,
+      })),
+      ...periods.map((p) => ({
+        type: 'period' as const,
+        data: p,
+        sortDate: p.start_date,
+      })),
+    ];
+    items.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+    return items;
+  }, [logs, periods]);
 
   const { gradientColors } = useLastNightStats(themedColorsEnabled);
 
@@ -115,12 +145,69 @@ export default function AllHistoryScreen() {
         }
       >
         <View style={styles.historyCard}>
-          {logs.map((log, index, arr) => {
+          {allItems.map((item, index) => {
+            if (item.type === 'period') {
+              const period = item.data;
+              const startDate = new Date(period.start_date + 'T00:00:00');
+              const endDate = new Date(period.end_date + 'T00:00:00');
+              const periodDateLabel = `${startDate.toLocaleDateString(
+                isRTL ? 'ar-SA' : 'en-US',
+                { month: 'short', day: 'numeric' },
+              )} — ${endDate.toLocaleDateString(
+                isRTL ? 'ar-SA' : 'en-US',
+                { month: 'short', day: 'numeric' },
+              )}`;
+
+              return (
+                <TouchableOpacity
+                  key={`period-${period.id}`}
+                  style={[
+                    styles.historyItem,
+                    index === allItems.length - 1 && { borderBottomWidth: 0 },
+                    { marginTop: index === 0 ? 8 : 16 },
+                  ]}
+                  onPress={() => handleEditPeriod(period)}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.historyIconContainer,
+                      { backgroundColor: 'rgba(244,114,182,0.15)' },
+                    ]}
+                  >
+                    <Feather name="calendar" size={20} color="#f472b6" />
+                  </View>
+                  <View style={styles.historyContent}>
+                    <Text style={styles.historyRange}>{t('periodDays')}</Text>
+                    <Text style={styles.historyVerses}>{periodDateLabel}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    {period.sync_status !== 'synced' && (
+                      <View
+                        style={[
+                          styles.syncIndicator,
+                          { backgroundColor: getSyncStatusColor(period.sync_status) },
+                        ]}
+                      />
+                    )}
+                    <Feather
+                      name={isRTL ? 'chevron-left' : 'chevron-right'}
+                      size={16}
+                      color="rgba(255,255,255,0.3)"
+                    />
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+
+            const log = item.data;
             const dateObj = new Date(log.prayer_date);
             const dateStr = dateObj.toDateString();
             const showDate =
               index === 0 ||
-              dateStr !== new Date(arr[index - 1].prayer_date).toDateString();
+              (allItems[index - 1].type === 'prayer'
+                ? dateStr !== new Date((allItems[index - 1].data as LocalPrayerLog).prayer_date).toDateString()
+                : true);
 
             // Calculate total verses for this date (from all logs)
             const dailyTotal = logs
@@ -174,7 +261,7 @@ export default function AllHistoryScreen() {
                 <TouchableOpacity
                   style={[
                     styles.historyItem,
-                    index === logs.length - 1 && { borderBottomWidth: 0 },
+                    index === allItems.length - 1 && { borderBottomWidth: 0 },
                   ]}
                   onPress={() => handleEdit(log)}
                   activeOpacity={0.7}
@@ -222,7 +309,7 @@ export default function AllHistoryScreen() {
               </React.Fragment>
             );
           })}
-          {logs.length === 0 && (
+          {allItems.length === 0 && (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>{t('noHistoryYet')}</Text>
             </View>

@@ -1,10 +1,15 @@
 import * as SQLite from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
-import { LocalPrayerLog, LocalRecitation, SyncMetadata, SyncOperation, TABLES } from './schema';
+import { LocalExemptPeriod, LocalPrayerLog, LocalRecitation, SyncMetadata, SyncOperation, TABLES } from './schema';
 
 // Column whitelists for SQL injection protection
 const PRAYER_LOG_COLUMNS = [
   'user_id', 'prayer_date', 'updated_at',
+  'sync_status', 'is_deleted'
+] as const;
+
+const EXEMPT_PERIOD_COLUMNS = [
+  'user_id', 'start_date', 'end_date', 'updated_at',
   'sync_status', 'is_deleted'
 ] as const;
 
@@ -58,6 +63,20 @@ class SQLiteManager {
       );
     `);
 
+    // Exempt periods table (for streak calculation)
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS ${TABLES.EXEMPT_PERIODS} (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        sync_status TEXT DEFAULT 'pending',
+        is_deleted INTEGER DEFAULT 0
+      );
+    `);
+
     // Sync operations queue (simplified)
     await this.db.execAsync(`
       CREATE TABLE IF NOT EXISTS ${TABLES.SYNC_OPERATIONS} (
@@ -86,6 +105,8 @@ class SQLiteManager {
       CREATE INDEX IF NOT EXISTS idx_prayer_logs_sync_status ON ${TABLES.PRAYER_LOGS}(sync_status);
       CREATE INDEX IF NOT EXISTS idx_recitations_prayer_log_id ON ${TABLES.RECITATIONS}(prayer_log_id);
       CREATE INDEX IF NOT EXISTS idx_sync_operations_created_at ON ${TABLES.SYNC_OPERATIONS}(created_at);
+      CREATE INDEX IF NOT EXISTS idx_exempt_periods_user_id ON ${TABLES.EXEMPT_PERIODS}(user_id);
+      CREATE INDEX IF NOT EXISTS idx_exempt_periods_dates ON ${TABLES.EXEMPT_PERIODS}(start_date, end_date);
     `);
 
     console.log('Database tables created successfully');
@@ -302,6 +323,119 @@ class SQLiteManager {
   }
 
   // =====================================================
+  // Exempt Period Operations
+  // =====================================================
+
+  async insertExemptPeriod(
+    period: Omit<LocalExemptPeriod, 'id'>
+  ): Promise<LocalExemptPeriod> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const id = await this.generateUUID();
+
+    await this.db.runAsync(
+      `INSERT INTO ${TABLES.EXEMPT_PERIODS} (
+        id, user_id, start_date, end_date, created_at, updated_at,
+        sync_status, is_deleted
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        period.user_id,
+        period.start_date,
+        period.end_date,
+        period.created_at,
+        period.updated_at,
+        period.sync_status,
+        period.is_deleted ? 1 : 0,
+      ]
+    );
+
+    return { ...period, id };
+  }
+
+  async getExemptPeriods(
+    userId: string,
+    limit: number = 100
+  ): Promise<LocalExemptPeriod[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const rows = await this.db.getAllAsync(
+      `SELECT * FROM ${TABLES.EXEMPT_PERIODS}
+       WHERE user_id = ? AND is_deleted = 0
+       ORDER BY start_date DESC
+       LIMIT ?`,
+      [userId, limit]
+    );
+
+    return rows.map((row: any) => ({
+      id: row.id,
+      user_id: row.user_id,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      sync_status: row.sync_status,
+      is_deleted: Boolean(row.is_deleted),
+    }));
+  }
+
+  async getExemptPeriodById(id: string): Promise<LocalExemptPeriod | null> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.getFirstAsync(
+      `SELECT * FROM ${TABLES.EXEMPT_PERIODS} WHERE id = ?`,
+      [id]
+    ) as any;
+
+    if (!result) return null;
+
+    return {
+      id: result.id,
+      user_id: result.user_id,
+      start_date: result.start_date,
+      end_date: result.end_date,
+      created_at: result.created_at,
+      updated_at: result.updated_at,
+      sync_status: result.sync_status,
+      is_deleted: Boolean(result.is_deleted),
+    };
+  }
+
+  async updateExemptPeriod(
+    id: string,
+    updates: Partial<Omit<LocalExemptPeriod, 'id'>>
+  ): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const validKeys = Object.keys(updates).filter(key =>
+      EXEMPT_PERIOD_COLUMNS.includes(key as any)
+    );
+
+    if (validKeys.length === 0) return;
+
+    const setClause = validKeys.map((key) => `${key} = ?`).join(', ');
+    const values = validKeys.map(key => {
+      const val = updates[key as keyof typeof updates];
+      return val === undefined ? null : val;
+    }) as SQLite.SQLiteBindValue[];
+    values.push(id);
+
+    await this.db.runAsync(
+      `UPDATE ${TABLES.EXEMPT_PERIODS} SET ${setClause} WHERE id = ?`,
+      values
+    );
+  }
+
+  async deleteExemptPeriod(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.runAsync(
+      `UPDATE ${TABLES.EXEMPT_PERIODS} SET is_deleted = 1, updated_at = ? WHERE id = ?`,
+      [new Date().toISOString(), id]
+    );
+  }
+
+  // =====================================================
   // Sync Operations
   // =====================================================
 
@@ -433,6 +567,7 @@ class SQLiteManager {
 
     await this.db.execAsync(`DELETE FROM ${TABLES.RECITATIONS}`);
     await this.db.execAsync(`DELETE FROM ${TABLES.PRAYER_LOGS}`);
+    await this.db.execAsync(`DELETE FROM ${TABLES.EXEMPT_PERIODS}`);
     await this.db.execAsync(`DELETE FROM ${TABLES.SYNC_OPERATIONS}`);
     await this.db.execAsync(`DELETE FROM ${TABLES.SYNC_METADATA}`);
   }

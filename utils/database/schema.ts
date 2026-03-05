@@ -45,9 +45,22 @@ export interface SyncMetadata {
   last_sync: string;
 }
 
+// Exempt period (for streak calculation — skips these date ranges)
+export interface LocalExemptPeriod {
+  id: string;
+  user_id: string;
+  start_date: string;           // YYYY-MM-DD format
+  end_date: string;             // YYYY-MM-DD format
+  created_at: string;
+  updated_at: string;
+  sync_status: 'pending' | 'synced' | 'conflict' | 'error';
+  is_deleted: boolean;
+}
+
 export const TABLES = {
   PRAYER_LOGS: 'prayer_logs',
   RECITATIONS: 'recitations',
+  EXEMPT_PERIODS: 'exempt_periods',
   SYNC_OPERATIONS: 'sync_operations',
   SYNC_METADATA: 'sync_metadata',
 } as const;

@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -29,7 +29,8 @@ import { PickerModal, PickerOption } from '../components/PickerModal';
 import { SelectField } from '../components/SelectField';
 import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { usePrayerLogs } from '../hooks/useOfflineData';
+import { useExemptPeriods, usePrayerLogs } from '../hooks/useOfflineData';
+import { onboardingManager } from '../utils/onboarding';
 import {
   calculateVersesBetween,
   getGradientColors,
@@ -45,10 +46,24 @@ export default function AddPrayerScreen() {
   const { themedColorsEnabled } = useTheme();
   const insets = useSafeAreaInsets();
   const { createLog } = usePrayerLogs();
+  const { createPeriod } = useExemptPeriods();
+
+  // Gender state — only show period option for female users
+  const [isMale, setIsMale] = useState<boolean | null>(null);
+  useEffect(() => {
+    onboardingManager.getOnboardingData().then(data => {
+      setIsMale(data?.isMale ?? true);
+    });
+  }, []);
 
   // Form state
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Period exemption state
+  const [isPeriodMode, setIsPeriodMode] = useState(false);
+  const [periodEndDate, setPeriodEndDate] = useState(new Date());
+  const [showPeriodEndPicker, setShowPeriodEndPicker] = useState(false);
   
   const [ranges, setRanges] = useState<Array<{
     id: string;
@@ -195,15 +210,21 @@ export default function AddPrayerScreen() {
       setLoading(true);
       setError(null);
 
-      const recitations = ranges.map(range => ({
-        start_ayah: surahAyahToGlobalIndex(range.startSurah, range.startAyah),
-        end_ayah: surahAyahToGlobalIndex(range.endSurah, range.endAyah),
-      }));
+      if (isPeriodMode) {
+        const startStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const endStr = `${periodEndDate.getFullYear()}-${String(periodEndDate.getMonth() + 1).padStart(2, '0')}-${String(periodEndDate.getDate()).padStart(2, '0')}`;
+        await createPeriod(startStr, endStr);
+      } else {
+        const recitations = ranges.map(range => ({
+          start_ayah: surahAyahToGlobalIndex(range.startSurah, range.startAyah),
+          end_ayah: surahAyahToGlobalIndex(range.endSurah, range.endAyah),
+        }));
 
-      await createLog({
-        prayer_date: date,
-        recitations,
-      });
+        await createLog({
+          prayer_date: date,
+          recitations,
+        });
+      }
 
       // Success Feedback
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -321,8 +342,8 @@ export default function AddPrayerScreen() {
           </View>
         )}
 
-        {/* Status Card */}
-        <View style={styles.statusCard}>
+        {/* Status Card — hidden in period mode */}
+        {!isPeriodMode && <View style={styles.statusCard}>
           <View style={styles.statusRow}>
             <Image
               source={require('../assets/images/moon-image.png')}
@@ -344,10 +365,10 @@ export default function AddPrayerScreen() {
             <Text style={styles.totalVersesNumber}>{totalVerses}</Text>
             <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
           </View>
-        </View>
+        </View>}
 
-        {/* Date Selection */}
-        <View style={styles.card}>
+        {/* Date Selection — hidden in period mode (period card has its own date pickers) */}
+        {!isPeriodMode && <View style={styles.card}>
           <View style={styles.cardHeader}>
             <MaterialIcons
               name="calendar-today"
@@ -376,10 +397,81 @@ export default function AddPrayerScreen() {
               color="rgba(255,255,255,0.5)"
             />
           </TouchableOpacity>
-        </View>
+        </View>}
+
+        {/* Period Exemption — only for female users */}
+        {isMale === false && (
+          <View style={styles.card}>
+            <View style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: isPeriodMode ? 16 : 0 }]}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
+                <Ionicons name="calendar-outline" size={20} color="rgba(255,255,255,0.7)" />
+                <View>
+                  <Text style={styles.cardTitle}>{t('markAsPeriod')}</Text>
+                  {!isPeriodMode && (
+                    <Text style={styles.shafWitrDesc}>{t('periodExemptionDesc')}</Text>
+                  )}
+                </View>
+              </View>
+              <Switch
+                value={isPeriodMode}
+                onValueChange={(val) => {
+                  setIsPeriodMode(val);
+                  if (val) {
+                    // Default end date to 7 days from start
+                    const end = new Date(date);
+                    end.setDate(end.getDate() + 6);
+                    setPeriodEndDate(end);
+                  }
+                }}
+                trackColor={{ false: '#767577', true: '#f472b6' }}
+                thumbColor={isPeriodMode ? '#ffffff' : '#f4f3f4'}
+                style={Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}}
+              />
+            </View>
+
+            {isPeriodMode && (
+              <View style={{ gap: 12 }}>
+                <View>
+                  <Text style={styles.sectionLabel}>{t('periodStartDate')}</Text>
+                  <TouchableOpacity
+                    style={styles.dateDisplay}
+                    onPress={() => setShowDatePicker(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.dateText}>
+                      {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                    <MaterialIcons name="edit" size={16} color="rgba(255,255,255,0.5)" />
+                  </TouchableOpacity>
+                </View>
+                <View>
+                  <Text style={styles.sectionLabel}>{t('periodEndDate')}</Text>
+                  <TouchableOpacity
+                    style={styles.dateDisplay}
+                    onPress={() => setShowPeriodEndPicker(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.dateText}>
+                      {periodEndDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                    <MaterialIcons name="edit" size={16} color="rgba(255,255,255,0.5)" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Shaf' & Witr Preset */}
-        <View style={styles.card}>
+        {!isPeriodMode && <View style={styles.card}>
           <View style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: 0 }]}>
             <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
               <Ionicons name="moon-outline" size={20} color="rgba(255,255,255,0.7)" />
@@ -459,8 +551,9 @@ export default function AddPrayerScreen() {
               })}
             </View>
           )}
-        </View>
+        </View>}
 
+        {!isPeriodMode && <>
         {/* Reading Range Inputs */}
         {ranges.filter(r => !r.isShafWitr).map((range, index) => (
           <View key={range.id} style={styles.card}>
@@ -566,6 +659,7 @@ export default function AddPrayerScreen() {
           <Ionicons name="add" size={20} color="#ffffff" />
           <Text style={styles.addRangeText}>{t('addAnotherRange')}</Text>
         </TouchableOpacity>
+        </>}
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
@@ -581,6 +675,7 @@ export default function AddPrayerScreen() {
           <TouchableOpacity
             style={[
               styles.saveButton,
+              isPeriodMode && { backgroundColor: '#f472b6', shadowColor: '#f472b6' },
               (loading || successAnim.value > 0) && styles.saveButtonDisabled,
             ]}
             onPress={handleSave}
@@ -595,7 +690,7 @@ export default function AddPrayerScreen() {
               style={[styles.saveButtonText, buttonTextStyle]}
               numberOfLines={1}
             >
-              {t('savePrayerRecord')}
+              {isPeriodMode ? t('markAsPeriod') : t('savePrayerRecord')}
             </Animated.Text>
           </TouchableOpacity>
         </View>
@@ -687,6 +782,42 @@ export default function AddPrayerScreen() {
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
+              textColor="#ffffff"
+              themeVariant="dark"
+              style={styles.datePickerInModal}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Period End Date Picker Modal */}
+      <Modal
+        visible={showPeriodEndPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPeriodEndPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.datePickerModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPeriodEndPicker(false)}
+        >
+          <View style={styles.datePickerModalContent}>
+            <View style={styles.datePickerHeader}>
+              <Text style={styles.datePickerTitle}>{t('periodEndDate')}</Text>
+              <TouchableOpacity onPress={() => setShowPeriodEndPicker(false)}>
+                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={periodEndDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(_event: any, selectedDate?: Date) => {
+                if (Platform.OS === 'android') setShowPeriodEndPicker(false);
+                if (selectedDate) setPeriodEndDate(selectedDate);
+              }}
+              minimumDate={date}
               textColor="#ffffff"
               themeVariant="dark"
               style={styles.datePickerInModal}
