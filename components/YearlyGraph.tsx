@@ -157,36 +157,6 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
         </ScrollView>
       </View>
 
-      <View style={styles.legend}>
-        <Text style={styles.legendText}>{t('less')}</Text>
-        <View style={styles.legendItems}>
-          <View
-            style={[
-              styles.legendItem,
-              { backgroundColor: theme.border + '30' },
-            ]}
-          />
-          <View
-            style={[
-              styles.legendItem,
-              { backgroundColor: getStatusColor('Not Negligent') },
-            ]}
-          />
-          <View
-            style={[
-              styles.legendItem,
-              { backgroundColor: getStatusColor('Qanet') },
-            ]}
-          />
-          <View
-            style={[
-              styles.legendItem,
-              { backgroundColor: getStatusColor('Muqantar') },
-            ]}
-          />
-        </View>
-        <Text style={styles.legendText}>{t('more')}</Text>
-      </View>
     </View>
   );
 }
@@ -242,25 +212,5 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
     },
     cell: {
       borderRadius: 2,
-    },
-    legend: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-    },
-    legendItems: {
-      flexDirection: 'row',
-      gap: 4,
-    },
-    legendItem: {
-      width: 12,
-      height: 12,
-      borderRadius: 2,
-    },
-    legendText: {
-      fontSize: 12,
-      color: 'rgba(255,255,255,0.6)',
-      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });
