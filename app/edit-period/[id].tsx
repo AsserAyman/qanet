@@ -135,7 +135,7 @@ export default function EditPeriodScreen() {
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <Ionicons name="calendar" size={32} color="#f472b6" />
-          <Text style={styles.summaryNumber}>{dayCount}</Text>
+          <Text style={styles.summaryNumber}>{dayCount} Days</Text>
           <Text style={styles.summaryLabel}>{t('periodDays')}</Text>
         </View>
 
