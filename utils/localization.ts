@@ -274,6 +274,13 @@ export const translations = {
     deleteDataRequiresInternet: 'You must be online to delete your data',
     deleteDataError: 'Failed to delete data. Please try again.',
     restartingApp: 'Restarting...',
+
+    // Quran Divisions
+    juzUnit: "Juz'",
+    hizbUnit: 'Hizb',
+    rubUnit: "Rub'",
+    estTimeUnit: 'min',
+    quranDivisions: 'Quran Divisions',
   },
   ar: {
     // Navigation
@@ -548,5 +555,12 @@ export const translations = {
     deleteDataRequiresInternet: 'يجب أن تكون متصلاً بالإنترنت لحذف بياناتك',
     deleteDataError: 'فشل حذف البيانات. يرجى المحاولة مرة أخرى.',
     restartingApp: 'جاري إعادة التشغيل...',
+
+    // Quran Divisions
+    juzUnit: 'جزء',
+    hizbUnit: 'حزب',
+    rubUnit: 'ربع',
+    estTimeUnit: 'دقيقة',
+    quranDivisions: 'أقسام القرآن',
   },
 };

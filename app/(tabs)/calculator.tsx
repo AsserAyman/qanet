@@ -32,6 +32,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLastNightStats, usePrayerLogs } from '../../hooks/useOfflineData';
 import {
+  calculateQuranDivisions,
   calculateVerseRange,
   calculateVersesBetween,
   getVerseStatus,
@@ -190,6 +191,29 @@ export default function CalculatorScreen() {
         };
 
   const status = getVerseStatus(range.totalAyahs);
+
+  const divisions = calculateQuranDivisions(
+    range.startSurah,
+    range.startAyah,
+    range.endSurah,
+    range.endAyah,
+  );
+
+  const formatDivision = (value: number) =>
+    value < 0.1 ? '<0.1' : value.toFixed(1).replace(/\.0$/, '');
+
+  const formatTime = (minutes: number) => {
+    const rounded = Math.floor(minutes / 5) * 5;
+    if (rounded < 60) return `~${rounded} ${t('estTimeUnit')}`;
+    const h = Math.floor(rounded / 60);
+    const m = rounded % 60;
+    return m > 0 ? `~${h}h ${m}${t('estTimeUnit')}` : `~${h}h`;
+  };
+
+  const wholeJuz = Math.floor(divisions.rub / 8);
+  const remainingRub = divisions.rub % 8;
+  const showJuz = wholeJuz >= 1;
+  const showRemainingRub = remainingRub >= 0.1;
 
   const styles = createStyles(isRTL);
 
@@ -405,6 +429,31 @@ export default function CalculatorScreen() {
             <Text style={styles.rangeResultNumber}>{range.totalAyahs}</Text>
             <Text style={styles.rangeResultLabel}>{t('verses')}</Text>
           </View>
+          <View style={styles.divisionsRow}>
+            <View style={styles.divisionLeft}>
+              {showJuz && (
+                <View style={styles.divisionChip}>
+                  <Text style={styles.divisionValue}>{wholeJuz}</Text>
+                  <Text style={styles.divisionLabel}>{t('juzUnit')}</Text>
+                </View>
+              )}
+              {showJuz && showRemainingRub && (
+                <Text style={styles.divisionAmpersand}>&</Text>
+              )}
+              {(!showJuz || showRemainingRub) && (
+                <View style={styles.divisionChip}>
+                  <Text style={styles.divisionValue}>
+                    {formatDivision(showJuz ? remainingRub : divisions.rub)}
+                  </Text>
+                  <Text style={styles.divisionLabel}>{t('rubUnit')}</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.divisionDivider} />
+            <View style={styles.divisionTimeChip}>
+              <Text style={styles.divisionValue}>{formatTime(divisions.minutes)}</Text>
+            </View>
+          </View>
         </View>
 
         <View style={{ height: 100 }} />
@@ -553,6 +602,50 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 16,
       color: 'rgba(255,255,255,0.5)',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    divisionsRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255,255,255,0.08)',
+      alignItems: 'center',
+    },
+    divisionLeft: {
+      flex: 2,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      justifyContent: 'space-evenly',
+    },
+    divisionChip: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 2,
+    },
+    divisionTimeChip: {
+      flex: 2,
+      alignItems: 'center',
+    },
+    divisionValue: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: '#ffffff',
+    },
+    divisionLabel: {
+      fontSize: 11,
+      color: 'rgba(255,255,255,0.4)',
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    divisionDivider: {
+      width: 1,
+      height: 28,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+    divisionAmpersand: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.4)',
+      alignSelf: 'center',
+      paddingBottom: 10,
     },
     controlsContainer: {
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
