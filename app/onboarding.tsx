@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
     useState<ReadingVolume | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const totalPages = 5;
+  const totalPages = 6;
 
   const gradientColors = useMemo(
     () => ['#020617', '#172554', '#1e1b4b'] as const,
@@ -83,8 +83,9 @@ export default function OnboardingScreen() {
 
   const canProceed = () => {
     if (currentPage === 0) return true; // Language page
-    if (currentPage === 1) return selectedGender !== null; // Gender page
-    if (currentPage === 2) return selectedReadingVolume !== null; // Reading volume page
+    if (currentPage === 1) return true; // Purpose page
+    if (currentPage === 2) return selectedGender !== null; // Gender page
+    if (currentPage === 3) return selectedReadingVolume !== null; // Reading volume page
     return true;
   };
 
@@ -209,6 +210,31 @@ export default function OnboardingScreen() {
             )}
           </TouchableOpacity>
         </View>
+      </View>
+    </View>
+  );
+
+  const renderPurposePage = () => (
+    <View style={[styles.page, { width: SCREEN_WIDTH }]}>
+      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        {renderPageHeader()}
+
+        <View style={styles.hadithContainer}>
+          {/* <View style={styles.hadithQuoteMark}>
+            <Text style={styles.hadithQuoteText}>"</Text>
+          </View> */}
+          <Text style={[styles.hadithBody, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('hadithText')}
+          </Text>
+        </View>
+
+        <View style={{ height: 28 }} />
+        <Text style={[styles.purposeSubtext, { textAlign: 'center' }]}>
+          {t('purposeIntro')}
+        </Text>
+        <Text style={[styles.purposeOneNight, { textAlign: 'center' }]}>
+          {t('oneNightAtATime')}
+        </Text>
       </View>
     </View>
   );
@@ -414,6 +440,7 @@ export default function OnboardingScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {renderLanguagePage()}
+        {renderPurposePage()}
         {renderGenderPage()}
         {renderVolumePage()}
         {renderFeaturesPage()}
@@ -567,6 +594,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Purpose / Hadith page
+  hadithContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    width: '100%',
+  },
+  hadithQuoteMark: {
+    marginBottom: 8,
+  },
+  hadithQuoteText: {
+    fontSize: 40,
+    color: 'rgba(255, 255, 255, 0.15)',
+    fontWeight: 'bold',
+    lineHeight: 40,
+  },
+  hadithBody: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.75)',
+    lineHeight: 24,
+  },
+  purposeTagline: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  purposeSubtext: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.5)',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  purposeOneNight: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.3)',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   // Feature Cards
   featureCard: {

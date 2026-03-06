@@ -212,6 +212,10 @@ export const translations = {
     saturday: 'Saturday',
     sunday: 'Sunday',
 
+    // Onboarding - Purpose page
+    oneNightAtATime: 'One night at a time',
+    purposeIntro: 'Just ~15 minutes a night to be recorded as Qanet',
+
     // Onboarding
     welcomeToQanet: 'Welcome to Qanet',
     chooseYourLanguage: 'Choose Your Language',
@@ -482,6 +486,10 @@ export const translations = {
     friday: 'الجمعة',
     saturday: 'السبت',
     sunday: 'الأحد',
+
+    // Onboarding - Purpose page
+    oneNightAtATime: 'ليلة بليلة',
+    purposeIntro: 'فقط ~١٥ دقائق كل ليلة لتُكتب من القانتين',
 
     // Onboarding
     welcomeToQanet: 'مرحباً بك في قانت',
