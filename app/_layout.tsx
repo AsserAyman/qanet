@@ -14,7 +14,6 @@ import { vexo } from 'vexo-analytics';
 import { I18nProvider } from '../contexts/I18nContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../hooks/useAuth';
 import { useOfflineData } from '../hooks/useOfflineData';
 import { onboardingManager } from '../utils/onboarding';
 
@@ -49,8 +48,7 @@ SplashScreen.setOptions({ duration: 500, fade: true });
 const queryClient = new QueryClient();
 
 function AppContent() {
-  const { loading } = useAuth();
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { isInitialized, isLoading: offlineLoading } = useOfflineData();
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState<
     boolean | null
@@ -123,25 +121,17 @@ function AppContent() {
   useEffect(() => {
     if (
       fontsLoaded &&
-      !loading &&
       !offlineLoading &&
       isInitialized &&
       isOnboardingCompleted !== null
     ) {
       SplashScreen.hide();
     }
-  }, [
-    fontsLoaded,
-    loading,
-    offlineLoading,
-    isInitialized,
-    isOnboardingCompleted,
-  ]);
+  }, [fontsLoaded, offlineLoading, isInitialized, isOnboardingCompleted]);
 
   // Keep native splash visible while loading (return null instead of ActivityIndicator)
   if (
     !fontsLoaded ||
-    loading ||
     offlineLoading ||
     !isInitialized ||
     isOnboardingCompleted === null

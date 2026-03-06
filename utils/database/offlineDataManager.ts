@@ -1,12 +1,12 @@
-import { sqliteManager } from './sqlite';
-import { LocalExemptPeriod, LocalPrayerLog, TABLES, SYNC_STATUS, OPERATION_TYPES, LocalRecitation } from './schema';
-import { networkManager } from '../network/networkManager';
-import { syncEngine } from '../sync/syncEngine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { anonymousAuthManager } from '../auth/anonymousAuth';
+import { deviceIdentityManager } from '../auth/deviceIdentity';
 import { getCachedCustomUserId, registerOrGetCustomUser } from '../auth/userRegistration';
+import { networkManager } from '../network/networkManager';
 import { calculateAyahsBetweenIndices, getVerseStatus } from '../quranData';
+import { syncEngine } from '../sync/syncEngine';
+import { LocalExemptPeriod, LocalPrayerLog, LocalRecitation, OPERATION_TYPES, SYNC_STATUS, TABLES } from './schema';
+import { sqliteManager } from './sqlite';
 
 // Input data for creating a new prayer log
 export interface CreatePrayerLogData {
@@ -33,27 +33,31 @@ class OfflineDataManager {
     if (this.isInitialized) return;
 
     try {
-      // 1. Initialize device identity FIRST (offline-first foundation)
+      // Critical path — blocks render, all local/fast operations
       await deviceIdentityManager.initialize();
-
-      // 2. Initialize local database (always needed)
       await sqliteManager.initialize();
 
-      // 3. Initialize network manager
+      this.isInitialized = true;
+
+      // Background path — network-dependent, fire-and-forget
+      this.initializeBackground();
+    } catch (error) {
+      console.error('Failed to initialize app:', error);
+      throw error;
+    }
+  }
+
+  private async initializeBackground(): Promise<void> {
+    try {
       await networkManager.initialize();
 
-      // 4. Initialize anonymous auth (only if online, silently)
       if (networkManager.isOnline()) {
         await anonymousAuthManager.initialize();
       }
 
-      // 5. Initialize sync engine
       await syncEngine.initialize();
-
-      this.isInitialized = true;
     } catch (error) {
-      console.error('Failed to initialize app:', error);
-      throw error;
+      console.error('Background initialization failed (non-blocking):', error);
     }
   }
 
