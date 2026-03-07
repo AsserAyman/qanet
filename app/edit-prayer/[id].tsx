@@ -24,7 +24,6 @@ import { useOfflineStats, usePrayerLogs } from '../../hooks/useOfflineData';
 import {
   calculateVersesBetween,
   getGradientColors,
-  getJuzNumber,
   getVerseStatus,
   globalIndexToSurahAyah,
   quranData,
@@ -120,9 +119,8 @@ export default function EditPrayerScreen() {
   const surahSections = useMemo(() => {
     const grouped: Record<number, typeof quranData> = {};
     quranData.forEach((surah) => {
-      const juz = getJuzNumber(surah.name);
-      if (!grouped[juz]) grouped[juz] = [];
-      grouped[juz].push(surah);
+      if (!grouped[surah.juz]) grouped[surah.juz] = [];
+      grouped[surah.juz].push(surah);
     });
     return Array.from({ length: 30 }, (_, i) => i + 1)
       .filter((juz) => grouped[juz]?.length > 0)

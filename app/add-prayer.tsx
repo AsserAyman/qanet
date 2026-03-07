@@ -34,7 +34,6 @@ import { useExemptPeriods, usePrayerLogs } from '../hooks/useOfflineData';
 import {
   calculateVersesBetween,
   getGradientColors,
-  getJuzNumber,
   getVerseStatus,
   quranData,
   surahAyahToGlobalIndex,
@@ -130,15 +129,14 @@ export default function AddPrayerScreen() {
   const surahSections = useMemo(() => {
     const grouped: Record<number, typeof quranData> = {};
     quranData.forEach((surah) => {
-      const juz = getJuzNumber(surah.name);
-      if (!grouped[juz]) grouped[juz] = [];
-      grouped[juz].push(surah);
+      if (!grouped[surah.juz]) grouped[surah.juz] = [];
+      grouped[surah.juz].push(surah);
     });
     return Array.from({ length: 30 }, (_, i) => i + 1)
       .filter((juz) => grouped[juz]?.length > 0)
       .map((juz) => ({
         title: isRTL ? `الجزء ${juz}` : `Juz' ${juz}`,
-        data: grouped[juz].map((surah, i) => {
+        data: grouped[juz].map((surah) => {
           const globalIndex = quranData.indexOf(surah);
           return {
             label: isRTL ? surah.nameAr : surah.name,
