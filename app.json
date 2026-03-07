@@ -65,7 +65,11 @@
       "url": "https://u.expo.dev/b0061622-12f7-4d16-8268-dfe7f560da5b"
     },
     "android": {
-      "package": "com.asserayman.qanet"
+      "package": "com.asserayman.qanet",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/moon-image.png",
+        "backgroundColor": "#000000"
+      }
     }
   }
 }
