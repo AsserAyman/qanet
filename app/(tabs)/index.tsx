@@ -311,31 +311,11 @@ export default function NightPrayerScreen() {
                       <Text style={styles.historyRange}>{t('periodDays')}</Text>
                       <Text style={styles.historyVerses}>{dateLabel}</Text>
                     </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 8,
-                      }}
-                    >
-                      {period.sync_status !== 'synced' && (
-                        <View
-                          style={[
-                            styles.syncIndicator,
-                            {
-                              backgroundColor: getSyncStatusColor(
-                                period.sync_status,
-                              ),
-                            },
-                          ]}
-                        />
-                      )}
-                      <Feather
-                        name={isRTL ? 'chevron-left' : 'chevron-right'}
-                        size={16}
-                        color="rgba(255,255,255,0.3)"
-                      />
-                    </View>
+                    <Feather
+                      name={isRTL ? 'chevron-left' : 'chevron-right'}
+                      size={16}
+                      color="rgba(255,255,255,0.3)"
+                    />
                   </TouchableOpacity>
                 );
               }
@@ -427,18 +407,6 @@ export default function NightPrayerScreen() {
                         <Text style={styles.historyVerses}>
                           {logTotalAyahs} {t('verses')}
                         </Text>
-                        {log.sync_status !== 'synced' && (
-                          <View
-                            style={[
-                              styles.syncIndicator,
-                              {
-                                backgroundColor: getSyncStatusColor(
-                                  log.sync_status,
-                                ),
-                              },
-                            ]}
-                          />
-                        )}
                       </View>
                     </View>
                     <Feather
@@ -464,18 +432,6 @@ export default function NightPrayerScreen() {
   );
 }
 
-function getSyncStatusColor(syncStatus: string): string {
-  switch (syncStatus) {
-    case 'pending':
-      return '#eab308';
-    case 'error':
-      return '#ef4444';
-    case 'conflict':
-      return '#f97316';
-    default:
-      return '#22c55e';
-  }
-}
 
 const createStyles = (isRTL: boolean) =>
   StyleSheet.create({
