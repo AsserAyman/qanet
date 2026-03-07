@@ -328,7 +328,7 @@ const createStyles = (isRTL: boolean) =>
       fontWeight: '600',
       color: 'rgba(255,255,255,0.4)',
       textTransform: 'uppercase',
-      letterSpacing: 1.5,
+      letterSpacing: isRTL ? 0 : 1.5,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     option: {

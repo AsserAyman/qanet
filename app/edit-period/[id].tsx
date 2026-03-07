@@ -393,7 +393,7 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 13,
       color: 'rgba(255,255,255,0.6)',
       textTransform: 'uppercase',
-      letterSpacing: 1,
+      letterSpacing: isRTL ? 0 : 1,
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     card: {
