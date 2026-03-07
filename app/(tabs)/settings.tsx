@@ -322,7 +322,7 @@ export default function SettingsScreen() {
               </View>
             </View>
             <Feather
-              name="chevron-right"
+              name={isRTL ? 'chevron-left' : 'chevron-right'}
               size={20}
               color="rgba(255,255,255,0.5)"
             />
@@ -439,7 +439,7 @@ export default function SettingsScreen() {
               </View>
             </View>
             <Feather
-              name="chevron-right"
+              name={isRTL ? 'chevron-left' : 'chevron-right'}
               size={20}
               color="rgba(239, 68, 68, 0.5)"
             />
