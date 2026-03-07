@@ -279,7 +279,7 @@ export const translations = {
     juzUnit: "Juz'",
     hizbUnit: 'Hizb',
     rubUnit: "Rub'",
-    estTimeUnit: 'min',
+    estTimeUnit: ' min',
     quranDivisions: 'Quran Divisions',
   },
   ar: {
@@ -560,7 +560,7 @@ export const translations = {
     juzUnit: 'جزء',
     hizbUnit: 'حزب',
     rubUnit: 'ربع',
-    estTimeUnit: 'دقيقة',
+    estTimeUnit: ' min',
     quranDivisions: 'أقسام القرآن',
   },
 };
