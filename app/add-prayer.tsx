@@ -38,7 +38,13 @@ import {
   surahAyahToGlobalIndex,
 } from '../utils/quranData';
 
-const SHAF_WITR_SURAHS = ["Al-A'la", 'Al-Kafiroon', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas'] as const;
+const SHAF_WITR_SURAHS = [
+  "Al-A'la",
+  'Al-Kafiroon',
+  'Al-Ikhlas',
+  'Al-Falaq',
+  'An-Nas',
+] as const;
 
 export default function AddPrayerScreen() {
   const { isRTL, t } = useI18n();
@@ -63,23 +69,27 @@ export default function AddPrayerScreen() {
   const [isPeriodMode, setIsPeriodMode] = useState(false);
   const [periodEndDate, setPeriodEndDate] = useState(new Date());
   const [showPeriodEndPicker, setShowPeriodEndPicker] = useState(false);
-  
-  const [ranges, setRanges] = useState<Array<{
-    id: string;
-    startSurah: string;
-    startAyah: number;
-    endSurah: string;
-    endAyah: number;
-    isWholeSurah?: boolean;
-    isShafWitr?: boolean;
-  }>>([{
-    id: '1',
-    startSurah: 'Al-Baqara',
-    startAyah: 1,
-    endSurah: 'Al-Baqara',
-    endAyah: 2,
-    isWholeSurah: false,
-  }]);
+
+  const [ranges, setRanges] = useState<
+    Array<{
+      id: string;
+      startSurah: string;
+      startAyah: number;
+      endSurah: string;
+      endAyah: number;
+      isWholeSurah?: boolean;
+      isShafWitr?: boolean;
+    }>
+  >([
+    {
+      id: '1',
+      startSurah: 'Al-Baqara',
+      startAyah: 1,
+      endSurah: 'Al-Baqara',
+      endAyah: 2,
+      isWholeSurah: false,
+    },
+  ]);
   const [activeRangeId, setActiveRangeId] = useState<string>('1');
 
   const [loading, setLoading] = useState(false);
@@ -99,10 +109,15 @@ export default function AddPrayerScreen() {
 
   const styles = createStyles(isRTL);
 
-  const userRanges = ranges.filter(r => !r.isShafWitr);
-  const activeRange = ranges.find(r => r.id === activeRangeId) || userRanges[0] || ranges[0];
-  const currentSurah = activeRange ? quranData.find((s) => s.name === activeRange.startSurah) : undefined;
-  const endCurrentSurah = activeRange ? quranData.find((s) => s.name === activeRange.endSurah) : undefined;
+  const userRanges = ranges.filter((r) => !r.isShafWitr);
+  const activeRange =
+    ranges.find((r) => r.id === activeRangeId) || userRanges[0] || ranges[0];
+  const currentSurah = activeRange
+    ? quranData.find((s) => s.name === activeRange.startSurah)
+    : undefined;
+  const endCurrentSurah = activeRange
+    ? quranData.find((s) => s.name === activeRange.endSurah)
+    : undefined;
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);
@@ -117,7 +132,7 @@ export default function AddPrayerScreen() {
         value: surah.name,
         searchTerms: `${surah.name} ${surah.nameAr}`,
       })),
-    [isRTL]
+    [isRTL],
   );
 
   // Ayah picker options for start surah
@@ -127,7 +142,7 @@ export default function AddPrayerScreen() {
         label: String(i + 1),
         value: String(i + 1),
       })),
-    [currentSurah]
+    [currentSurah],
   );
 
   // Ayah picker options for end surah
@@ -137,30 +152,39 @@ export default function AddPrayerScreen() {
         label: String(i + 1),
         value: String(i + 1),
       })),
-    [endCurrentSurah]
+    [endCurrentSurah],
   );
 
-  const totalVerses = useMemo(() => ranges.reduce((acc, range) => {
-    return acc + calculateVersesBetween(
-      range.startSurah,
-      range.startAyah,
-      range.endSurah,
-      range.endAyah
-    );
-  }, 0), [ranges]);
+  const totalVerses = useMemo(
+    () =>
+      ranges.reduce((acc, range) => {
+        return (
+          acc +
+          calculateVersesBetween(
+            range.startSurah,
+            range.startAyah,
+            range.endSurah,
+            range.endAyah,
+          )
+        );
+      }, 0),
+    [ranges],
+  );
 
   const status = getVerseStatus(totalVerses);
   const gradientColors = useMemo(
     () => getGradientColors(totalVerses, themedColorsEnabled),
-    [totalVerses, themedColorsEnabled]
+    [totalVerses, themedColorsEnabled],
   );
 
-  const updateRange = (id: string, updates: Partial<typeof ranges[0]>) => {
-    setRanges(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  const updateRange = (id: string, updates: Partial<(typeof ranges)[0]>) => {
+    setRanges((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, ...updates } : r)),
+    );
   };
 
   const addRange = () => {
-    const userRanges = ranges.filter(r => !r.isShafWitr);
+    const userRanges = ranges.filter((r) => !r.isShafWitr);
     const lastRange = userRanges[userRanges.length - 1];
     const newRange = lastRange
       ? {
@@ -178,11 +202,11 @@ export default function AddPrayerScreen() {
           endAyah: 2,
           isWholeSurah: false,
         };
-    setRanges(prev => [...prev, newRange]);
+    setRanges((prev) => [...prev, newRange]);
   };
 
   const removeRange = (id: string) => {
-    setRanges(prev => prev.filter(r => r.id !== id));
+    setRanges((prev) => prev.filter((r) => r.id !== id));
   };
 
   const handleWholeSurahToggle = (id: string, value: boolean) => {
@@ -214,7 +238,7 @@ export default function AddPrayerScreen() {
         const endStr = `${periodEndDate.getFullYear()}-${String(periodEndDate.getMonth() + 1).padStart(2, '0')}-${String(periodEndDate.getDate()).padStart(2, '0')}`;
         await createPeriod(startStr, endStr);
       } else {
-        const recitations = ranges.map(range => ({
+        const recitations = ranges.map((range) => ({
           start_ayah: surahAyahToGlobalIndex(range.startSurah, range.startAyah),
           end_ayah: surahAyahToGlobalIndex(range.endSurah, range.endAyah),
         }));
@@ -265,13 +289,13 @@ export default function AddPrayerScreen() {
         successAnim.value,
         [0, 0.5],
         [1, 0],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       ),
       maxWidth: interpolate(
         successAnim.value,
         [0, 1],
         [200, 0],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       ), // Collapses width
       transform: [
         {
@@ -279,7 +303,7 @@ export default function AddPrayerScreen() {
             successAnim.value,
             [0, 1],
             [0, isRTL ? -10 : 10],
-            Extrapolation.CLAMP
+            Extrapolation.CLAMP,
           ),
         },
       ],
@@ -287,7 +311,7 @@ export default function AddPrayerScreen() {
         successAnim.value,
         [0, 1],
         [4, 0],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       ),
     };
   });
@@ -300,7 +324,7 @@ export default function AddPrayerScreen() {
             successAnim.value,
             [0, 0.5, 1],
             [1, 0.8, 1.2],
-            Extrapolation.CLAMP
+            Extrapolation.CLAMP,
           ),
         },
       ],
@@ -342,72 +366,96 @@ export default function AddPrayerScreen() {
         )}
 
         {/* Status Card — hidden in period mode */}
-        {!isPeriodMode && <View style={styles.statusCard}>
-          <View style={styles.statusRow}>
-            <Image
-              source={require('../assets/images/moon-image.png')}
-              style={styles.moonImage}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-            />
-            <View style={styles.statusTextContainer}>
-              <Text style={styles.statusTitle}>
-                {t(status.status.toLowerCase().replace(/\s+/g, ''))}
-              </Text>
-              <Text style={styles.statusDescription}>
-                {t(status.descriptionKey)}
-              </Text>
+        {!isPeriodMode && (
+          <View style={styles.statusCard}>
+            <View style={styles.statusRow}>
+              <Image
+                source={require('../assets/images/moon-image.png')}
+                style={styles.moonImage}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+              />
+              <View style={styles.statusTextContainer}>
+                <Text style={styles.statusTitle}>
+                  {t(status.status.toLowerCase().replace(/\s+/g, ''))}
+                </Text>
+                <Text style={styles.statusDescription}>
+                  {t(status.descriptionKey)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.totalVersesContainer}>
+              <Text style={styles.totalVersesNumber}>{totalVerses}</Text>
+              <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
             </View>
           </View>
-
-          <View style={styles.totalVersesContainer}>
-            <Text style={styles.totalVersesNumber}>{totalVerses}</Text>
-            <Text style={styles.totalVersesLabel}>{t('totalVerses')}</Text>
-          </View>
-        </View>}
+        )}
 
         {/* Date Selection — hidden in period mode (period card has its own date pickers) */}
-        {!isPeriodMode && <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <MaterialIcons
-              name="calendar-today"
-              size={20}
-              color="rgba(255,255,255,0.7)"
-            />
-            <Text style={styles.cardTitle}>{t('prayerDate')}</Text>
-          </View>
+        {!isPeriodMode && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons
+                name="calendar-today"
+                size={20}
+                color="rgba(255,255,255,0.7)"
+              />
+              <Text style={styles.cardTitle}>{t('prayerDate')}</Text>
+            </View>
 
-          <TouchableOpacity
-            style={styles.dateDisplay}
-            onPress={() => setShowDatePicker(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.dateText}>
-              {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Text>
-            <MaterialIcons
-              name="edit"
-              size={16}
-              color="rgba(255,255,255,0.5)"
-            />
-          </TouchableOpacity>
-        </View>}
+            <TouchableOpacity
+              style={styles.dateDisplay}
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.dateText}>
+                {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Text>
+              <MaterialIcons
+                name="edit"
+                size={16}
+                color="rgba(255,255,255,0.5)"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Period Exemption — only for female users */}
         {isMale === false && (
           <View style={styles.card}>
-            <View style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: isPeriodMode ? 16 : 0 }]}>
-              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
-                <Ionicons name="calendar-outline" size={20} color="rgba(255,255,255,0.7)" />
+            <View
+              style={[
+                styles.cardHeader,
+                {
+                  justifyContent: 'space-between',
+                  marginBottom: isPeriodMode ? 16 : 0,
+                },
+              ]}
+            >
+              <View
+                style={{
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color="rgba(255,255,255,0.7)"
+                />
                 <View>
                   <Text style={styles.cardTitle}>{t('markAsPeriod')}</Text>
                   {!isPeriodMode && (
-                    <Text style={styles.shafWitrDesc}>{t('periodExemptionDesc')}</Text>
+                    <Text style={styles.shafWitrDesc}>
+                      {t('periodExemptionDesc')}
+                    </Text>
                   )}
                 </View>
               </View>
@@ -424,14 +472,18 @@ export default function AddPrayerScreen() {
                 }}
                 trackColor={{ false: '#767577', true: '#f472b6' }}
                 thumbColor={isPeriodMode ? '#ffffff' : '#f4f3f4'}
-                style={Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}}
+                style={
+                  Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}
+                }
               />
             </View>
 
             {isPeriodMode && (
               <View style={{ gap: 12 }}>
                 <View>
-                  <Text style={styles.sectionLabel}>{t('periodStartDate')}</Text>
+                  <Text style={styles.sectionLabel}>
+                    {t('periodStartDate')}
+                  </Text>
                   <TouchableOpacity
                     style={styles.dateDisplay}
                     onPress={() => setShowDatePicker(true)}
@@ -444,7 +496,11 @@ export default function AddPrayerScreen() {
                         day: 'numeric',
                       })}
                     </Text>
-                    <MaterialIcons name="edit" size={16} color="rgba(255,255,255,0.5)" />
+                    <MaterialIcons
+                      name="edit"
+                      size={16}
+                      color="rgba(255,255,255,0.5)"
+                    />
                   </TouchableOpacity>
                 </View>
                 <View>
@@ -455,13 +511,20 @@ export default function AddPrayerScreen() {
                     activeOpacity={0.8}
                   >
                     <Text style={styles.dateText}>
-                      {periodEndDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {periodEndDate.toLocaleDateString(
+                        isRTL ? 'ar-SA' : 'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        },
+                      )}
                     </Text>
-                    <MaterialIcons name="edit" size={16} color="rgba(255,255,255,0.5)" />
+                    <MaterialIcons
+                      name="edit"
+                      size={16}
+                      color="rgba(255,255,255,0.5)"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -470,213 +533,337 @@ export default function AddPrayerScreen() {
         )}
 
         {/* Shaf' & Witr Preset */}
-        {!isPeriodMode && <View style={styles.card}>
-          <View style={[styles.cardHeader, { justifyContent: 'space-between', marginBottom: 0 }]}>
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
-              <Ionicons name="moon-outline" size={20} color="rgba(255,255,255,0.7)" />
-              <View>
-                <Text style={styles.cardTitle}>{t('shafWitr')}</Text>
-                {/* {!shafWitrEnabled && (
-                  <Text style={styles.shafWitrDesc}>{t('shafWitrDesc')}</Text>
-                )} */}
-              </View>
-            </View>
-            <Switch
-              value={shafWitrEnabled}
-              onValueChange={(val) => {
-                setShafWitrEnabled(val);
-                if (val) {
-                  // Replace default range with 5 shaf/witr ranges
-                  const shafWitrRanges = SHAF_WITR_SURAHS.map(name => {
-                    const s = quranData.find(q => q.name === name)!;
-                    return { id: `sw-${name}`, startSurah: name, startAyah: 1, endSurah: name, endAyah: s.ayahs, isWholeSurah: true, isShafWitr: true };
-                  });
-                  setRanges(shafWitrRanges);
-                } else {
-                  // Remove shaf/witr ranges, restore default if nothing left
-                  setRanges(prev => {
-                    const userRanges = prev.filter(r => !r.isShafWitr);
-                    return userRanges.length > 0
-                      ? userRanges
-                      : [{ id: Date.now().toString(), startSurah: 'Al-Baqara', startAyah: 1, endSurah: 'Al-Baqara', endAyah: 2, isWholeSurah: false }];
-                  });
-                }
-              }}
-              trackColor={{ false: '#767577', true: '#22c55e' }}
-              thumbColor={shafWitrEnabled ? '#ffffff' : '#f4f3f4'}
-              style={Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}}
-            />
-          </View>
-
-          {shafWitrEnabled && (
-            <View style={styles.pillsContainer}>
-              {SHAF_WITR_SURAHS.map((surahName) => {
-                const surah = quranData.find(s => s.name === surahName)!;
-                const isActive = ranges.some(r => r.isShafWitr && r.startSurah === surahName);
-                return (
-                  <TouchableOpacity
-                    key={surahName}
-                    style={[styles.surahPill, isActive && styles.surahPillActive]}
-                    onPress={() => {
-                      if (isActive) {
-                        const remaining = ranges.filter(r => !(r.isShafWitr && r.startSurah === surahName));
-                        const hasShafWitrLeft = remaining.some(r => r.isShafWitr);
-                        if (!hasShafWitrLeft) {
-                          // All pills deselected — turn off toggle
-                          setShafWitrEnabled(false);
-                          const userRemaining = remaining.filter(r => !r.isShafWitr);
-                          setRanges(userRemaining.length > 0
-                            ? userRemaining
-                            : [{ id: Date.now().toString(), startSurah: 'Al-Baqara', startAyah: 1, endSurah: 'Al-Baqara', endAyah: 2, isWholeSurah: false }]);
-                        } else {
-                          setRanges(remaining);
-                        }
-                      } else {
-                        setRanges(prev => [...prev, { id: `sw-${surahName}`, startSurah: surahName, startAyah: 1, endSurah: surahName, endAyah: surah.ayahs, isWholeSurah: true, isShafWitr: true }]);
-                      }
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.surahPillText, isActive && styles.surahPillTextActive]}>
-                      {getSurahName(surahName)}
-                    </Text>
-                    <View style={[styles.surahPillBadge, isActive && styles.surahPillBadgeActive]}>
-                      <Text style={[styles.surahPillBadgeText, isActive && styles.surahPillBadgeTextActive]}>
-                        {surah.ayahs}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-        </View>}
-
-        {!isPeriodMode && <>
-        {/* Reading Range Inputs */}
-        {ranges.filter(r => !r.isShafWitr).map((range, index) => (
-          <View key={range.id} style={styles.card}>
-            <View style={[styles.cardHeader, { justifyContent: 'space-between' }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        {!isPeriodMode && (
+          <View style={styles.card}>
+            <View
+              style={[
+                styles.cardHeader,
+                { justifyContent: 'space-between', marginBottom: 0 },
+              ]}
+            >
+              <View
+                style={{
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
                 <Ionicons
-                  name="book-outline"
+                  name="moon-outline"
                   size={20}
                   color="rgba(255,255,255,0.7)"
                 />
-                <Text style={styles.cardTitle}>
-                  {t('readingRange')} {ranges.filter(r => !r.isShafWitr).length > 1 ? index + 1 : ''}
-                </Text>
+                <View>
+                  <Text style={styles.cardTitle}>{t('shafWitr')}</Text>
+                  {/* {!shafWitrEnabled && (
+                  <Text style={styles.shafWitrDesc}>{t('shafWitrDesc')}</Text>
+                )} */}
+                </View>
               </View>
-              {(shafWitrEnabled || ranges.filter(r => !r.isShafWitr).length > 1) && (
-                <TouchableOpacity onPress={() => removeRange(range.id)}>
-                  <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
-                </TouchableOpacity>
-              )}
+              <Switch
+                value={shafWitrEnabled}
+                onValueChange={(val) => {
+                  setShafWitrEnabled(val);
+                  if (val) {
+                    // Replace default range with 5 shaf/witr ranges
+                    const shafWitrRanges = SHAF_WITR_SURAHS.map((name) => {
+                      const s = quranData.find((q) => q.name === name)!;
+                      return {
+                        id: `sw-${name}`,
+                        startSurah: name,
+                        startAyah: 1,
+                        endSurah: name,
+                        endAyah: s.ayahs,
+                        isWholeSurah: true,
+                        isShafWitr: true,
+                      };
+                    });
+                    setRanges(shafWitrRanges);
+                  } else {
+                    // Remove shaf/witr ranges, restore default if nothing left
+                    setRanges((prev) => {
+                      const userRanges = prev.filter((r) => !r.isShafWitr);
+                      return userRanges.length > 0
+                        ? userRanges
+                        : [
+                            {
+                              id: Date.now().toString(),
+                              startSurah: 'Al-Baqara',
+                              startAyah: 1,
+                              endSurah: 'Al-Baqara',
+                              endAyah: 2,
+                              isWholeSurah: false,
+                            },
+                          ];
+                    });
+                  }
+                }}
+                trackColor={{ false: '#767577', true: '#22c55e' }}
+                thumbColor={shafWitrEnabled ? '#ffffff' : '#f4f3f4'}
+                style={
+                  Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}
+                }
+              />
             </View>
 
-            <View style={styles.pickersSection}>
-              {/* Whole Surah Toggle */}
-              <View style={styles.toggleRow}>
-                <Text style={styles.toggleLabel}>{t('wholeSurah')}</Text>
-                <Switch
-                  value={range.isWholeSurah || false}
-                  onValueChange={(val) => handleWholeSurahToggle(range.id, val)}
-                  trackColor={{ false: '#767577', true: '#22c55e' }}
-                  thumbColor={range.isWholeSurah ? '#ffffff' : '#f4f3f4'}
-                  style={Platform.OS === 'ios' ? { transform: [{ scale: 0.8 }] } : {}}
-                />
+            {shafWitrEnabled && (
+              <View style={styles.pillsContainer}>
+                {SHAF_WITR_SURAHS.map((surahName) => {
+                  const surah = quranData.find((s) => s.name === surahName)!;
+                  const isActive = ranges.some(
+                    (r) => r.isShafWitr && r.startSurah === surahName,
+                  );
+                  return (
+                    <TouchableOpacity
+                      key={surahName}
+                      style={[
+                        styles.surahPill,
+                        isActive && styles.surahPillActive,
+                      ]}
+                      onPress={() => {
+                        if (isActive) {
+                          const remaining = ranges.filter(
+                            (r) =>
+                              !(r.isShafWitr && r.startSurah === surahName),
+                          );
+                          const hasShafWitrLeft = remaining.some(
+                            (r) => r.isShafWitr,
+                          );
+                          if (!hasShafWitrLeft) {
+                            // All pills deselected — turn off toggle
+                            setShafWitrEnabled(false);
+                            const userRemaining = remaining.filter(
+                              (r) => !r.isShafWitr,
+                            );
+                            setRanges(
+                              userRemaining.length > 0
+                                ? userRemaining
+                                : [
+                                    {
+                                      id: Date.now().toString(),
+                                      startSurah: 'Al-Baqara',
+                                      startAyah: 1,
+                                      endSurah: 'Al-Baqara',
+                                      endAyah: 2,
+                                      isWholeSurah: false,
+                                    },
+                                  ],
+                            );
+                          } else {
+                            setRanges(remaining);
+                          }
+                        } else {
+                          setRanges((prev) => [
+                            ...prev,
+                            {
+                              id: `sw-${surahName}`,
+                              startSurah: surahName,
+                              startAyah: 1,
+                              endSurah: surahName,
+                              endAyah: surah.ayahs,
+                              isWholeSurah: true,
+                              isShafWitr: true,
+                            },
+                          ]);
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.surahPillText,
+                          isActive && styles.surahPillTextActive,
+                        ]}
+                      >
+                        {getSurahName(surahName)}
+                      </Text>
+                      <View
+                        style={[
+                          styles.surahPillBadge,
+                          isActive && styles.surahPillBadgeActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.surahPillBadgeText,
+                            isActive && styles.surahPillBadgeTextActive,
+                          ]}
+                        >
+                          {surah.ayahs}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
+            )}
+          </View>
+        )}
 
-              {range.isWholeSurah ? (
-                <>
-                  {/* Whole Surah: surah picker + range info on one line */}
-                  <View style={styles.wholeSurahRow}>
-                    <View style={{ flex: 5 }}>
-                      <SelectField
-                        label={t('surah')}
-                        value={getSurahName(range.startSurah)}
-                        onPress={() => {
-                          setActiveRangeId(range.id);
-                          setShowStartSurahPicker(true);
-                        }}
+        {!isPeriodMode && (
+          <>
+            {/* Reading Range Inputs */}
+            {ranges
+              .filter((r) => !r.isShafWitr)
+              .map((range, index) => (
+                <View key={range.id} style={styles.card}>
+                  <View
+                    style={[
+                      styles.cardHeader,
+                      { justifyContent: 'space-between' },
+                    ]}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 12,
+                      }}
+                    >
+                      <Ionicons
+                        name="book-outline"
+                        size={20}
+                        color="rgba(255,255,255,0.7)"
+                      />
+                      <Text style={styles.cardTitle}>
+                        {t('readingRange')}{' '}
+                        {ranges.filter((r) => !r.isShafWitr).length > 1
+                          ? index + 1
+                          : ''}
+                      </Text>
+                    </View>
+                    {(shafWitrEnabled ||
+                      ranges.filter((r) => !r.isShafWitr).length > 1) && (
+                      <TouchableOpacity onPress={() => removeRange(range.id)}>
+                        <Ionicons
+                          name="trash-outline"
+                          size={20}
+                          color="#ff6b6b"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  <View style={styles.pickersSection}>
+                    {/* Whole Surah Toggle */}
+                    <View style={styles.toggleRow}>
+                      <Text style={styles.toggleLabel}>{t('wholeSurah')}</Text>
+                      <Switch
+                        value={range.isWholeSurah || false}
+                        onValueChange={(val) =>
+                          handleWholeSurahToggle(range.id, val)
+                        }
+                        trackColor={{ false: '#767577', true: '#22c55e' }}
+                        thumbColor={range.isWholeSurah ? '#ffffff' : '#f4f3f4'}
+                        style={
+                          Platform.OS === 'ios'
+                            ? { transform: [{ scale: 0.8 }] }
+                            : {}
+                        }
                       />
                     </View>
-                    <View style={styles.wholeSurahRangeChip}>
-                      <Text style={styles.wholeSurahAyahNum}>1</Text>
-                      <Ionicons name={isRTL ? 'arrow-back' : 'arrow-forward'} size={13} color="rgba(255,255,255,0.25)" />
-                      <Text style={styles.wholeSurahAyahNum}>{range.endAyah}</Text>
-                    </View>
-                  </View>
-                </>
-              ) : (
-                <>
-                  {/* Start Point */}
-                  <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
-                  <View style={styles.pickerRow}>
-                    <SelectField
-                      label={t('surah')}
-                      value={getSurahName(range.startSurah)}
-                      onPress={() => {
-                        setActiveRangeId(range.id);
-                        setShowStartSurahPicker(true);
-                      }}
-                    />
-                    <SelectField
-                      label={t('ayah')}
-                      value={String(range.startAyah)}
-                      onPress={() => {
-                        setActiveRangeId(range.id);
-                        setShowStartAyahPicker(true);
-                      }}
-                    />
-                  </View>
 
-                  <View style={styles.rangeDivider}>
-                    <View style={styles.rangeLine} />
-                    <Ionicons
-                      name="arrow-down"
-                      size={16}
-                      color="rgba(255,255,255,0.3)"
-                    />
-                    <View style={styles.rangeLine} />
-                  </View>
+                    {range.isWholeSurah ? (
+                      <>
+                        {/* Whole Surah: surah picker + range info on one line */}
+                        <View style={styles.wholeSurahRow}>
+                          <View style={{ flex: 5 }}>
+                            <SelectField
+                              label={t('surah')}
+                              value={getSurahName(range.startSurah)}
+                              onPress={() => {
+                                setActiveRangeId(range.id);
+                                setShowStartSurahPicker(true);
+                              }}
+                            />
+                          </View>
+                          <View style={styles.wholeSurahRangeChip}>
+                            <Text style={styles.wholeSurahAyahNum}>1</Text>
+                            <Ionicons
+                              name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                              size={13}
+                              color="rgba(255,255,255,0.25)"
+                            />
+                            <Text style={styles.wholeSurahAyahNum}>
+                              {range.endAyah}
+                            </Text>
+                          </View>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        {/* Start Point */}
+                        <Text style={styles.sectionLabel}>
+                          {t('startingPoint')}
+                        </Text>
+                        <View style={styles.pickerRow}>
+                          <SelectField
+                            label={t('surah')}
+                            value={getSurahName(range.startSurah)}
+                            onPress={() => {
+                              setActiveRangeId(range.id);
+                              setShowStartSurahPicker(true);
+                            }}
+                          />
+                          <SelectField
+                            label={t('ayah')}
+                            value={String(range.startAyah)}
+                            onPress={() => {
+                              setActiveRangeId(range.id);
+                              setShowStartAyahPicker(true);
+                            }}
+                          />
+                        </View>
 
-                  {/* End Point */}
-                  <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
-                  <View style={styles.pickerRow}>
-                    <SelectField
-                      label={t('surah')}
-                      value={getSurahName(range.endSurah)}
-                      onPress={() => {
-                        setActiveRangeId(range.id);
-                        setShowEndSurahPicker(true);
-                      }}
-                    />
-                    <SelectField
-                      label={t('ayah')}
-                      value={String(range.endAyah)}
-                      onPress={() => {
-                        setActiveRangeId(range.id);
-                        setShowEndAyahPicker(true);
-                      }}
-                    />
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        ))}
+                        <View style={styles.rangeDivider}>
+                          <View style={styles.rangeLine} />
+                          <Ionicons
+                            name="arrow-down"
+                            size={16}
+                            color="rgba(255,255,255,0.3)"
+                          />
+                          <View style={styles.rangeLine} />
+                        </View>
 
-        {/* Add Range Button */}
-        <TouchableOpacity
-          style={styles.addRangeButton}
-          onPress={addRange}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={20} color="#ffffff" />
-          <Text style={styles.addRangeText}>{t('addAnotherRange')}</Text>
-        </TouchableOpacity>
-        </>}
+                        {/* End Point */}
+                        <Text style={styles.sectionLabel}>
+                          {t('endingPoint')}
+                        </Text>
+                        <View style={styles.pickerRow}>
+                          <SelectField
+                            label={t('surah')}
+                            value={getSurahName(range.endSurah)}
+                            onPress={() => {
+                              setActiveRangeId(range.id);
+                              setShowEndSurahPicker(true);
+                            }}
+                          />
+                          <SelectField
+                            label={t('ayah')}
+                            value={String(range.endAyah)}
+                            onPress={() => {
+                              setActiveRangeId(range.id);
+                              setShowEndAyahPicker(true);
+                            }}
+                          />
+                        </View>
+                      </>
+                    )}
+                  </View>
+                </View>
+              ))}
+
+            {/* Add Range Button */}
+            <TouchableOpacity
+              style={styles.addRangeButton}
+              onPress={addRange}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add" size={20} color="#ffffff" />
+              <Text style={styles.addRangeText}>{t('addAnotherRange')}</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
@@ -692,7 +879,10 @@ export default function AddPrayerScreen() {
           <TouchableOpacity
             style={[
               styles.saveButton,
-              isPeriodMode && { backgroundColor: '#f472b6', shadowColor: '#f472b6' },
+              isPeriodMode && {
+                backgroundColor: '#f472b6',
+                shadowColor: '#f472b6',
+              },
               (loading || successAnim.value > 0) && styles.saveButtonDisabled,
             ]}
             onPress={handleSave}
@@ -741,7 +931,9 @@ export default function AddPrayerScreen() {
       <PickerModal
         visible={showStartAyahPicker}
         onClose={() => setShowStartAyahPicker(false)}
-        onSelect={(value) => updateRange(activeRangeId, { startAyah: Number(value) })}
+        onSelect={(value) =>
+          updateRange(activeRangeId, { startAyah: Number(value) })
+        }
         options={startAyahOptions}
         selectedValue={String(activeRange.startAyah)}
         title={t('ayah')}
@@ -768,7 +960,9 @@ export default function AddPrayerScreen() {
       <PickerModal
         visible={showEndAyahPicker}
         onClose={() => setShowEndAyahPicker(false)}
-        onSelect={(value) => updateRange(activeRangeId, { endAyah: Number(value) })}
+        onSelect={(value) =>
+          updateRange(activeRangeId, { endAyah: Number(value) })
+        }
         options={endAyahOptions}
         selectedValue={String(activeRange.endAyah)}
         title={t('ayah')}
@@ -791,7 +985,11 @@ export default function AddPrayerScreen() {
             <View style={styles.datePickerHeader}>
               <Text style={styles.datePickerTitle}>{t('prayerDate')}</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                />
               </TouchableOpacity>
             </View>
             <DateTimePicker
@@ -823,7 +1021,11 @@ export default function AddPrayerScreen() {
             <View style={styles.datePickerHeader}>
               <Text style={styles.datePickerTitle}>{t('periodEndDate')}</Text>
               <TouchableOpacity onPress={() => setShowPeriodEndPicker(false)}>
-                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                />
               </TouchableOpacity>
             </View>
             <DateTimePicker

@@ -1,21 +1,21 @@
-import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState, useMemo, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
 import { useI18n } from '../../contexts/I18nContext';
 import { useExemptPeriods, useOfflineStats } from '../../hooks/useOfflineData';
 
@@ -48,7 +48,6 @@ export default function EditPeriodScreen() {
     const diffMs = endDate.getTime() - startDate.getTime();
     return Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
   }, [startDate, endDate]);
-
 
   const handleSave = async () => {
     if (!period) return;
@@ -142,11 +141,7 @@ export default function EditPeriodScreen() {
         {/* Start Date */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <MaterialIcons
-              name="calendar-today"
-              size={20}
-              color="#f472b6"
-            />
+            <MaterialIcons name="calendar-today" size={20} color="#f472b6" />
             <Text style={styles.cardTitle}>{t('periodStartDate')}</Text>
           </View>
           <TouchableOpacity
@@ -173,11 +168,7 @@ export default function EditPeriodScreen() {
         {/* End Date */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <MaterialIcons
-              name="event"
-              size={20}
-              color="#f472b6"
-            />
+            <MaterialIcons name="event" size={20} color="#f472b6" />
             <Text style={styles.cardTitle}>{t('periodEndDate')}</Text>
           </View>
           <TouchableOpacity
@@ -219,11 +210,7 @@ export default function EditPeriodScreen() {
             activeOpacity={0.8}
           >
             {loading ? (
-              <MaterialIcons
-                name="hourglass-empty"
-                size={20}
-                color="#ffffff"
-              />
+              <MaterialIcons name="hourglass-empty" size={20} color="#ffffff" />
             ) : (
               <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
             )}
@@ -265,7 +252,11 @@ export default function EditPeriodScreen() {
             <View style={styles.datePickerHeader}>
               <Text style={styles.datePickerTitle}>{t('periodStartDate')}</Text>
               <TouchableOpacity onPress={() => setShowStartPicker(false)}>
-                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                />
               </TouchableOpacity>
             </View>
             <DateTimePicker
@@ -305,7 +296,11 @@ export default function EditPeriodScreen() {
             <View style={styles.datePickerHeader}>
               <Text style={styles.datePickerTitle}>{t('periodEndDate')}</Text>
               <TouchableOpacity onPress={() => setShowEndPicker(false)}>
-                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                />
               </TouchableOpacity>
             </View>
             <DateTimePicker
@@ -364,7 +359,6 @@ const createStyles = (isRTL: boolean) =>
       paddingHorizontal: 20,
       paddingBottom: 16,
       // marginTop: 12,
-
     },
     title: {
       fontSize: 18,

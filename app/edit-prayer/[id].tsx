@@ -1,32 +1,32 @@
-import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState, useMemo, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
-import { useI18n } from '../../contexts/I18nContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import { usePrayerLogs, useOfflineStats, calculateTotalAyahs } from '../../hooks/useOfflineData';
 import { PickerModal, PickerOption } from '../../components/PickerModal';
 import { SelectField } from '../../components/SelectField';
+import { useI18n } from '../../contexts/I18nContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useOfflineStats, usePrayerLogs } from '../../hooks/useOfflineData';
 import {
   calculateVersesBetween,
-  getVerseStatus,
   getGradientColors,
-  quranData,
+  getVerseStatus,
   globalIndexToSurahAyah,
+  quranData,
   surahAyahToGlobalIndex,
 } from '../../utils/quranData';
 
@@ -44,14 +44,16 @@ export default function EditPrayerScreen() {
   // Form state
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
-  const [ranges, setRanges] = useState<Array<{
-    id: string;
-    startSurah: string;
-    startAyah: number;
-    endSurah: string;
-    endAyah: number;
-  }>>([]);
+
+  const [ranges, setRanges] = useState<
+    Array<{
+      id: string;
+      startSurah: string;
+      startAyah: number;
+      endSurah: string;
+      endAyah: number;
+    }>
+  >([]);
   const [activeRangeId, setActiveRangeId] = useState<string>('');
 
   const [loading, setLoading] = useState(false);
@@ -85,22 +87,28 @@ export default function EditPrayerScreen() {
         setRanges(loadedRanges);
         setActiveRangeId('0');
       } else {
-         // Fallback default
-         setRanges([{
-           id: '0',
-           startSurah: 'Al-Baqara',
-           startAyah: 1,
-           endSurah: 'Al-Baqara',
-           endAyah: 1,
-         }]);
-         setActiveRangeId('0');
+        // Fallback default
+        setRanges([
+          {
+            id: '0',
+            startSurah: 'Al-Baqara',
+            startAyah: 1,
+            endSurah: 'Al-Baqara',
+            endAyah: 1,
+          },
+        ]);
+        setActiveRangeId('0');
       }
     }
   }, [log]);
 
-  const activeRange = ranges.find(r => r.id === activeRangeId) || ranges[0];
-  const currentSurah = quranData.find((s) => s.name === activeRange?.startSurah);
-  const endCurrentSurah = quranData.find((s) => s.name === activeRange?.endSurah);
+  const activeRange = ranges.find((r) => r.id === activeRangeId) || ranges[0];
+  const currentSurah = quranData.find(
+    (s) => s.name === activeRange?.startSurah,
+  );
+  const endCurrentSurah = quranData.find(
+    (s) => s.name === activeRange?.endSurah,
+  );
 
   const getSurahName = (name: string) => {
     const surah = quranData.find((s) => s.name === name);
@@ -115,7 +123,7 @@ export default function EditPrayerScreen() {
         value: surah.name,
         searchTerms: `${surah.name} ${surah.nameAr}`,
       })),
-    [isRTL]
+    [isRTL],
   );
 
   // Ayah picker options for start surah
@@ -125,7 +133,7 @@ export default function EditPrayerScreen() {
         label: String(i + 1),
         value: String(i + 1),
       })),
-    [currentSurah]
+    [currentSurah],
   );
 
   // Ayah picker options for end surah
@@ -135,42 +143,54 @@ export default function EditPrayerScreen() {
         label: String(i + 1),
         value: String(i + 1),
       })),
-    [endCurrentSurah]
+    [endCurrentSurah],
   );
 
-  const totalVerses = useMemo(() => ranges.reduce((acc, range) => {
-    return acc + calculateVersesBetween(
-      range.startSurah,
-      range.startAyah,
-      range.endSurah,
-      range.endAyah
-    );
-  }, 0), [ranges]);
+  const totalVerses = useMemo(
+    () =>
+      ranges.reduce((acc, range) => {
+        return (
+          acc +
+          calculateVersesBetween(
+            range.startSurah,
+            range.startAyah,
+            range.endSurah,
+            range.endAyah,
+          )
+        );
+      }, 0),
+    [ranges],
+  );
 
   const status = getVerseStatus(totalVerses);
   const gradientColors = useMemo(
     () => getGradientColors(totalVerses, themedColorsEnabled),
-    [totalVerses, themedColorsEnabled]
+    [totalVerses, themedColorsEnabled],
   );
 
-  const updateRange = (id: string, updates: Partial<typeof ranges[0]>) => {
-    setRanges(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  const updateRange = (id: string, updates: Partial<(typeof ranges)[0]>) => {
+    setRanges((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, ...updates } : r)),
+    );
   };
 
   const addRange = () => {
     const lastRange = ranges[ranges.length - 1];
-    setRanges(prev => [...prev, {
-      id: Date.now().toString(),
-      startSurah: lastRange.endSurah,
-      startAyah: lastRange.endAyah, 
-      endSurah: lastRange.endSurah,
-      endAyah: lastRange.endAyah,
-    }]);
+    setRanges((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        startSurah: lastRange.endSurah,
+        startAyah: lastRange.endAyah,
+        endSurah: lastRange.endSurah,
+        endAyah: lastRange.endAyah,
+      },
+    ]);
   };
 
   const removeRange = (id: string) => {
     if (ranges.length > 1) {
-      setRanges(prev => prev.filter(r => r.id !== id));
+      setRanges((prev) => prev.filter((r) => r.id !== id));
     }
   };
 
@@ -180,7 +200,7 @@ export default function EditPrayerScreen() {
     try {
       setLoading(true);
 
-      const recitations = ranges.map(range => ({
+      const recitations = ranges.map((range) => ({
         start_ayah: surahAyahToGlobalIndex(range.startSurah, range.startAyah),
         end_ayah: surahAyahToGlobalIndex(range.endSurah, range.endAyah),
       }));
@@ -218,28 +238,24 @@ export default function EditPrayerScreen() {
   const handleDelete = () => {
     if (!log) return;
 
-    Alert.alert(
-      t('confirmDelete'),
-      t('deleteConfirmMessage'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setDeleteLoading(true);
-              await deleteLog(log.id);
-              await refreshStats();
-              router.back();
-            } catch (error) {
-              console.error('Delete failed:', error);
-              setDeleteLoading(false);
-            }
-          },
+    Alert.alert(t('confirmDelete'), t('deleteConfirmMessage'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('delete'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setDeleteLoading(true);
+            await deleteLog(log.id);
+            await refreshStats();
+            router.back();
+          } catch (error) {
+            console.error('Delete failed:', error);
+            setDeleteLoading(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // Show loading state while finding the log
@@ -329,8 +345,12 @@ export default function EditPrayerScreen() {
         {/* Reading Range Inputs */}
         {ranges.map((range, index) => (
           <View key={range.id} style={styles.card}>
-            <View style={[styles.cardHeader, { justifyContent: 'space-between' }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View
+              style={[styles.cardHeader, { justifyContent: 'space-between' }]}
+            >
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+              >
                 <Ionicons
                   name="book-outline"
                   size={20}
@@ -431,11 +451,7 @@ export default function EditPrayerScreen() {
             activeOpacity={0.8}
           >
             {loading ? (
-              <MaterialIcons
-                name="hourglass-empty"
-                size={20}
-                color="#ffffff"
-              />
+              <MaterialIcons name="hourglass-empty" size={20} color="#ffffff" />
             ) : (
               <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
             )}
@@ -482,7 +498,9 @@ export default function EditPrayerScreen() {
       <PickerModal
         visible={showStartAyahPicker}
         onClose={() => setShowStartAyahPicker(false)}
-        onSelect={(value) => updateRange(activeRangeId, { startAyah: Number(value) })}
+        onSelect={(value) =>
+          updateRange(activeRangeId, { startAyah: Number(value) })
+        }
         options={startAyahOptions}
         selectedValue={String(activeRange?.startAyah)}
         title={t('ayah')}
@@ -509,7 +527,9 @@ export default function EditPrayerScreen() {
       <PickerModal
         visible={showEndAyahPicker}
         onClose={() => setShowEndAyahPicker(false)}
-        onSelect={(value) => updateRange(activeRangeId, { endAyah: Number(value) })}
+        onSelect={(value) =>
+          updateRange(activeRangeId, { endAyah: Number(value) })
+        }
         options={endAyahOptions}
         selectedValue={String(activeRange?.endAyah)}
         title={t('ayah')}
@@ -532,7 +552,11 @@ export default function EditPrayerScreen() {
             <View style={styles.datePickerHeader}>
               <Text style={styles.datePickerTitle}>{t('prayerDate')}</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Ionicons name="close" size={24} color="rgba(255,255,255,0.7)" />
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                />
               </TouchableOpacity>
             </View>
             <DateTimePicker

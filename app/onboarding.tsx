@@ -109,7 +109,7 @@ export default function OnboardingScreen() {
         await saveOnboardingPreferences(
           selectedGender,
           selectedLanguage,
-          selectedReadingVolume
+          selectedReadingVolume,
         );
       } catch (err) {
         console.warn('⚠️  Failed to save onboarding preferences:', err);
@@ -144,7 +144,12 @@ export default function OnboardingScreen() {
 
   const renderLanguagePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+      <View
+        style={[
+          styles.pageContent,
+          { alignItems: 'center', justifyContent: 'center', flex: 1 },
+        ]}
+      >
         <Image
           source={require('../assets/images/moon-image.png')}
           style={styles.headerImageLarge}
@@ -157,9 +162,7 @@ export default function OnboardingScreen() {
         <Text style={[styles.title, { textAlign: 'center' }]}>
           {t('chooseYourLanguage')}
         </Text>
-        <Text
-          style={[styles.subtitle, { textAlign: 'center' }]}
-        >
+        <Text style={[styles.subtitle, { textAlign: 'center' }]}>
           {t('chooseLanguageDesc')}
         </Text>
 
@@ -216,14 +219,21 @@ export default function OnboardingScreen() {
 
   const renderPurposePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+      <View
+        style={[
+          styles.pageContent,
+          { alignItems: 'center', justifyContent: 'center', flex: 1 },
+        ]}
+      >
         {renderPageHeader()}
 
         <View style={styles.hadithContainer}>
           {/* <View style={styles.hadithQuoteMark}>
             <Text style={styles.hadithQuoteText}>"</Text>
           </View> */}
-          <Text style={[styles.hadithBody, { textAlign: isRTL ? 'right' : 'left' }]}>
+          <Text
+            style={[styles.hadithBody, { textAlign: isRTL ? 'right' : 'left' }]}
+          >
             {t('hadithText')}
           </Text>
         </View>
@@ -241,7 +251,12 @@ export default function OnboardingScreen() {
 
   const renderGenderPage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+      <View
+        style={[
+          styles.pageContent,
+          { alignItems: 'center', justifyContent: 'center', flex: 1 },
+        ]}
+      >
         {renderPageHeader()}
 
         <Text style={[styles.title, { textAlign: 'center' }]}>
@@ -252,17 +267,27 @@ export default function OnboardingScreen() {
         </Text>
 
         <View style={[styles.cardContainer, { width: '100%' }]}>
-          {([
-            { value: true, label: t('male') },
-            { value: false, label: t('female') },
-          ] as { value: boolean; label: string }[]).map(({ value, label }) => (
+          {(
+            [
+              { value: true, label: t('male') },
+              { value: false, label: t('female') },
+            ] as { value: boolean; label: string }[]
+          ).map(({ value, label }) => (
             <TouchableOpacity
               key={String(value)}
-              style={[styles.langCard, selectedGender === value && styles.langCardActive]}
+              style={[
+                styles.langCard,
+                selectedGender === value && styles.langCardActive,
+              ]}
               onPress={() => handleGenderSelect(value)}
               activeOpacity={0.7}
             >
-              <Text style={[styles.langText, selectedGender === value && styles.langTextActive]}>
+              <Text
+                style={[
+                  styles.langText,
+                  selectedGender === value && styles.langTextActive,
+                ]}
+              >
                 {label}
               </Text>
               {selectedGender === value && (
@@ -279,7 +304,12 @@ export default function OnboardingScreen() {
 
   const renderVolumePage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+      <View
+        style={[
+          styles.pageContent,
+          { alignItems: 'center', justifyContent: 'center', flex: 1 },
+        ]}
+      >
         {renderPageHeader()}
 
         <Text style={[styles.title, { textAlign: 'center' }]}>
@@ -290,23 +320,33 @@ export default function OnboardingScreen() {
         </Text>
 
         <View style={[styles.cardContainer, { width: '100%' }]}>
-          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map((volume) => (
-            <TouchableOpacity
-              key={volume}
-              style={[styles.langCard, selectedReadingVolume === volume && styles.langCardActive]}
-              onPress={() => handleReadingVolumeSelect(volume)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.langText, selectedReadingVolume === volume && styles.langTextActive]}>
-                {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
-              </Text>
-              {selectedReadingVolume === volume && (
-                <View style={styles.checkIcon}>
-                  <Feather name="check" size={14} color="#fff" />
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+          {(['<10', '10-100', '100-1000', '1000+'] as ReadingVolume[]).map(
+            (volume) => (
+              <TouchableOpacity
+                key={volume}
+                style={[
+                  styles.langCard,
+                  selectedReadingVolume === volume && styles.langCardActive,
+                ]}
+                onPress={() => handleReadingVolumeSelect(volume)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.langText,
+                    selectedReadingVolume === volume && styles.langTextActive,
+                  ]}
+                >
+                  {t(`readingVolume${volume.replace(/[<>+-]/g, '')}` as any)}
+                </Text>
+                {selectedReadingVolume === volume && (
+                  <View style={styles.checkIcon}>
+                    <Feather name="check" size={14} color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ),
+          )}
         </View>
       </View>
     </View>
@@ -350,9 +390,16 @@ export default function OnboardingScreen() {
 
     return (
       <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-        <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+        <View
+          style={[
+            styles.pageContent,
+            { alignItems: 'center', justifyContent: 'center', flex: 1 },
+          ]}
+        >
           {renderPageHeader()}
-          <Text style={[styles.title, { textAlign: 'center', marginBottom: 24 }]}>
+          <Text
+            style={[styles.title, { textAlign: 'center', marginBottom: 24 }]}
+          >
             {t('trackYourJourney')}
           </Text>
 
@@ -361,15 +408,42 @@ export default function OnboardingScreen() {
               const Icon = feature.iconType;
               return (
                 <View key={feature.id} style={styles.featureCard}>
-                  <View style={[styles.featureCardRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    <View style={[styles.featureIconBox, { backgroundColor: `${feature.color}15` }]}>
-                      <Icon name={feature.icon as any} size={18} color={feature.color} />
+                  <View
+                    style={[
+                      styles.featureCardRow,
+                      { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.featureIconBox,
+                        { backgroundColor: `${feature.color}15` },
+                      ]}
+                    >
+                      <Icon
+                        name={feature.icon as any}
+                        size={18}
+                        color={feature.color}
+                      />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.featureTitle, { color: feature.color, textAlign: isRTL ? 'right' : 'left' }]}>
+                      <Text
+                        style={[
+                          styles.featureTitle,
+                          {
+                            color: feature.color,
+                            textAlign: isRTL ? 'right' : 'left',
+                          },
+                        ]}
+                      >
                         {feature.title}
                       </Text>
-                      <Text style={[styles.featureDesc, { textAlign: isRTL ? 'right' : 'left' }]}>
+                      <Text
+                        style={[
+                          styles.featureDesc,
+                          { textAlign: isRTL ? 'right' : 'left' },
+                        ]}
+                      >
                         {feature.desc}
                       </Text>
                     </View>
@@ -385,7 +459,12 @@ export default function OnboardingScreen() {
 
   const renderNotificationsPage = () => (
     <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-      <View style={[styles.pageContent, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+      <View
+        style={[
+          styles.pageContent,
+          { alignItems: 'center', justifyContent: 'center', flex: 1 },
+        ]}
+      >
         {renderPageHeader()}
 
         <View style={[styles.iconCircle, { marginBottom: 32 }]}>

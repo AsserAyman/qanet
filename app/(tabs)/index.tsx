@@ -120,12 +120,9 @@ export default function NightPrayerScreen() {
     router.push(`/edit-prayer/${log.id}`);
   }, []);
 
-  const handleEditPeriod = React.useCallback(
-    (period: LocalExemptPeriod) => {
-      router.push(`/edit-period/${period.id}`);
-    },
-    [],
-  );
+  const handleEditPeriod = React.useCallback((period: LocalExemptPeriod) => {
+    router.push(`/edit-period/${period.id}`);
+  }, []);
 
   // Merge prayers and periods into a unified timeline sorted by date desc
   type TimelineItem =
@@ -285,17 +282,19 @@ export default function NightPrayerScreen() {
                 const dateLabel = `${startDate.toLocaleDateString(
                   isRTL ? 'ar-SA' : 'en-US',
                   { month: 'short', day: 'numeric' },
-                )} — ${endDate.toLocaleDateString(
-                  isRTL ? 'ar-SA' : 'en-US',
-                  { month: 'short', day: 'numeric' },
-                )}`;
+                )} — ${endDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}`;
 
                 return (
                   <TouchableOpacity
                     key={`period-${period.id}`}
                     style={[
                       styles.historyItem,
-                      index === recentItems.length - 1 && { borderBottomWidth: 0 },
+                      index === recentItems.length - 1 && {
+                        borderBottomWidth: 0,
+                      },
                     ]}
                     onPress={() => handleEditPeriod(period)}
                     activeOpacity={0.7}
@@ -312,12 +311,22 @@ export default function NightPrayerScreen() {
                       <Text style={styles.historyRange}>{t('periodDays')}</Text>
                       <Text style={styles.historyVerses}>{dateLabel}</Text>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
                       {period.sync_status !== 'synced' && (
                         <View
                           style={[
                             styles.syncIndicator,
-                            { backgroundColor: getSyncStatusColor(period.sync_status) },
+                            {
+                              backgroundColor: getSyncStatusColor(
+                                period.sync_status,
+                              ),
+                            },
                           ]}
                         />
                       )}
@@ -337,12 +346,21 @@ export default function NightPrayerScreen() {
               const showDate =
                 index === 0 ||
                 (recentItems[index - 1].type === 'prayer'
-                  ? dateStr !== new Date((recentItems[index - 1].data as LocalPrayerLog).prayer_date).toDateString()
+                  ? dateStr !==
+                    new Date(
+                      (recentItems[index - 1].data as LocalPrayerLog)
+                        .prayer_date,
+                    ).toDateString()
                   : true);
 
               const dailyTotal = logs
-                .filter((l) => new Date(l.prayer_date).toDateString() === dateStr)
-                .reduce((sum, l) => sum + calculateTotalAyahs(l.recitations), 0);
+                .filter(
+                  (l) => new Date(l.prayer_date).toDateString() === dateStr,
+                )
+                .reduce(
+                  (sum, l) => sum + calculateTotalAyahs(l.recitations),
+                  0,
+                );
 
               const dailyStatus = getVerseStatus(dailyTotal);
               const logTotalAyahs = calculateTotalAyahs(log.recitations);
@@ -382,7 +400,9 @@ export default function NightPrayerScreen() {
                   <TouchableOpacity
                     style={[
                       styles.historyItem,
-                      index === recentItems.length - 1 && { borderBottomWidth: 0 },
+                      index === recentItems.length - 1 && {
+                        borderBottomWidth: 0,
+                      },
                     ]}
                     onPress={() => handleEdit(log)}
                     activeOpacity={0.7}
@@ -393,7 +413,11 @@ export default function NightPrayerScreen() {
                         { backgroundColor: 'rgba(255,255,255,0.1)' },
                       ]}
                     >
-                      <Feather name="moon" size={20} color="rgba(255,255,255,0.6)" />
+                      <Feather
+                        name="moon"
+                        size={20}
+                        color="rgba(255,255,255,0.6)"
+                      />
                     </View>
                     <View style={styles.historyContent}>
                       <Text style={styles.historyRange}>
@@ -407,7 +431,11 @@ export default function NightPrayerScreen() {
                           <View
                             style={[
                               styles.syncIndicator,
-                              { backgroundColor: getSyncStatusColor(log.sync_status) },
+                              {
+                                backgroundColor: getSyncStatusColor(
+                                  log.sync_status,
+                                ),
+                              },
                             ]}
                           />
                         )}

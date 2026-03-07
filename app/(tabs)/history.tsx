@@ -65,7 +65,11 @@ export default function HistoryScreen() {
     for (const period of periods) {
       const start = new Date(period.start_date + 'T00:00:00Z');
       const end = new Date(period.end_date + 'T00:00:00Z');
-      for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      for (
+        let d = new Date(start);
+        d <= end;
+        d.setUTCDate(d.getUTCDate() + 1)
+      ) {
         const dateStr = d.toISOString().split('T')[0];
         // Only mark as period if there's no prayer log for that day
         if (!merged[dateStr]) {
@@ -82,7 +86,11 @@ export default function HistoryScreen() {
     for (const period of periods) {
       const start = new Date(period.start_date + 'T00:00:00Z');
       const end = new Date(period.end_date + 'T00:00:00Z');
-      for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      for (
+        let d = new Date(start);
+        d <= end;
+        d.setUTCDate(d.getUTCDate() + 1)
+      ) {
         const dateStr = d.toISOString().split('T')[0];
         if (!merged[dateStr]) {
           merged[dateStr] = { verses: 0, status: 'Period' };
@@ -177,7 +185,7 @@ export default function HistoryScreen() {
             Object.entries(yearlyData).map(([date, dayData]) => [
               date,
               dayData.verses,
-            ])
+            ]),
           )}
           stats={stats}
         />

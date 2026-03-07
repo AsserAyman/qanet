@@ -1,7 +1,6 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -14,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AnimatedGradientBackground } from '../../components/AnimatedGradientBackground';
 import { DeleteDataModal } from '../../components/DeleteDataModal';
 import { FeedbackModal } from '../../components/FeedbackModal';
 import { Language, useI18n } from '../../contexts/I18nContext';
@@ -136,11 +136,9 @@ export default function SettingsScreen() {
           <Text style={styles.hadithText}>{t('hadithText')}</Text>
         </View>
 
-        
-
         {/* Appearance Settings */}
         <View style={styles.card}>
-          <View style={{...styles.notificationHeader, marginBottom: 0}}>
+          <View style={{ ...styles.notificationHeader, marginBottom: 0 }}>
             <View style={styles.notificationTitleContainer}>
               <Feather
                 name="droplet"
@@ -263,7 +261,8 @@ export default function SettingsScreen() {
                 }}
               />
               <Text style={[styles.notificationInfoText, { flex: 1 }]}>
-                {t('reminderTime')}: {formatTime(notificationHour, notificationMinute)}
+                {t('reminderTime')}:{' '}
+                {formatTime(notificationHour, notificationMinute)}
               </Text>
               <Feather
                 name="chevron-right"
@@ -447,8 +446,6 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        
-
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -461,17 +458,21 @@ export default function SettingsScreen() {
                 <TouchableOpacity onPress={() => setShowTimePicker(false)}>
                   <Text style={styles.timePickerCancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
-                <Text style={styles.timePickerTitle}>{t('setReminderTime')}</Text>
+                <Text style={styles.timePickerTitle}>
+                  {t('setReminderTime')}
+                </Text>
                 <TouchableOpacity
                   onPress={async () => {
                     setShowTimePicker(false);
                     await setNotificationTime(
                       pickerDate.getHours(),
-                      pickerDate.getMinutes()
+                      pickerDate.getMinutes(),
                     );
                   }}
                 >
-                  <Text style={styles.timePickerConfirmText}>{t('confirm')}</Text>
+                  <Text style={styles.timePickerConfirmText}>
+                    {t('confirm')}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker

@@ -451,7 +451,9 @@ export default function CalculatorScreen() {
             </View>
             <View style={styles.divisionDivider} />
             <View style={styles.divisionTimeChip}>
-              <Text style={styles.divisionValue}>{formatTime(divisions.minutes)}</Text>
+              <Text style={styles.divisionValue}>
+                {formatTime(divisions.minutes)}
+              </Text>
             </View>
           </View>
         </View>

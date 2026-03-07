@@ -16,25 +16,21 @@ import { LocalExemptPeriod, LocalPrayerLog } from '../utils/database/schema';
 import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
+  calculateTotalAyahs,
+  useExemptPeriods,
   useLastNightStats,
   useOfflineData,
   useOfflineStats,
   usePrayerLogs,
-  useExemptPeriods,
-  calculateTotalAyahs,
 } from '../hooks/useOfflineData';
-import { getVerseStatus, formatLogSummary } from '../utils/quranData';
+import { formatLogSummary, getVerseStatus } from '../utils/quranData';
 
 export default function AllHistoryScreen() {
   const insets = useSafeAreaInsets();
   const { t, isRTL } = useI18n();
   const { themedColorsEnabled } = useTheme();
   const { isInitialized } = useOfflineData();
-  const {
-    logs,
-    loading: logsLoading,
-    refresh: refreshLogs,
-  } = usePrayerLogs();
+  const { logs, loading: logsLoading, refresh: refreshLogs } = usePrayerLogs();
   const { periods } = useExemptPeriods();
   const { refresh: refreshStats } = useOfflineStats();
 
@@ -61,12 +57,9 @@ export default function AllHistoryScreen() {
     router.push(`/edit-prayer/${log.id}`);
   }, []);
 
-  const handleEditPeriod = React.useCallback(
-    (period: LocalExemptPeriod) => {
-      router.push(`/edit-period/${period.id}`);
-    },
-    [],
-  );
+  const handleEditPeriod = React.useCallback((period: LocalExemptPeriod) => {
+    router.push(`/edit-period/${period.id}`);
+  }, []);
 
   type TimelineItem =
     | { type: 'prayer'; data: LocalPrayerLog; sortDate: string }
@@ -153,10 +146,10 @@ export default function AllHistoryScreen() {
               const periodDateLabel = `${startDate.toLocaleDateString(
                 isRTL ? 'ar-SA' : 'en-US',
                 { month: 'short', day: 'numeric' },
-              )} — ${endDate.toLocaleDateString(
-                isRTL ? 'ar-SA' : 'en-US',
-                { month: 'short', day: 'numeric' },
-              )}`;
+              )} — ${endDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}`;
 
               return (
                 <TouchableOpacity
@@ -181,12 +174,22 @@ export default function AllHistoryScreen() {
                     <Text style={styles.historyRange}>{t('periodDays')}</Text>
                     <Text style={styles.historyVerses}>{periodDateLabel}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
                     {period.sync_status !== 'synced' && (
                       <View
                         style={[
                           styles.syncIndicator,
-                          { backgroundColor: getSyncStatusColor(period.sync_status) },
+                          {
+                            backgroundColor: getSyncStatusColor(
+                              period.sync_status,
+                            ),
+                          },
                         ]}
                       />
                     )}
@@ -206,7 +209,10 @@ export default function AllHistoryScreen() {
             const showDate =
               index === 0 ||
               (allItems[index - 1].type === 'prayer'
-                ? dateStr !== new Date((allItems[index - 1].data as LocalPrayerLog).prayer_date).toDateString()
+                ? dateStr !==
+                  new Date(
+                    (allItems[index - 1].data as LocalPrayerLog).prayer_date,
+                  ).toDateString()
                 : true);
 
             // Calculate total verses for this date (from all logs)
@@ -223,7 +229,7 @@ export default function AllHistoryScreen() {
                 weekday: 'long',
                 month: 'short',
                 day: 'numeric',
-              }
+              },
             );
 
             return (
@@ -292,7 +298,7 @@ export default function AllHistoryScreen() {
                             styles.syncIndicator,
                             {
                               backgroundColor: getSyncStatusColor(
-                                log.sync_status
+                                log.sync_status,
                               ),
                             },
                           ]}
