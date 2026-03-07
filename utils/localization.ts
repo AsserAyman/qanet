@@ -284,7 +284,7 @@ export const translations = {
   },
   ar: {
     // Navigation
-    nightPrayer: 'صلاة الليل',
+    nightPrayer: 'الرئيسة',
     addPrayer: 'إضافة صلاة',
     history: 'التاريخ',
     settings: 'الإعدادات',
