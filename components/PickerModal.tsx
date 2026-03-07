@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import {
   FlatList,
   Modal,
+  SectionList,
   StyleSheet,
   Text,
   TextInput,
@@ -17,14 +18,22 @@ import { useI18n } from '../contexts/I18nContext';
 export interface PickerOption {
   label: string;
   value: string;
-  searchTerms?: string; // Additional terms to search by
+  searchTerms?: string;
+  subtitle?: string;
+  badge?: string | number;
+}
+
+export interface PickerSection {
+  title: string;
+  data: PickerOption[];
 }
 
 interface PickerModalProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (value: string) => void;
-  options: PickerOption[];
+  options?: PickerOption[];
+  sections?: PickerSection[];
   selectedValue: string;
   title: string;
   showSearch?: boolean;
@@ -35,7 +44,8 @@ export function PickerModal({
   visible,
   onClose,
   onSelect,
-  options,
+  options = [],
+  sections,
   selectedValue,
   title,
   showSearch = true,
@@ -47,16 +57,40 @@ export function PickerModal({
 
   const styles = createStyles(isRTL);
 
+  const totalCount = sections
+    ? sections.reduce((acc, s) => acc + s.data.length, 0)
+    : options.length;
+
+  // Flat filtered options (used when sections not provided or search is active)
   const filteredOptions = useMemo(() => {
+    if (sections) return []; // Not used in section mode without search
     if (!searchQuery.trim()) return options;
     const query = searchQuery.toLowerCase();
     return options.filter(
-      (option) =>
-        option.label.toLowerCase().includes(query) ||
-        option.value.toLowerCase().includes(query) ||
-        option.searchTerms?.toLowerCase().includes(query)
+      (o) =>
+        o.label.toLowerCase().includes(query) ||
+        o.value.toLowerCase().includes(query) ||
+        o.searchTerms?.toLowerCase().includes(query),
     );
-  }, [options, searchQuery]);
+  }, [options, sections, searchQuery]);
+
+  // Filtered sections (used when sections provided)
+  const filteredSections = useMemo(() => {
+    if (!sections) return undefined;
+    if (!searchQuery.trim()) return sections;
+    const query = searchQuery.toLowerCase();
+    return sections
+      .map((section) => ({
+        ...section,
+        data: section.data.filter(
+          (o) =>
+            o.label.toLowerCase().includes(query) ||
+            o.value.toLowerCase().includes(query) ||
+            o.searchTerms?.toLowerCase().includes(query),
+        ),
+      }))
+      .filter((s) => s.data.length > 0);
+  }, [sections, searchQuery]);
 
   const handleSelect = (value: string) => {
     onSelect(value);
@@ -71,19 +105,46 @@ export function PickerModal({
 
   const renderItem = ({ item }: { item: PickerOption }) => {
     const isSelected = item.value === selectedValue;
+    const isRich = item.subtitle != null || item.badge != null;
     return (
       <TouchableOpacity
-        style={[styles.option, isSelected && styles.optionSelected]}
+        style={[
+          styles.option,
+          isRich && styles.optionRich,
+          isSelected && styles.optionSelected,
+        ]}
         onPress={() => handleSelect(item.value)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-          {item.label}
-        </Text>
-        {isSelected && (
+        <View style={styles.optionContent}>
+          <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+            {item.label}
+          </Text>
+          {item.subtitle && (
+            <Text style={[styles.optionSubtitle, isSelected && styles.optionSubtitleSelected]}>
+              {item.subtitle}
+            </Text>
+          )}
+        </View>
+        {item.badge != null ? (
+          <View style={[styles.badge, isSelected && styles.badgeSelected]}>
+            <Text style={[styles.badgeText, isSelected && styles.badgeTextSelected]}>
+              {item.badge}
+            </Text>
+          </View>
+        ) : isSelected ? (
           <Ionicons name="checkmark" size={20} color="#ffffff" />
-        )}
+        ) : null}
       </TouchableOpacity>
+    );
+  };
+
+  const renderSectionHeader = ({ section }: { section: PickerSection }) => {
+    const isFirst = (filteredSections ?? sections)?.[0]?.title === section.title;
+    return (
+      <View style={[styles.sectionHeader, !isFirst && styles.sectionHeaderDivider]}>
+        <Text style={styles.sectionHeaderText}>{section.title}</Text>
+      </View>
     );
   };
 
@@ -118,7 +179,7 @@ export function PickerModal({
           </View>
 
           {/* Search */}
-          {showSearch && options.length > 10 && (
+          {showSearch && totalCount > 10 && (
             <View style={styles.searchContainer}>
               <Ionicons
                 name="search"
@@ -142,26 +203,40 @@ export function PickerModal({
             </View>
           )}
 
-          {/* Options List */}
-          <FlatList
-            data={filteredOptions}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.value}
-            style={styles.list}
-            showsVerticalScrollIndicator={false}
-            initialNumToRender={20}
-            getItemLayout={(_, index) => ({
-              length: 52,
-              offset: 52 * index,
-              index,
-            })}
-            initialScrollIndex={
-              filteredOptions.findIndex((o) => o.value === selectedValue) > 5
-                ? filteredOptions.findIndex((o) => o.value === selectedValue) - 2
-                : 0
-            }
-            onScrollToIndexFailed={() => {}}
-          />
+          {/* Sectioned List */}
+          {filteredSections ? (
+            <SectionList
+              sections={filteredSections}
+              renderItem={renderItem}
+              renderSectionHeader={renderSectionHeader}
+              keyExtractor={(item) => item.value}
+              style={styles.list}
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={30}
+              stickySectionHeadersEnabled={false}
+              onScrollToIndexFailed={() => {}}
+            />
+          ) : (
+            <FlatList
+              data={filteredOptions}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.value}
+              style={styles.list}
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={20}
+              getItemLayout={(_, index) => ({
+                length: 52,
+                offset: 52 * index,
+                index,
+              })}
+              initialScrollIndex={
+                filteredOptions.findIndex((o) => o.value === selectedValue) > 5
+                  ? filteredOptions.findIndex((o) => o.value === selectedValue) - 2
+                  : 0
+              }
+              onScrollToIndexFailed={() => {}}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -182,7 +257,7 @@ const createStyles = (isRTL: boolean) =>
       backgroundColor: '#1a1a1a',
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
-      maxHeight: '70%',
+      maxHeight: '85%',
       minHeight: 300,
     },
     handleContainer: {
@@ -236,6 +311,24 @@ const createStyles = (isRTL: boolean) =>
     list: {
       paddingHorizontal: 12,
     },
+    sectionHeader: {
+      paddingHorizontal: 8,
+      paddingTop: 16,
+      paddingBottom: 6,
+    },
+    sectionHeaderDivider: {
+      marginTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255,255,255,0.07)',
+    },
+    sectionHeaderText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.4)',
+      textTransform: 'uppercase',
+      letterSpacing: 1.5,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
     option: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
@@ -245,8 +338,16 @@ const createStyles = (isRTL: boolean) =>
       borderRadius: 12,
       marginBottom: 4,
     },
+    optionRich: {
+      paddingVertical: 14,
+    },
     optionSelected: {
-      backgroundColor: 'rgba(255,255,255,0.15)',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+    optionContent: {
+      flex: 1,
+      marginRight: isRTL ? 0 : 12,
+      marginLeft: isRTL ? 12 : 0,
     },
     optionText: {
       fontSize: 16,
@@ -256,5 +357,33 @@ const createStyles = (isRTL: boolean) =>
     optionTextSelected: {
       color: '#ffffff',
       fontWeight: '600',
+    },
+    optionSubtitle: {
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.35)',
+      marginTop: 2,
+      fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    optionSubtitleSelected: {
+      color: 'rgba(255,255,255,0.55)',
+    },
+    badge: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeSelected: {
+      backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    badgeText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.4)',
+    },
+    badgeTextSelected: {
+      color: '#ffffff',
     },
   });

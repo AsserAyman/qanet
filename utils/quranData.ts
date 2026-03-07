@@ -399,6 +399,27 @@ export const RUB_AL_HIZB_GLOBAL: number[] = RUB_AL_HIZB_RAW.map(
   ([surahNum, ayah]) => cumulativeAyahCounts[surahNum - 1] + ayah,
 );
 
+// Juz' (Para) boundaries — 30 Juz', each starting at every 8th Rub'
+export const JUZ_GLOBAL_BOUNDARIES: number[] = Array.from(
+  { length: 30 },
+  (_, i) => RUB_AL_HIZB_GLOBAL[i * 8],
+);
+
+/**
+ * Returns the Juz' number (1-30) that a surah STARTS in.
+ */
+export function getJuzNumber(surahName: string): number {
+  const surahIndex = quranData.findIndex((s) => s.name === surahName);
+  if (surahIndex === -1) return 1;
+  const globalStart = cumulativeAyahCounts[surahIndex] + 1;
+  let juz = 1;
+  for (let i = 1; i < JUZ_GLOBAL_BOUNDARIES.length; i++) {
+    if (JUZ_GLOBAL_BOUNDARIES[i] <= globalStart) juz = i + 1;
+    else break;
+  }
+  return juz;
+}
+
 export interface QuranDivisions {
   rub: number;     // Rub' al-Hizb count (fractional)
   hizb: number;    // Hizb count (fractional)

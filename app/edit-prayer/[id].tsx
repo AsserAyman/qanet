@@ -24,6 +24,7 @@ import { useOfflineStats, usePrayerLogs } from '../../hooks/useOfflineData';
 import {
   calculateVersesBetween,
   getGradientColors,
+  getJuzNumber,
   getVerseStatus,
   globalIndexToSurahAyah,
   quranData,
@@ -115,16 +116,30 @@ export default function EditPrayerScreen() {
     return isRTL ? surah?.nameAr || name : name;
   };
 
-  // Surah picker options
-  const surahOptions: PickerOption[] = useMemo(
-    () =>
-      quranData.map((surah) => ({
-        label: isRTL ? surah.nameAr : surah.name,
-        value: surah.name,
-        searchTerms: `${surah.name} ${surah.nameAr}`,
-      })),
-    [isRTL],
-  );
+  // Surah picker options — grouped by Juz'
+  const surahSections = useMemo(() => {
+    const grouped: Record<number, typeof quranData> = {};
+    quranData.forEach((surah) => {
+      const juz = getJuzNumber(surah.name);
+      if (!grouped[juz]) grouped[juz] = [];
+      grouped[juz].push(surah);
+    });
+    return Array.from({ length: 30 }, (_, i) => i + 1)
+      .filter((juz) => grouped[juz]?.length > 0)
+      .map((juz) => ({
+        title: isRTL ? `الجزء ${juz}` : `Juz' ${juz}`,
+        data: grouped[juz].map((surah) => {
+          const globalIndex = quranData.indexOf(surah);
+          return {
+            label: isRTL ? surah.nameAr : surah.name,
+            value: surah.name,
+            searchTerms: `${surah.name} ${surah.nameAr}`,
+            subtitle: isRTL ? `${surah.ayahs} آية` : `${surah.ayahs} verses`,
+            badge: globalIndex + 1,
+          };
+        }),
+      }));
+  }, [isRTL]);
 
   // Ayah picker options for start surah
   const startAyahOptions: PickerOption[] = useMemo(
@@ -489,7 +504,7 @@ export default function EditPrayerScreen() {
             updateRange(activeRangeId, { startSurah: value });
           }
         }}
-        options={surahOptions}
+        sections={surahSections}
         selectedValue={activeRange?.startSurah}
         title={t('startingSurah')}
         searchPlaceholder={t('surah')}
@@ -518,7 +533,7 @@ export default function EditPrayerScreen() {
             updateRange(activeRangeId, { endSurah: value });
           }
         }}
-        options={surahOptions}
+        sections={surahSections}
         selectedValue={activeRange?.endSurah}
         title={t('endingSurah')}
         searchPlaceholder={t('surah')}

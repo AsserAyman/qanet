@@ -35,6 +35,7 @@ import {
   calculateQuranDivisions,
   calculateVerseRange,
   calculateVersesBetween,
+  getJuzNumber,
   getVerseStatus,
   globalIndexToSurahAyah,
   quranData,
@@ -143,16 +144,32 @@ export default function CalculatorScreen() {
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
 
-  // Surah picker options
-  const surahOptions: PickerOption[] = useMemo(
-    () =>
-      quranData.map((surah) => ({
-        label: isRTL ? surah.nameAr : surah.name,
-        value: surah.name,
-        searchTerms: `${surah.name} ${surah.nameAr}`,
-      })),
-    [isRTL],
-  );
+  // Surah picker options — grouped by Juz'
+  const surahSections = useMemo(() => {
+    const grouped: Record<number, typeof quranData> = {};
+    quranData.forEach((surah) => {
+      const juz = getJuzNumber(surah.name);
+      if (!grouped[juz]) grouped[juz] = [];
+      grouped[juz].push(surah);
+    });
+    return Array.from({ length: 30 }, (_, i) => i + 1)
+      .filter((juz) => grouped[juz]?.length > 0)
+      .map((juz) => ({
+        title: isRTL ? `الجزء ${juz}` : `Juz' ${juz}`,
+        data: grouped[juz].map((surah) => {
+          const globalIndex = quranData.indexOf(surah);
+          return {
+            label: isRTL ? surah.nameAr : surah.name,
+            value: surah.name,
+            searchTerms: `${surah.name} ${surah.nameAr}`,
+            subtitle: isRTL
+              ? `${surah.ayahs} آية`
+              : `${surah.ayahs} verses`,
+            badge: globalIndex + 1,
+          };
+        }),
+      }));
+  }, [isRTL]);
 
   // Ayah picker options for start surah
   const startAyahOptions: PickerOption[] = useMemo(
@@ -473,7 +490,7 @@ export default function CalculatorScreen() {
             setSelectedAyah(1);
           }
         }}
-        options={surahOptions}
+        sections={surahSections}
         selectedValue={selectedSurah}
         title={t('startingSurah')}
         searchPlaceholder={t('surah')}
@@ -500,7 +517,7 @@ export default function CalculatorScreen() {
             setEndAyah(1);
           }
         }}
-        options={surahOptions}
+        sections={surahSections}
         selectedValue={endSurah}
         title={t('endingSurah')}
         searchPlaceholder={t('surah')}
