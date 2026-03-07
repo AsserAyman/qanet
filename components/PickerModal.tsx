@@ -214,6 +214,7 @@ export function PickerModal({
               showsVerticalScrollIndicator={false}
               initialNumToRender={30}
               stickySectionHeadersEnabled={false}
+              keyboardShouldPersistTaps="handled"
               onScrollToIndexFailed={() => {}}
             />
           ) : (
@@ -224,6 +225,7 @@ export function PickerModal({
               style={styles.list}
               showsVerticalScrollIndicator={false}
               initialNumToRender={20}
+              keyboardShouldPersistTaps="handled"
               getItemLayout={(_, index) => ({
                 length: 52,
                 offset: 52 * index,
