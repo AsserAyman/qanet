@@ -341,7 +341,7 @@ export default function EditPrayerScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.dateText}>
-              {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              {date.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',

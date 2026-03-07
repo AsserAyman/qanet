@@ -427,7 +427,7 @@ export default function AddPrayerScreen() {
               activeOpacity={0.8}
             >
               <Text style={styles.dateText}>
-                {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                {date.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -507,7 +507,7 @@ export default function AddPrayerScreen() {
                     activeOpacity={0.8}
                   >
                     <Text style={styles.dateText}>
-                      {date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                      {date.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
@@ -529,7 +529,7 @@ export default function AddPrayerScreen() {
                   >
                     <Text style={styles.dateText}>
                       {periodEndDate.toLocaleDateString(
-                        isRTL ? 'ar-SA' : 'en-US',
+                        isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
                         {
                           year: 'numeric',
                           month: 'short',

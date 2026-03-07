@@ -150,7 +150,7 @@ export default function EditPeriodScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.dateText}>
-              {startDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              {startDate.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -177,7 +177,7 @@ export default function EditPeriodScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.dateText}>
-              {endDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              {endDate.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',

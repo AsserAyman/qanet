@@ -144,9 +144,9 @@ export default function AllHistoryScreen() {
               const startDate = new Date(period.start_date + 'T00:00:00');
               const endDate = new Date(period.end_date + 'T00:00:00');
               const periodDateLabel = `${startDate.toLocaleDateString(
-                isRTL ? 'ar-SA' : 'en-US',
+                isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
                 { month: 'short', day: 'numeric' },
-              )} — ${endDate.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+              )} — ${endDate.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
                 month: 'short',
                 day: 'numeric',
               })}`;
@@ -204,7 +204,7 @@ export default function AllHistoryScreen() {
             const logTotalAyahs = calculateTotalAyahs(log.recitations);
 
             const dateLabel = dateObj.toLocaleDateString(
-              isRTL ? 'ar-SA' : 'en-US',
+              isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
               {
                 weekday: 'long',
                 month: 'short',
