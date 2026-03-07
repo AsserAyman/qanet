@@ -432,7 +432,7 @@ export default function CalculatorScreen() {
                 style={{ opacity: 0.5 }}
               />
             </View>
-            <View style={styles.rangeItem}>
+            <View style={[styles.rangeItem, styles.rangeItemEnd]}>
               <Text style={styles.rangeSurah}>
                 {getSurahName(range.endSurah)}
               </Text>
@@ -586,19 +586,24 @@ const createStyles = (isRTL: boolean) =>
       alignItems: 'center',
     },
     rangeItem: {
-      alignItems: isRTL ? 'flex-end' : 'flex-start',
+      alignItems: 'center',
       flex: 1,
+    },
+    rangeItemEnd: {
+      alignItems: 'center',
     },
     rangeSurah: {
       fontSize: 16,
       fontWeight: '600',
       color: '#ffffff',
       marginBottom: 4,
+      textAlign: 'center',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
     rangeAyah: {
       fontSize: 14,
       color: 'rgba(255,255,255,0.6)',
+      textAlign: 'center',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
     rangeResultContainer: {
