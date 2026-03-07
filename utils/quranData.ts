@@ -416,9 +416,51 @@ export interface QuranDivisions {
   minutes: number; // Estimated recitation time (~5 min per Rub')
 }
 
+// Global index of Al-Baqara ayah 1 (= 7 + 1, since Al-Fatiha occupies indices 1–7)
+const AL_BAQARA_GLOBAL_START = cumulativeAyahCounts[1] + 1;
+
+/**
+ * Compute fractional Rub' count for a non-wrapping global index range.
+ */
+function computeRubForRange(startGlobal: number, endGlobal: number): number {
+  if (endGlobal < startGlobal) return 0;
+
+  const getRubEnd = (idx: number) =>
+    idx < RUB_AL_HIZB_GLOBAL.length - 1
+      ? RUB_AL_HIZB_GLOBAL[idx + 1] - 1
+      : TOTAL_QURAN_AYAHS;
+
+  let startRubIdx = 0;
+  for (let i = 1; i < RUB_AL_HIZB_GLOBAL.length; i++) {
+    if (RUB_AL_HIZB_GLOBAL[i] <= startGlobal) startRubIdx = i;
+    else break;
+  }
+
+  let endRubIdx = 0;
+  for (let i = 1; i < RUB_AL_HIZB_GLOBAL.length; i++) {
+    if (RUB_AL_HIZB_GLOBAL[i] <= endGlobal) endRubIdx = i;
+    else break;
+  }
+
+  if (startRubIdx === endRubIdx) {
+    const rubSize = getRubEnd(startRubIdx) - RUB_AL_HIZB_GLOBAL[startRubIdx] + 1;
+    return (endGlobal - startGlobal + 1) / rubSize;
+  }
+
+  const startRubEnd = getRubEnd(startRubIdx);
+  const startRubSize = startRubEnd - RUB_AL_HIZB_GLOBAL[startRubIdx] + 1;
+  const startFraction = (startRubEnd - startGlobal + 1) / startRubSize;
+
+  const endRubStart = RUB_AL_HIZB_GLOBAL[endRubIdx];
+  const endRubSize = getRubEnd(endRubIdx) - endRubStart + 1;
+  const endFraction = (endGlobal - endRubStart + 1) / endRubSize;
+
+  return startFraction + (endRubIdx - startRubIdx - 1) + endFraction;
+}
+
 /**
  * Calculate Quranic divisions (Juz', Hizb, Rub' al-Hizb) for a verse range.
- * 1 Rub' ≈ 5 minutes of recitation.
+ * Handles wrap-around ranges (e.g. Al-Fil → Al-A'raf). 1 Rub' ≈ 5 minutes.
  */
 export function calculateQuranDivisions(
   startSurah: string,
@@ -429,43 +471,14 @@ export function calculateQuranDivisions(
   const startGlobal = surahAyahToGlobalIndex(startSurah, startAyah);
   const endGlobal = surahAyahToGlobalIndex(endSurah, endAyah);
 
-  if (endGlobal < startGlobal) {
-    return { rub: 0, hizb: 0, juz: 0, minutes: 0 };
-  }
-
-  // Find the rub index containing startGlobal (last boundary <= startGlobal)
-  let startRubIdx = 0;
-  for (let i = 1; i < RUB_AL_HIZB_GLOBAL.length; i++) {
-    if (RUB_AL_HIZB_GLOBAL[i] <= startGlobal) startRubIdx = i;
-    else break;
-  }
-
-  // Find the rub index containing endGlobal (last boundary <= endGlobal)
-  let endRubIdx = 0;
-  for (let i = 1; i < RUB_AL_HIZB_GLOBAL.length; i++) {
-    if (RUB_AL_HIZB_GLOBAL[i] <= endGlobal) endRubIdx = i;
-    else break;
-  }
-
-  const getRubEnd = (idx: number) =>
-    idx < RUB_AL_HIZB_GLOBAL.length - 1
-      ? RUB_AL_HIZB_GLOBAL[idx + 1] - 1
-      : TOTAL_QURAN_AYAHS;
-
   let rub: number;
-  if (startRubIdx === endRubIdx) {
-    const rubSize = getRubEnd(startRubIdx) - RUB_AL_HIZB_GLOBAL[startRubIdx] + 1;
-    rub = (endGlobal - startGlobal + 1) / rubSize;
+  if (endGlobal < startGlobal) {
+    // Wrap-around: [startGlobal → end of Quran] + [Al-Baqara start → endGlobal]
+    rub =
+      computeRubForRange(startGlobal, TOTAL_QURAN_AYAHS) +
+      computeRubForRange(AL_BAQARA_GLOBAL_START, endGlobal);
   } else {
-    const startRubEnd = getRubEnd(startRubIdx);
-    const startRubSize = startRubEnd - RUB_AL_HIZB_GLOBAL[startRubIdx] + 1;
-    const startFraction = (startRubEnd - startGlobal + 1) / startRubSize;
-
-    const endRubStart = RUB_AL_HIZB_GLOBAL[endRubIdx];
-    const endRubSize = getRubEnd(endRubIdx) - endRubStart + 1;
-    const endFraction = (endGlobal - endRubStart + 1) / endRubSize;
-
-    rub = startFraction + (endRubIdx - startRubIdx - 1) + endFraction;
+    rub = computeRubForRange(startGlobal, endGlobal);
   }
 
   return {
