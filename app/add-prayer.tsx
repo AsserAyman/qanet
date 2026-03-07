@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -30,7 +30,6 @@ import { SelectField } from '../components/SelectField';
 import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useExemptPeriods, usePrayerLogs } from '../hooks/useOfflineData';
-import { onboardingManager } from '../utils/onboarding';
 import {
   calculateVersesBetween,
   getGradientColors,
@@ -49,12 +48,12 @@ export default function AddPrayerScreen() {
   const { createPeriod } = useExemptPeriods();
 
   // Gender state — only show period option for female users
-  const [isMale, setIsMale] = useState<boolean | null>(null);
-  useEffect(() => {
-    onboardingManager.getOnboardingData().then(data => {
-      setIsMale(data?.isMale ?? true);
-    });
-  }, []);
+  const [isMale, setIsMale] = useState<boolean | null>(false);
+  // useEffect(() => {
+  //   onboardingManager.getOnboardingData().then(data => {
+  //     setIsMale(data?.isMale ?? true);
+  //   });
+  // }, []);
 
   // Form state
   const [date, setDate] = useState(new Date());
@@ -588,64 +587,82 @@ export default function AddPrayerScreen() {
                 />
               </View>
 
-              {/* Start Point */}
-              <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
-              <View style={styles.pickerRow}>
-                <SelectField
-                  label={t('surah')}
-                  value={getSurahName(range.startSurah)}
-                  onPress={() => {
-                    setActiveRangeId(range.id);
-                    setShowStartSurahPicker(true);
-                  }}
-                />
-                <View style={{ flex: 1, opacity: range.isWholeSurah ? 0.5 : 1 }}>
-                  <SelectField
-                    label={t('ayah')}
-                    value={String(range.startAyah)}
-                    onPress={() => {
-                      if (range.isWholeSurah) return;
-                      setActiveRangeId(range.id);
-                      setShowStartAyahPicker(true);
-                    }}
-                  />
-                </View>
-              </View>
+              {range.isWholeSurah ? (
+                <>
+                  {/* Whole Surah: surah picker + range info on one line */}
+                  <View style={styles.wholeSurahRow}>
+                    <View style={{ flex: 5 }}>
+                      <SelectField
+                        label={t('surah')}
+                        value={getSurahName(range.startSurah)}
+                        onPress={() => {
+                          setActiveRangeId(range.id);
+                          setShowStartSurahPicker(true);
+                        }}
+                      />
+                    </View>
+                    <View style={styles.wholeSurahRangeChip}>
+                      <Text style={styles.wholeSurahAyahNum}>1</Text>
+                      <Ionicons name={isRTL ? 'arrow-back' : 'arrow-forward'} size={13} color="rgba(255,255,255,0.25)" />
+                      <Text style={styles.wholeSurahAyahNum}>{range.endAyah}</Text>
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <>
+                  {/* Start Point */}
+                  <Text style={styles.sectionLabel}>{t('startingPoint')}</Text>
+                  <View style={styles.pickerRow}>
+                    <SelectField
+                      label={t('surah')}
+                      value={getSurahName(range.startSurah)}
+                      onPress={() => {
+                        setActiveRangeId(range.id);
+                        setShowStartSurahPicker(true);
+                      }}
+                    />
+                    <SelectField
+                      label={t('ayah')}
+                      value={String(range.startAyah)}
+                      onPress={() => {
+                        setActiveRangeId(range.id);
+                        setShowStartAyahPicker(true);
+                      }}
+                    />
+                  </View>
 
-              <View style={styles.rangeDivider}>
-                <View style={styles.rangeLine} />
-                <Ionicons
-                  name="arrow-down"
-                  size={16}
-                  color="rgba(255,255,255,0.3)"
-                />
-                <View style={styles.rangeLine} />
-              </View>
+                  <View style={styles.rangeDivider}>
+                    <View style={styles.rangeLine} />
+                    <Ionicons
+                      name="arrow-down"
+                      size={16}
+                      color="rgba(255,255,255,0.3)"
+                    />
+                    <View style={styles.rangeLine} />
+                  </View>
 
-              {/* End Point */}
-              <View style={{ opacity: range.isWholeSurah ? 0.5 : 1 }}>
-                <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
-                <View style={styles.pickerRow}>
-                  <SelectField
-                    label={t('surah')}
-                    value={getSurahName(range.endSurah)}
-                    onPress={() => {
-                      if (range.isWholeSurah) return;
-                      setActiveRangeId(range.id);
-                      setShowEndSurahPicker(true);
-                    }}
-                  />
-                  <SelectField
-                    label={t('ayah')}
-                    value={String(range.endAyah)}
-                    onPress={() => {
-                      if (range.isWholeSurah) return;
-                      setActiveRangeId(range.id);
-                      setShowEndAyahPicker(true);
-                    }}
-                  />
-                </View>
-              </View>
+                  {/* End Point */}
+                  <Text style={styles.sectionLabel}>{t('endingPoint')}</Text>
+                  <View style={styles.pickerRow}>
+                    <SelectField
+                      label={t('surah')}
+                      value={getSurahName(range.endSurah)}
+                      onPress={() => {
+                        setActiveRangeId(range.id);
+                        setShowEndSurahPicker(true);
+                      }}
+                    />
+                    <SelectField
+                      label={t('ayah')}
+                      value={String(range.endAyah)}
+                      onPress={() => {
+                        setActiveRangeId(range.id);
+                        setShowEndAyahPicker(true);
+                      }}
+                    />
+                  </View>
+                </>
+              )}
             </View>
           </View>
         ))}
@@ -1159,6 +1176,30 @@ const createStyles = (isRTL: boolean) =>
       color: '#ffffff',
       fontWeight: '500',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
+    },
+    wholeSurahRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'flex-end',
+      gap: 10,
+    },
+    wholeSurahRangeChip: {
+      flex: 2,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderRadius: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.08)',
+      alignSelf: 'flex-end',
+      justifyContent: 'center',
+    },
+    wholeSurahAyahNum: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: '#ffffff',
     },
     datePickerModalOverlay: {
       flex: 1,
