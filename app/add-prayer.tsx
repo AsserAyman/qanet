@@ -36,6 +36,7 @@ import {
   getGradientColors,
   getVerseStatus,
   quranData,
+  quranDisplayData,
   surahAyahToGlobalIndex,
 } from '../utils/quranData';
 
@@ -125,10 +126,10 @@ export default function AddPrayerScreen() {
     return isRTL ? surah?.nameAr || name : name;
   };
 
-  // Surah picker options — grouped by Juz'
+  // Surah picker options — grouped by Juz' (Al-Fatiha excluded)
   const surahSections = useMemo(() => {
     const grouped: Record<number, typeof quranData> = {};
-    quranData.forEach((surah) => {
+    quranDisplayData.forEach((surah) => {
       if (!grouped[surah.juz]) grouped[surah.juz] = [];
       grouped[surah.juz].push(surah);
     });

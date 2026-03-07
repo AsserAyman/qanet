@@ -38,6 +38,7 @@ import {
   getVerseStatus,
   globalIndexToSurahAyah,
   quranData,
+  quranDisplayData,
 } from '../../utils/quranData';
 
 const { width } = Dimensions.get('window');
@@ -143,10 +144,10 @@ export default function CalculatorScreen() {
   const currentSurah = quranData.find((s) => s.name === selectedSurah);
   const endCurrentSurah = quranData.find((s) => s.name === endSurah);
 
-  // Surah picker options — grouped by Juz'
+  // Surah picker options — grouped by Juz' (Al-Fatiha excluded)
   const surahSections = useMemo(() => {
     const grouped: Record<number, typeof quranData> = {};
-    quranData.forEach((surah) => {
+    quranDisplayData.forEach((surah) => {
       if (!grouped[surah.juz]) grouped[surah.juz] = [];
       grouped[surah.juz].push(surah);
     });

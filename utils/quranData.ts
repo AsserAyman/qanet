@@ -122,6 +122,10 @@ export const quranData: Surah[] = [
   { name: 'An-Nas', nameAr: 'الناس', ayahs: 6, juz: 30 },
 ];
 
+// Al-Fatiha is excluded from display and verse counting (it's always recited separately).
+// The global index system (1–6236) still includes it so existing DB data is unaffected.
+export const quranDisplayData = quranData.slice(1);
+
 export interface VerseRange {
   startSurah: string;
   startAyah: number;
@@ -155,6 +159,8 @@ export function calculateVerseRange(
 
     remainingVerses -= versesInCurrentSurah;
     currentSurahIndex = (currentSurahIndex + 1) % quranData.length;
+    // Skip Al-Fatiha (index 0) when wrapping around the Quran
+    if (currentSurahIndex === 0) currentSurahIndex = 1;
     currentAyah = 1;
   }
 
@@ -178,10 +184,12 @@ export function calculateVersesBetween(
   // Add remaining verses from the first surah
   totalVerses += quranData[currentSurahIndex].ayahs - startAyah + 1;
 
-  // Add verses from intermediate surahs
+  // Add verses from intermediate surahs (skip Al-Fatiha index 0 in wrap-around)
   currentSurahIndex = (currentSurahIndex + 1) % quranData.length;
   while (currentSurahIndex !== endSurahIndex) {
-    totalVerses += quranData[currentSurahIndex].ayahs;
+    if (currentSurahIndex !== 0) {
+      totalVerses += quranData[currentSurahIndex].ayahs;
+    }
     currentSurahIndex = (currentSurahIndex + 1) % quranData.length;
   }
 
