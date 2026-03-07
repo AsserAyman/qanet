@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -25,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { onboardingManager } from '@/utils/onboarding';
 import { PickerModal, PickerOption } from '../components/PickerModal';
 import { SelectField } from '../components/SelectField';
 import { useI18n } from '../contexts/I18nContext';
@@ -54,12 +55,12 @@ export default function AddPrayerScreen() {
   const { createPeriod } = useExemptPeriods();
 
   // Gender state — only show period option for female users
-  const [isMale, setIsMale] = useState<boolean | null>(false);
-  // useEffect(() => {
-  //   onboardingManager.getOnboardingData().then(data => {
-  //     setIsMale(data?.isMale ?? true);
-  //   });
-  // }, []);
+  const [isMale, setIsMale] = useState<boolean | null>(null);
+  useEffect(() => {
+    onboardingManager.getOnboardingData().then((data) => {
+      setIsMale(data?.isMale ?? true);
+    });
+  }, []);
 
   // Form state
   const [date, setDate] = useState(new Date());
