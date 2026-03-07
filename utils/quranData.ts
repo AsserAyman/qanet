@@ -364,7 +364,8 @@ export function formatRecitationRange(
   const startName = useArabic ? start.surahNameAr : start.surahName;
   const endName = useArabic ? end.surahNameAr : end.surahName;
 
-  return `${startName} ${start.ayahNumber} → ${endName} ${end.ayahNumber}`;
+  const arrow = useArabic ? '←' : '→';
+  return `${startName} ${start.ayahNumber} ${arrow} ${endName} ${end.ayahNumber}`;
 }
 
 // =====================================================
