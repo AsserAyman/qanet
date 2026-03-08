@@ -554,15 +554,18 @@ export default function OnboardingScreen() {
 
         {/* Indicators */}
         <View style={styles.indicators}>
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.indicator,
-                currentPage === index && styles.indicatorActive,
-              ]}
-            />
-          ))}
+          {Array.from({ length: totalPages }).map((_, i) => {
+            const index = isRTL ? totalPages - 1 - i : i;
+            return (
+              <View
+                key={index}
+                style={[
+                  styles.indicator,
+                  currentPage === index && styles.indicatorActive,
+                ]}
+              />
+            );
+          })}
         </View>
 
         {/* Right Action (Next) */}
