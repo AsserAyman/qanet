@@ -160,7 +160,7 @@ export default function TabLayout() {
             styles.fab,
             styles.fabModern,
             {
-              bottom: insets.bottom + 70,
+              bottom: insets.bottom + (Platform.OS === 'android' ? 90 : 70),
               right: isRTL ? undefined : 20,
               left: isRTL ? 20 : undefined,
               // borderColor: `${statusColor}40`,
