@@ -265,7 +265,7 @@ export default function SettingsScreen() {
                 {formatTime(notificationHour, notificationMinute)}
               </Text>
               <Feather
-                name="chevron-right"
+                name={isRTL ? 'chevron-left' : 'chevron-right'}
                 size={14}
                 color="rgba(255,255,255,0.4)"
               />
