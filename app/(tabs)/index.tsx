@@ -282,10 +282,13 @@ export default function NightPrayerScreen() {
                 const dateLabel = `${startDate.toLocaleDateString(
                   isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
                   { month: 'short', day: 'numeric' },
-                )} — ${endDate.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                })}`;
+                )} — ${endDate.toLocaleDateString(
+                  isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
+                  {
+                    month: 'short',
+                    day: 'numeric',
+                  },
+                )}`;
 
                 return (
                   <TouchableOpacity
@@ -431,7 +434,6 @@ export default function NightPrayerScreen() {
     </View>
   );
 }
-
 
 const createStyles = (isRTL: boolean) =>
   StyleSheet.create({
@@ -620,7 +622,7 @@ const createStyles = (isRTL: boolean) =>
     historyItem: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      paddingVertical: 12,
+      paddingVertical: isRTL ? 6 : 12,
       borderBottomWidth: 1,
       borderBottomColor: 'rgba(255,255,255,0.05)',
     },
@@ -641,7 +643,7 @@ const createStyles = (isRTL: boolean) =>
       fontSize: 16,
       fontWeight: '700',
       color: '#ffffff',
-      marginBottom: 6,
+      marginBottom: isRTL ? 2 : 6,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
