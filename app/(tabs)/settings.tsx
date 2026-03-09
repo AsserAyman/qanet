@@ -709,10 +709,10 @@ const createStyles = (isRTL: boolean) =>
       alignItems: 'center',
       paddingVertical: 12,
       paddingHorizontal: 16,
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: 'rgba(59, 130, 246, 0.2)',
+      borderColor: 'rgba(255,255,255,0.1)',
     },
     notificationInfoText: {
       fontSize: 14,
@@ -781,7 +781,7 @@ const createStyles = (isRTL: boolean) =>
       justifyContent: 'flex-end',
     },
     timePickerCard: {
-      backgroundColor: '#1c1c2e',
+      backgroundColor: '#1a1a1a',
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       padding: 24,
@@ -809,7 +809,7 @@ const createStyles = (isRTL: boolean) =>
     timePickerConfirmText: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#3b82f6',
+      color: '#ffffff',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
   });

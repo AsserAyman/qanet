@@ -799,7 +799,7 @@ const createStyles = (isRTL: boolean) =>
       padding: 24,
     },
     hadithModalCard: {
-      backgroundColor: '#1a1a2e',
+      backgroundColor: '#1a1a1a',
       borderRadius: 24,
       padding: 24,
       width: '100%',
