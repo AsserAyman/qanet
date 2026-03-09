@@ -380,7 +380,7 @@ export default function CalculatorScreen() {
             {/* End Picker (Range Mode Only) */}
             {mode === 'range' && (
               <>
-                <Text style={[styles.sectionLabel, { marginTop: 16 }]}>
+                <Text style={[styles.sectionLabel, { marginTop: 8 }]}>
                   {t('endingPoint')}
                 </Text>
                 <View style={styles.pickerRow}>
@@ -695,8 +695,7 @@ const createStyles = (isRTL: boolean) =>
     sectionLabel: {
       fontSize: 14,
       color: 'rgba(255,255,255,0.6)',
-      marginBottom: 12,
-      marginLeft: 4,
+      marginBottom: 6,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },
@@ -726,7 +725,7 @@ const createStyles = (isRTL: boolean) =>
       fontWeight: '700',
     },
     pickersSection: {
-      gap: 12,
+      gap: 8,
     },
     pickerRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
