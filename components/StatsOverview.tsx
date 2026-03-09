@@ -50,9 +50,7 @@ export function StatsOverview({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('trackerOverview')}</Text>
-
-      <View style={[styles.metricsRow, { marginTop: -8 }]}>
+      <View style={styles.metricsRow}>
         <View style={[styles.metricCard, { flex: 1 }]}>
           <View style={styles.metricHeader}>
             <Feather name="book-open" size={24} color="#eab308" />
