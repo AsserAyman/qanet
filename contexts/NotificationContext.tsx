@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 
 interface NotificationContextType {
   notificationsEnabled: boolean;
@@ -126,7 +126,14 @@ export function NotificationProvider({
         setPermissionStatus(status);
 
         if (status !== 'granted') {
-          console.log('Notification permission denied');
+          Alert.alert(
+            'Notifications Disabled',
+            'To enable notifications, please go to your device Settings and allow notifications for this app.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+          );
           return;
         }
 

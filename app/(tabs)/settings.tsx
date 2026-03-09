@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -273,7 +274,11 @@ export default function SettingsScreen() {
           )}
 
           {permissionStatus === 'denied' && (
-            <View style={styles.permissionWarning}>
+            <TouchableOpacity
+              style={styles.permissionWarning}
+              onPress={() => Linking.openSettings()}
+              activeOpacity={0.7}
+            >
               <MaterialIcons
                 name="warning"
                 size={20}
@@ -291,7 +296,12 @@ export default function SettingsScreen() {
                   {t('notificationPermissionDeniedDesc')}
                 </Text>
               </View>
-            </View>
+              <Feather
+                name={isRTL ? 'chevron-left' : 'chevron-right'}
+                size={14}
+                color="rgba(239, 68, 68, 0.5)"
+              />
+            </TouchableOpacity>
           )}
         </View>
 
