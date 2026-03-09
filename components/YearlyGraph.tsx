@@ -124,14 +124,14 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('prayerActivity')}</Text>
-        <Text style={styles.subtitle}>
+        {/* <Text style={styles.subtitle}>
           {t('versesThisYear').replace(
             'verses',
             Object.values(data)
               .reduce((sum, dayData) => sum + dayData.verses, 0)
               .toString(),
           )}
-        </Text>
+        </Text> */}
       </View>
 
       <View style={styles.graphContainer}>
@@ -159,7 +159,6 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
           </View>
         </ScrollView>
       </View>
-
     </View>
   );
 }
@@ -175,14 +174,13 @@ const createStyles = (theme: any, cellSize: number, isRTL: boolean) =>
       borderColor: 'rgba(255,255,255,0.1)',
     },
     header: {
-      marginBottom: 24,
+      marginBottom: isRTL ? 6 : 12,
       alignItems: isRTL ? 'flex-end' : 'flex-start',
     },
     title: {
       fontSize: 18,
       fontWeight: 'bold',
       color: '#ffffff',
-      marginBottom: 4,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Bold' : undefined,
     },
