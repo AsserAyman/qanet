@@ -489,7 +489,7 @@ export default function CalculatorScreen() {
         options={startAyahOptions}
         selectedValue={String(selectedAyah)}
         title={t('ayah')}
-        showSearch={false}
+        searchKeyboardType="numeric"
       />
 
       <PickerModal
@@ -516,7 +516,7 @@ export default function CalculatorScreen() {
         options={endAyahOptions}
         selectedValue={String(endAyah)}
         title={t('ayah')}
-        showSearch={false}
+        searchKeyboardType="numeric"
       />
     </View>
   );

@@ -38,6 +38,7 @@ interface PickerModalProps {
   title: string;
   showSearch?: boolean;
   searchPlaceholder?: string;
+  searchKeyboardType?: 'default' | 'numeric';
 }
 
 export function PickerModal({
@@ -50,6 +51,7 @@ export function PickerModal({
   title,
   showSearch = true,
   searchPlaceholder = 'Search...',
+  searchKeyboardType = 'default',
 }: PickerModalProps) {
   const { isRTL, t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -206,6 +208,7 @@ export function PickerModal({
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 autoCorrect={false}
+                keyboardType={searchKeyboardType}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>

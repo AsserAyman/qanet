@@ -518,7 +518,7 @@ export default function EditPrayerScreen() {
         options={startAyahOptions}
         selectedValue={String(activeRange?.startAyah)}
         title={t('ayah')}
-        showSearch={false}
+        searchKeyboardType="numeric"
       />
 
       <PickerModal
@@ -547,7 +547,7 @@ export default function EditPrayerScreen() {
         options={endAyahOptions}
         selectedValue={String(activeRange?.endAyah)}
         title={t('ayah')}
-        showSearch={false}
+        searchKeyboardType="numeric"
       />
 
       {/* Date Picker Modal */}
