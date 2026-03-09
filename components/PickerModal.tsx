@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   SectionList,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../contexts/I18nContext';
@@ -117,18 +117,27 @@ export function PickerModal({
         activeOpacity={0.7}
       >
         <View style={styles.optionContent}>
-          <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+          <Text
+            style={[styles.optionText, isSelected && styles.optionTextSelected]}
+          >
             {item.label}
           </Text>
           {item.subtitle && (
-            <Text style={[styles.optionSubtitle, isSelected && styles.optionSubtitleSelected]}>
+            <Text
+              style={[
+                styles.optionSubtitle,
+                isSelected && styles.optionSubtitleSelected,
+              ]}
+            >
               {item.subtitle}
             </Text>
           )}
         </View>
         {item.badge != null ? (
           <View style={[styles.badge, isSelected && styles.badgeSelected]}>
-            <Text style={[styles.badgeText, isSelected && styles.badgeTextSelected]}>
+            <Text
+              style={[styles.badgeText, isSelected && styles.badgeTextSelected]}
+            >
               {item.badge}
             </Text>
           </View>
@@ -140,9 +149,12 @@ export function PickerModal({
   };
 
   const renderSectionHeader = ({ section }: { section: PickerSection }) => {
-    const isFirst = (filteredSections ?? sections)?.[0]?.title === section.title;
+    const isFirst =
+      (filteredSections ?? sections)?.[0]?.title === section.title;
     return (
-      <View style={[styles.sectionHeader, !isFirst && styles.sectionHeaderDivider]}>
+      <View
+        style={[styles.sectionHeader, !isFirst && styles.sectionHeaderDivider]}
+      >
         <Text style={styles.sectionHeaderText}>{section.title}</Text>
       </View>
     );
@@ -197,7 +209,11 @@ export function PickerModal({
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={18} color="rgba(255,255,255,0.5)" />
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color="rgba(255,255,255,0.5)"
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -233,7 +249,9 @@ export function PickerModal({
               })}
               initialScrollIndex={
                 filteredOptions.findIndex((o) => o.value === selectedValue) > 5
-                  ? filteredOptions.findIndex((o) => o.value === selectedValue) - 2
+                  ? filteredOptions.findIndex(
+                      (o) => o.value === selectedValue,
+                    ) - 2
                   : 0
               }
               onScrollToIndexFailed={() => {}}
@@ -306,7 +324,7 @@ const createStyles = (isRTL: boolean) =>
       flex: 1,
       color: '#ffffff',
       fontSize: 15,
-      paddingVertical: 12,
+      paddingVertical: isRTL ? 6 : 12,
       textAlign: isRTL ? 'right' : 'left',
       fontFamily: isRTL ? 'NotoNaskhArabic-Regular' : undefined,
     },

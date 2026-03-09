@@ -161,9 +161,7 @@ export default function CalculatorScreen() {
             label: isRTL ? surah.nameAr : surah.name,
             value: surah.name,
             searchTerms: `${surah.name} ${surah.nameAr}`,
-            subtitle: isRTL
-              ? `${surah.ayahs} آية`
-              : `${surah.ayahs} verses`,
+            subtitle: isRTL ? `${surah.ayahs} آية` : `${surah.ayahs} verses`,
             badge: globalIndex + 1,
           };
         }),
@@ -687,7 +685,7 @@ const createStyles = (isRTL: boolean) =>
     },
     toggleButton: {
       flex: 1,
-      paddingVertical: 12,
+      paddingVertical: isRTL ? 6 : 12,
       alignItems: 'center',
       borderRadius: 12,
     },

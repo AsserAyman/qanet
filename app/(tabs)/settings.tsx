@@ -612,7 +612,7 @@ const createStyles = (isRTL: boolean) =>
     statusItem: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'flex-start',
-      paddingVertical: 12,
+      paddingVertical: isRTL ? 6 : 12,
     },
     statusIconContainer: {
       width: 48,
@@ -717,7 +717,7 @@ const createStyles = (isRTL: boolean) =>
     notificationInfo: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      paddingVertical: 12,
+      paddingVertical: isRTL ? 6 : 12,
       paddingHorizontal: 16,
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
       borderRadius: 12,

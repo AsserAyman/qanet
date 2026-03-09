@@ -143,9 +143,7 @@ export default function AddPrayerScreen() {
             label: isRTL ? surah.nameAr : surah.name,
             value: surah.name,
             searchTerms: `${surah.name} ${surah.nameAr}`,
-            subtitle: isRTL
-              ? `${surah.ayahs} آية`
-              : `${surah.ayahs} verses`,
+            subtitle: isRTL ? `${surah.ayahs} آية` : `${surah.ayahs} verses`,
             badge: globalIndex + 1,
           };
         }),
@@ -427,12 +425,15 @@ export default function AddPrayerScreen() {
               activeOpacity={0.8}
             >
               <Text style={styles.dateText}>
-                {date.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {date.toLocaleDateString(
+                  isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
+                  {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  },
+                )}
               </Text>
               <MaterialIcons
                 name="edit"
@@ -507,11 +508,14 @@ export default function AddPrayerScreen() {
                     activeOpacity={0.8}
                   >
                     <Text style={styles.dateText}>
-                      {date.toLocaleDateString(isRTL ? 'ar-SA-u-ca-gregory' : 'en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {date.toLocaleDateString(
+                        isRTL ? 'ar-SA-u-ca-gregory' : 'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        },
+                      )}
                     </Text>
                     <MaterialIcons
                       name="edit"
@@ -1385,7 +1389,7 @@ const createStyles = (isRTL: boolean) =>
       justifyContent: 'space-between',
       backgroundColor: 'rgba(255,255,255,0.05)',
       paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: isRTL ? 6 : 12,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.05)',
