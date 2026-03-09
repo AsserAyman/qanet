@@ -117,7 +117,7 @@ export const translations = {
     // Hadith
     hadith: 'Hadith',
     hadithText:
-      'The Prophet (ﷺ) said: "If anyone prays at night reciting regularly ten verses, he will not be recorded among the negligent; if anyone prays at night and recites a hundred verses, he will be recorded among those who are obedient to Allah (Qanet); and if anyone prays at night reciting one thousand verses, he will be recorded among those who receive huge rewards."',
+      'The Prophet (ﷺ) said: "If anyone prays at night reciting regularly ten verses, he will not be recorded among the negligent; if anyone prays at night and recites a hundred verses, he will be recorded among those who are obedient to Allah (Qanet); and if anyone prays at night reciting one thousand verses, he will be recorded among those who receive huge rewards (Muqantar)."',
 
     // Auth
     nightPrayerTracker: 'Night Prayer Tracker',
@@ -280,6 +280,7 @@ export const translations = {
     hizbUnit: 'Hizb',
     rubUnit: "Rub'",
     estTimeUnit: ' min',
+    estHourUnit: 'h',
     quranDivisions: 'Quran Divisions',
   },
   ar: {
@@ -561,6 +562,7 @@ export const translations = {
     hizbUnit: 'حزب',
     rubUnit: 'ربع',
     estTimeUnit: ' دقيقة',
+    estHourUnit: ' ساعة',
     quranDivisions: 'تقسيمات القرآن',
   },
 };

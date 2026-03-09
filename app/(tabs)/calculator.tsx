@@ -223,7 +223,8 @@ export default function CalculatorScreen() {
     if (rounded < 60) return `~${rounded} ${t('estTimeUnit')}`;
     const h = Math.floor(rounded / 60);
     const m = rounded % 60;
-    return m > 0 ? `~${h}h ${m}${t('estTimeUnit')}` : `~${h}h`;
+    const hUnit = t('estHourUnit');
+    return m > 0 ? `~${h}${hUnit} ${m}${t('estTimeUnit')}` : `~${h}${hUnit}`;
   };
 
   const wholeJuz = Math.floor(divisions.rub / 8);
