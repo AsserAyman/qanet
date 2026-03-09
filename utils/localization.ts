@@ -8,7 +8,7 @@ export const translations = {
 
     // Home Screen
     nightPrayerCalculator: 'Night Prayer Calculator',
-    calculateYourNightPrayerVerses: 'Your daily night prayer companion',
+    calculateYourNightPrayerVerses: 'Your Daily Night Prayer Companion',
     targetVerses: 'Target Verses',
     customRange: 'Custom Range',
     startingSurah: 'Starting Surah',
