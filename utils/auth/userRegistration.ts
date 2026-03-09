@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { onboardingManager } from '../onboarding';
 import { supabase } from '../supabase';
 import { deviceIdentityManager } from './deviceIdentity';
 
@@ -44,6 +45,10 @@ export async function registerOrGetCustomUser(): Promise<string> {
   // Get device OS (ios or android)
   const deviceOs = Platform.OS;
 
+  // Load onboarding preferences from local storage so they're included
+  // when the user record is first created (handles offline onboarding)
+  const onboardingData = await onboardingManager.getOnboardingData();
+
   // Call Supabase RPC to get or create custom user
   const { data, error } = await supabase.rpc(
     'get_or_create_user_by_device_id',
@@ -51,6 +56,9 @@ export async function registerOrGetCustomUser(): Promise<string> {
       p_device_id: deviceId,
       p_auth_user_id: authUserId,
       p_device_os: deviceOs,
+      p_is_male: onboardingData?.isMale ?? null,
+      p_language: onboardingData?.language ?? null,
+      p_reading_per_night: onboardingData?.readingPerNight ?? null,
     },
   );
 
