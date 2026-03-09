@@ -34,25 +34,20 @@ import { useExemptPeriods, usePrayerLogs } from '../hooks/useOfflineData';
 import {
   calculateVersesBetween,
   getGradientColors,
+  getNextStartPosition,
   getVerseStatus,
   quranData,
   quranDisplayData,
+  SHAF_WITR_SURAHS,
   surahAyahToGlobalIndex,
 } from '../utils/quranData';
 
-const SHAF_WITR_SURAHS = [
-  "Al-A'la",
-  'Al-Kafiroon',
-  'Al-Ikhlas',
-  'Al-Falaq',
-  'An-Nas',
-] as const;
 
 export default function AddPrayerScreen() {
   const { isRTL, t } = useI18n();
   const { themedColorsEnabled } = useTheme();
   const insets = useSafeAreaInsets();
-  const { createLog } = usePrayerLogs();
+  const { createLog, logs } = usePrayerLogs();
   const { createPeriod } = useExemptPeriods();
 
   // Gender state — only show period option for female users
@@ -62,6 +57,21 @@ export default function AddPrayerScreen() {
       setIsMale(data?.isMale ?? true);
     });
   }, []);
+
+  // Set default start point from last log's end, skipping Shaf'/Witr surahs
+  useEffect(() => {
+    const lastEntry = logs[0];
+    if (!lastEntry || lastEntry.recitations.length === 0) return;
+    const next = getNextStartPosition(lastEntry.recitations);
+    if (!next) return;
+    setRanges((prev) =>
+      prev.map((r, i) =>
+        i === 0
+          ? { ...r, startSurah: next.surahName, startAyah: next.ayahNumber, endSurah: next.surahName, endAyah: next.ayahNumber }
+          : r,
+      ),
+    );
+  }, [logs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Form state
   const [date, setDate] = useState(new Date());

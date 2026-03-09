@@ -35,8 +35,8 @@ import {
   calculateQuranDivisions,
   calculateVerseRange,
   calculateVersesBetween,
+  getNextStartPosition,
   getVerseStatus,
-  globalIndexToSurahAyah,
   quranData,
   quranDisplayData,
 } from '../../utils/quranData';
@@ -71,37 +71,13 @@ export default function CalculatorScreen() {
 
   // Set default starting point based on last entry's end point
   useEffect(() => {
-    if (lastEntry && lastEntry.recitations.length > 0) {
-      // Get the last recitation's end position
-      const lastRecitation =
-        lastEntry.recitations[lastEntry.recitations.length - 1];
-      const endInfo = globalIndexToSurahAyah(lastRecitation.end_ayah);
-      const endSurahData = quranData.find((s) => s.name === endInfo.surahName);
-      if (endSurahData) {
-        let nextSurahName: string;
-        let nextAyah: number;
-
-        // Check if we need to move to the next surah
-        if (endInfo.ayahNumber >= endSurahData.ayahs) {
-          // Move to the next surah
-          const nextIndex = (endInfo.surahIndex + 1) % quranData.length;
-          nextSurahName = quranData[nextIndex].name;
-          nextAyah = 1;
-        } else {
-          // Stay in the same surah, increment ayah
-          nextSurahName = endInfo.surahName;
-          nextAyah = endInfo.ayahNumber + 1;
-        }
-
-        // Skip Al-Fatiha (hidden from calculator)
-        if (nextSurahName === quranData[0].name) {
-          nextSurahName = quranDisplayData[0].name;
-          nextAyah = 1;
-        }
-
-        setSelectedSurah(nextSurahName);
-        setSelectedAyah(nextAyah);
-      }
+    if (!lastEntry || lastEntry.recitations.length === 0) return;
+    const next = getNextStartPosition(lastEntry.recitations);
+    if (next) {
+      setSelectedSurah(next.surahName);
+      setSelectedAyah(next.ayahNumber);
+      setEndSurah(next.surahName);
+      setEndAyah(next.ayahNumber);
     }
   }, [lastEntry?.id]); // Only run when the last entry changes
 

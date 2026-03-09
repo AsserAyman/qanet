@@ -126,6 +126,56 @@ export const quranData: Surah[] = [
 // The global index system (1–6236) still includes it so existing DB data is unaffected.
 export const quranDisplayData = quranData.slice(1);
 
+// Surahs recited every night as Shaf' & Witr — excluded when computing the next start position.
+export const SHAF_WITR_SURAHS = [
+  "Al-A'la",
+  'Al-Kafiroon',
+  'Al-Ikhlas',
+  'Al-Falaq',
+  'An-Nas',
+] as const;
+
+/**
+ * Given a list of recitations from the last prayer log, returns the surah name
+ * and ayah number to start from next, skipping Shaf'/Witr surahs and Al-Fatiha.
+ * Returns null if no suitable recitation is found.
+ */
+export function getNextStartPosition(
+  recitations: { start_ayah: number; end_ayah: number }[],
+): { surahName: string; ayahNumber: number } | null {
+  const shafWitrSet = new Set<string>(SHAF_WITR_SURAHS);
+
+  const last = [...recitations]
+    .reverse()
+    .find((r) => !shafWitrSet.has(globalIndexToSurahAyah(r.start_ayah).surahName));
+
+  if (!last) return null;
+
+  const endInfo = globalIndexToSurahAyah(last.end_ayah);
+  const endSurahData = quranData.find((s) => s.name === endInfo.surahName);
+  if (!endSurahData) return null;
+
+  let surahName: string;
+  let ayahNumber: number;
+
+  if (endInfo.ayahNumber >= endSurahData.ayahs) {
+    const nextIndex = (endInfo.surahIndex + 1) % quranData.length;
+    surahName = quranData[nextIndex].name;
+    ayahNumber = 1;
+  } else {
+    surahName = endInfo.surahName;
+    ayahNumber = endInfo.ayahNumber + 1;
+  }
+
+  // Skip Al-Fatiha (hidden from pickers)
+  if (surahName === quranData[0].name) {
+    surahName = quranDisplayData[0].name;
+    ayahNumber = 1;
+  }
+
+  return { surahName, ayahNumber };
+}
+
 export interface VerseRange {
   startSurah: string;
   startAyah: number;
