@@ -90,7 +90,7 @@ export const translations = {
     notificationPermissionDenied: 'Permission Denied',
     notificationPermissionDeniedDesc:
       'Please enable notifications in your device settings to receive daily reminders.',
-    prayerStatusLevels: 'Prayer Status Levels',
+    prayerStatusLevels: 'Night Status Levels',
     signOut: 'Sign Out',
 
     // Prayer Status
@@ -373,7 +373,7 @@ export const translations = {
     notificationPermissionDenied: 'تم رفض الإذن',
     notificationPermissionDeniedDesc:
       'يرجى تفعيل الإشعارات من إعدادات الجهاز لتلقي التذكيرات اليومية.',
-    prayerStatusLevels: 'مستويات القيام',
+    prayerStatusLevels: 'مستويات الليلة',
     signOut: 'تسجيل الخروج',
 
     // Prayer Status
@@ -391,8 +391,7 @@ export const translations = {
     // Status explanations
     negligentExplanation:
       'اجتهد في قراءة 10 آيات على الأقل حتى لا تُكتب من الغافلين.',
-    notnegligentExplanation:
-      'قراءة 10 آيات أو أكثر تخرجك من دائرة الغافلين.',
+    notnegligentExplanation: 'قراءة 10 آيات أو أكثر تخرجك من دائرة الغافلين.',
     qanetExplanation: 'قراءة 100 آية تكتبك من القانتين المطيعين لله.',
     muqantarExplanation: 'قراءة 1000 آية تورثك أجراً عظيماً.',
 
@@ -550,7 +549,8 @@ export const translations = {
     deleteDataWarning:
       'سيؤدي هذا إلى حذف سجل صلواتك وإعداداتك نهائياً من هذا الجهاز ومن خوادمنا.',
     deleteDataIrreversible: 'هذا الإجراء لا يمكن التراجع عنه.',
-    deleteDataConfirmCheckbox: 'أقر بأنني أفهم أن هذا الإجراء نهائي ولا يمكن التراجع عنه',
+    deleteDataConfirmCheckbox:
+      'أقر بأنني أفهم أن هذا الإجراء نهائي ولا يمكن التراجع عنه',
     deleteDataButton: 'حذف كل شيء',
     deleteDataRequiresInternet: 'يجب أن تكون متصلاً بالإنترنت لحذف بياناتك',
     deleteDataError: 'فشل حذف البيانات، يرجى المحاولة مرة أخرى.',
