@@ -345,9 +345,9 @@ export default function SettingsScreen() {
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('negligent')}</Text>
               <Text style={styles.statusSubtitle}>{t('negligentDesc')}</Text>
-              <Text style={styles.statusDescription}>
+              {/* <Text style={styles.statusDescription}>
                 {t('negligentExplanation')}
-              </Text>
+              </Text> */}
             </View>
           </View>
 
@@ -365,9 +365,9 @@ export default function SettingsScreen() {
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('notnegligent')}</Text>
               <Text style={styles.statusSubtitle}>{t('notnegligentDesc')}</Text>
-              <Text style={styles.statusDescription}>
+              {/* <Text style={styles.statusDescription}>
                 {t('notnegligentExplanation')}
-              </Text>
+              </Text> */}
             </View>
           </View>
 
@@ -385,9 +385,9 @@ export default function SettingsScreen() {
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('qanet')}</Text>
               <Text style={styles.statusSubtitle}>{t('qanetDesc')}</Text>
-              <Text style={styles.statusDescription}>
+              {/* <Text style={styles.statusDescription}>
                 {t('qanetExplanation')}
-              </Text>
+              </Text> */}
             </View>
           </View>
 
@@ -405,9 +405,9 @@ export default function SettingsScreen() {
             <View style={styles.statusContent}>
               <Text style={styles.statusTitle}>{t('muqantar')}</Text>
               <Text style={styles.statusSubtitle}>{t('muqantarDesc')}</Text>
-              <Text style={styles.statusDescription}>
+              {/* <Text style={styles.statusDescription}>
                 {t('muqantarExplanation')}
-              </Text>
+              </Text> */}
             </View>
           </View>
         </View>
