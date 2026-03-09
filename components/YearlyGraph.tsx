@@ -138,7 +138,7 @@ export function YearlyGraph({ data }: YearlyGraphProps) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentOffset={isRTL ? { x: 99999, y: 0 } : undefined}
+          contentOffset={undefined}
           contentContainerStyle={isRTL ? { flexDirection: 'row-reverse' } : {}}
         >
           <View>
