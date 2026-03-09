@@ -318,12 +318,12 @@ export const translations = {
     shafWitrDesc: 'سور الشفع والوتر الشائعة',
 
     // Period Exemption
-    markAsPeriod: 'تسجيل فترة عذر (الدورة)',
+    markAsPeriod: 'تسجيل فترة الدورة الشهرية',
     periodExemptionDesc: 'استثناء هذه الأيام من سلسلة الاستمرارية',
     periodStartDate: 'تاريخ البداية',
     periodEndDate: 'تاريخ النهاية',
     periodMarked: 'تم تحديد الفترة بنجاح',
-    periodDays: 'فترة العذر',
+    periodDays: 'فترة الدورة الشهرية',
     deletePeriod: 'حذف الفترة',
     confirmDeletePeriod: 'هل أنت متأكد من حذف هذه الفترة؟',
     editPeriod: 'تعديل الفترة',
