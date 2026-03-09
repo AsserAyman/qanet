@@ -78,17 +78,29 @@ export default function CalculatorScreen() {
       const endInfo = globalIndexToSurahAyah(lastRecitation.end_ayah);
       const endSurahData = quranData.find((s) => s.name === endInfo.surahName);
       if (endSurahData) {
+        let nextSurahName: string;
+        let nextAyah: number;
+
         // Check if we need to move to the next surah
         if (endInfo.ayahNumber >= endSurahData.ayahs) {
           // Move to the next surah
           const nextIndex = (endInfo.surahIndex + 1) % quranData.length;
-          setSelectedSurah(quranData[nextIndex].name);
-          setSelectedAyah(1);
+          nextSurahName = quranData[nextIndex].name;
+          nextAyah = 1;
         } else {
           // Stay in the same surah, increment ayah
-          setSelectedSurah(endInfo.surahName);
-          setSelectedAyah(endInfo.ayahNumber + 1);
+          nextSurahName = endInfo.surahName;
+          nextAyah = endInfo.ayahNumber + 1;
         }
+
+        // Skip Al-Fatiha (hidden from calculator)
+        if (nextSurahName === quranData[0].name) {
+          nextSurahName = quranDisplayData[0].name;
+          nextAyah = 1;
+        }
+
+        setSelectedSurah(nextSurahName);
+        setSelectedAyah(nextAyah);
       }
     }
   }, [lastEntry?.id]); // Only run when the last entry changes
