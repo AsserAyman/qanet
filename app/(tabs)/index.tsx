@@ -163,7 +163,7 @@ export default function NightPrayerScreen() {
             contentFit="cover"
             cachePolicy="memory-disk"
           />
-          <Text style={styles.heroTitle}>Qanet</Text>
+          <Text style={styles.heroTitle}>{isRTL ? 'قانت' : 'Qanet'}</Text>
           <Text style={styles.heroSubtitle}>
             {t('calculateYourNightPrayerVerses')}
           </Text>

@@ -137,7 +137,7 @@ export default function OnboardingScreen() {
         style={styles.headerImageLarge}
         contentFit="contain"
       />
-      <Text style={styles.headerTitle}>Qanet</Text>
+      <Text style={styles.headerTitle}>{isRTL ? 'قانت' : 'Qanet'}</Text>
       <View style={{ height: 32 }} />
     </View>
   );
@@ -155,7 +155,9 @@ export default function OnboardingScreen() {
           style={styles.headerImageLarge}
           contentFit="contain"
         />
-        <Text style={styles.headerTitle}>Qanet</Text>
+        <Text style={[styles.headerTitle, { letterSpacing: isRTL ? 0 : 1.5 }]}>
+          {isRTL ? 'قانت' : 'Qanet'}
+        </Text>
 
         <View style={{ height: 32 }} />
 
@@ -617,7 +619,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
-    letterSpacing: 1.5,
   },
   scrollContent: {
     flexGrow: 1,
