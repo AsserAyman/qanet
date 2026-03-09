@@ -139,6 +139,7 @@ export const translations = {
     longestStreak: 'Longest Streak',
     averageStatus: 'Average Status',
     verseCalculator: 'Calculator',
+    planYourRecitation: 'Plan your recitation for tonight',
     lastThirdOfNight: 'Last Third Begins',
     lastThirdHadithTitle: 'The Virtue of the Last Third',
     lastThirdHadithText:
@@ -421,6 +422,7 @@ export const translations = {
     longestStreak: 'أطول سلسلة',
     averageStatus: 'متوسط الحالة',
     verseCalculator: 'حاسبة الآيات',
+    planYourRecitation: 'خطط لقيامك الليلة',
     lastThirdOfNight: 'بداية الثلث الأخير',
     lastThirdHadithTitle: 'فضل الثلث الأخير من الليل',
     lastThirdHadithText:

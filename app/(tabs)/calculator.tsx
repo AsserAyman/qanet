@@ -233,7 +233,7 @@ export default function CalculatorScreen() {
         <View style={styles.heroSection}>
           <Text style={styles.heroTitle}>{t('verseCalculator')}</Text>
           <Text style={styles.heroSubtitle}>
-            {t('calculateYourNightPrayerVerses')}
+            {t('planYourRecitation')}
           </Text>
         </View>
 
@@ -738,7 +738,6 @@ const createStyles = (isRTL: boolean) =>
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
       borderRadius: 20,
       padding: 20,
-      marginTop: 16,
       marginBottom: 16,
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
