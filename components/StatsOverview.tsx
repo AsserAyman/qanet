@@ -39,12 +39,12 @@ export function StatsOverview({
 
   const totalLast7Days = last7Days.reduce((sum, val) => sum + val, 0);
   const averagePerNight = Math.round(totalLast7Days / 7);
-  const changePercent =
-    last7Days.length >= 2
-      ? Math.round(
-          ((last7Days[6] - last7Days[0]) / Math.max(last7Days[0], 1)) * 100
-        )
-      : 0;
+  const hasPreviousData = last7Days.slice(0, 6).some((v) => v > 0);
+  const changePercent = hasPreviousData
+    ? Math.round(
+        ((last7Days[6] - last7Days[0]) / Math.max(last7Days[0], 1)) * 100
+      )
+    : null;
 
   const styles = createStyles(theme, isRTL);
 
@@ -92,11 +92,19 @@ export function StatsOverview({
             <Text
               style={[
                 styles.changeText,
-                { color: changePercent >= 0 ? '#22c55e' : '#ef4444' },
+                {
+                  color:
+                    changePercent === null
+                      ? 'rgba(255,255,255,0.6)'
+                      : changePercent >= 0
+                      ? '#22c55e'
+                      : '#ef4444',
+                },
               ]}
             >
-              {changePercent >= 0 ? '+' : ''}
-              {changePercent}%
+              {changePercent === null
+                ? '--'
+                : `${changePercent >= 0 ? '+' : ''}${changePercent}%`}
             </Text>
           </View>
         </View>
