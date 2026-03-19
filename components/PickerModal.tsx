@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -56,6 +56,8 @@ export function PickerModal({
   const { isRTL, t } = useI18n();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const flatListRef = useRef<FlatList>(null);
+  const sectionListRef = useRef<SectionList<PickerOption, PickerSection>>(null);
 
   const styles = createStyles(isRTL);
 
@@ -93,6 +95,43 @@ export function PickerModal({
       }))
       .filter((s) => s.data.length > 0);
   }, [sections, searchQuery]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => {
+      if (filteredSections) {
+        let sectionIndex = -1;
+        let itemIndex = -1;
+        filteredSections.forEach((section, si) => {
+          section.data.forEach((item, ii) => {
+            if (item.value === selectedValue) {
+              sectionIndex = si;
+              itemIndex = ii;
+            }
+          });
+        });
+        if (sectionIndex >= 0 && itemIndex >= 0) {
+          sectionListRef.current?.scrollToLocation({
+            sectionIndex,
+            itemIndex,
+            animated: false,
+            viewPosition: 0.3,
+          });
+        }
+      } else {
+        const index = filteredOptions.findIndex(
+          (o) => o.value === selectedValue,
+        );
+        if (index > 2) {
+          flatListRef.current?.scrollToIndex({
+            index: Math.max(0, index - 2),
+            animated: false,
+          });
+        }
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [visible]);
 
   const handleSelect = (value: string) => {
     onSelect(value);
@@ -225,6 +264,7 @@ export function PickerModal({
           {/* Sectioned List */}
           {filteredSections ? (
             <SectionList
+              ref={sectionListRef}
               sections={filteredSections}
               renderItem={renderItem}
               renderSectionHeader={renderSectionHeader}
@@ -238,6 +278,7 @@ export function PickerModal({
             />
           ) : (
             <FlatList
+              ref={flatListRef}
               data={filteredOptions}
               renderItem={renderItem}
               keyExtractor={(item) => item.value}
@@ -250,13 +291,6 @@ export function PickerModal({
                 offset: 52 * index,
                 index,
               })}
-              initialScrollIndex={
-                filteredOptions.findIndex((o) => o.value === selectedValue) > 5
-                  ? filteredOptions.findIndex(
-                      (o) => o.value === selectedValue,
-                    ) - 2
-                  : 0
-              }
               onScrollToIndexFailed={() => {}}
             />
           )}
