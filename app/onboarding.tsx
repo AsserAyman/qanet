@@ -244,7 +244,12 @@ export default function OnboardingScreen() {
         <Text style={[styles.purposeSubtext, { textAlign: 'center' }]}>
           {t('purposeIntro')}
         </Text>
-        <Text style={[styles.purposeOneNight, { textAlign: 'center' }]}>
+        <Text
+          style={[
+            styles.purposeOneNight,
+            { textAlign: 'center', letterSpacing: isRTL ? 0 : 2 },
+          ]}
+        >
           {t('oneNightAtATime')}
         </Text>
       </View>
