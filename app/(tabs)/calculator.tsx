@@ -89,7 +89,7 @@ export default function CalculatorScreen() {
       return;
     }
     setLocationDenied(false);
-    const position = await Location.getCurrentPositionAsync({});
+    const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
     const coords = new Coordinates(
       position.coords.latitude,
       position.coords.longitude,
