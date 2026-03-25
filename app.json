@@ -67,7 +67,7 @@
     "android": {
       "package": "com.asserayman.qanet",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/moon-image.png",
+        "foregroundImage": "./assets/images/android-icon.png",
         "backgroundColor": "#000000"
       }
     }
