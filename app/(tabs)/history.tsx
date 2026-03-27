@@ -14,7 +14,6 @@ import { YearlyGraph } from '../../components/YearlyGraph';
 
 import { useI18n } from '../../contexts/I18nContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import {
   useExemptPeriods,
   useLastNightStats,
@@ -24,7 +23,6 @@ import {
 } from '../../hooks/useOfflineData';
 
 export default function HistoryScreen() {
-  const { session, loading: authLoading } = useAuth();
   const { t, isRTL } = useI18n();
   const { themedColorsEnabled } = useTheme();
   const { isInitialized } = useOfflineData();
@@ -108,7 +106,7 @@ export default function HistoryScreen() {
     return Object.values(yearlyData).reduce((sum, day) => sum + day.verses, 0);
   }, [yearlyData]);
 
-  if (authLoading || !isInitialized || logsLoading || statsLoading) {
+  if (!isInitialized || logsLoading || statsLoading) {
     return (
       <View
         style={[
