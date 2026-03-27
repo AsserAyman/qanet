@@ -28,10 +28,17 @@ export interface UpdatePrayerLogData {
 
 class OfflineDataManager {
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
+    if (this.initPromise) return this.initPromise;
 
+    this.initPromise = this._doInitialize();
+    return this.initPromise;
+  }
+
+  private async _doInitialize(): Promise<void> {
     try {
       // Critical path — blocks render, all local/fast operations
       await deviceIdentityManager.initialize();
@@ -42,6 +49,7 @@ class OfflineDataManager {
       // Background path — network-dependent, fire-and-forget
       this.initializeBackground();
     } catch (error) {
+      this.initPromise = null;
       console.error('Failed to initialize app:', error);
       throw error;
     }

@@ -21,16 +21,24 @@ const SYNC_OPERATION_COLUMNS = [
 class SQLiteManager {
   private db: SQLite.SQLiteDatabase | null = null;
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
+    if (this.initPromise) return this.initPromise;
 
+    this.initPromise = this._doInitialize();
+    return this.initPromise;
+  }
+
+  private async _doInitialize(): Promise<void> {
     try {
       this.db = await SQLite.openDatabaseAsync('qanet_offline.db');
       await this.createTables();
       this.isInitialized = true;
       console.log('SQLite database initialized successfully');
     } catch (error) {
+      this.initPromise = null;
       console.error('Failed to initialize SQLite database:', error);
       throw error;
     }
