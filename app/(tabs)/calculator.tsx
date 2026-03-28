@@ -61,6 +61,7 @@ export default function CalculatorScreen() {
   const [lastThirdTime, setLastThirdTime] = useState<string | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [showHadithModal, setShowHadithModal] = useState(false);
+  const isCalculatingLocation = useRef(false);
 
   const { t, isRTL } = useI18n();
   const { themedColorsEnabled } = useTheme();
@@ -82,28 +83,54 @@ export default function CalculatorScreen() {
   }, [lastEntry?.id]); // Only run when the last entry changes
 
   const calculateLastThird = useCallback(async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setLocationDenied(true);
+    if (isCalculatingLocation.current) return;
+    isCalculatingLocation.current = true;
+    try {
+      // Check permission status first without triggering a dialog
+      const { status: existingStatus } =
+        await Location.getForegroundPermissionsAsync();
+
+      if (existingStatus === 'undetermined') {
+        // Only request (show dialog) on explicit first check, not from AppState
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationDenied(true);
+          setLastThirdTime(null);
+          return;
+        }
+      } else if (existingStatus !== 'granted') {
+        setLocationDenied(true);
+        setLastThirdTime(null);
+        return;
+      }
+
+      setLocationDenied(false);
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Low,
+      });
+      const coords = new Coordinates(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
+      const params = CalculationMethod.MuslimWorldLeague();
+      params.highLatitudeRule = HighLatitudeRule.recommended(coords);
+      const prayerTimes = new PrayerTimes(coords, new Date(), params);
+      const sunnahTimes = new SunnahTimes(prayerTimes);
+      setLastThirdTime(
+        sunnahTimes.lastThirdOfTheNight.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      );
+    } catch (error) {
+      console.warn(
+        '[Calculator] Location/prayer time calculation failed:',
+        error,
+      );
       setLastThirdTime(null);
-      return;
+    } finally {
+      isCalculatingLocation.current = false;
     }
-    setLocationDenied(false);
-    const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
-    const coords = new Coordinates(
-      position.coords.latitude,
-      position.coords.longitude,
-    );
-    const params = CalculationMethod.MuslimWorldLeague();
-    params.highLatitudeRule = HighLatitudeRule.recommended(coords);
-    const prayerTimes = new PrayerTimes(coords, new Date(), params);
-    const sunnahTimes = new SunnahTimes(prayerTimes);
-    setLastThirdTime(
-      sunnahTimes.lastThirdOfTheNight.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    );
   }, []);
 
   useEffect(() => {
@@ -232,9 +259,7 @@ export default function CalculatorScreen() {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <Text style={styles.heroTitle}>{t('verseCalculator')}</Text>
-          <Text style={styles.heroSubtitle}>
-            {t('planYourRecitation')}
-          </Text>
+          <Text style={styles.heroSubtitle}>{t('planYourRecitation')}</Text>
         </View>
 
         {/* Last Third of the Night */}
