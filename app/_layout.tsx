@@ -67,7 +67,6 @@ function AppContent() {
     const checkOnboarding = async () => {
       const completed = await onboardingManager.isOnboardingCompleted();
       setIsOnboardingCompleted(completed);
-      console.log('Onboarding completed:', completed);
     };
     checkOnboarding();
   }, []);
@@ -75,31 +74,21 @@ function AppContent() {
   // Navigate based on onboarding status
   useEffect(() => {
     if (isOnboardingCompleted === null || isCheckingOnboarding) {
-      console.log('⏳ Onboarding status not loaded yet or checking...');
       return;
     }
 
     const inOnboarding = segments[0] === 'onboarding';
     const inTabs = segments[0] === '(tabs)';
 
-    console.log('📍 Current segments:', segments);
-    console.log('✅ Onboarding completed:', isOnboardingCompleted);
-    console.log('📱 In onboarding screen:', inOnboarding);
-
     // If we just navigated to tabs, re-check status to be sure
     if (inTabs && !isOnboardingCompleted) {
-      console.log(
-        '🔄 Re-checking onboarding status after navigation to tabs...',
-      );
       setIsCheckingOnboarding(true);
       onboardingManager.isOnboardingCompleted().then((completed) => {
-        console.log('🔄 Updated onboarding status:', completed);
         setIsOnboardingCompleted(completed);
         setIsCheckingOnboarding(false);
 
         // If still not completed, redirect back to onboarding
         if (!completed) {
-          console.log('🚀 Still not completed, redirecting to onboarding...');
           router.replace('/onboarding');
         }
       });

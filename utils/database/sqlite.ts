@@ -36,7 +36,6 @@ class SQLiteManager {
       this.db = await SQLite.openDatabaseAsync('qanet_offline.db');
       await this.createTables();
       this.isInitialized = true;
-      console.log('SQLite database initialized successfully');
     } catch (error) {
       this.initPromise = null;
       console.error('Failed to initialize SQLite database:', error);
@@ -117,7 +116,6 @@ class SQLiteManager {
       CREATE INDEX IF NOT EXISTS idx_exempt_periods_dates ON ${TABLES.EXEMPT_PERIODS}(start_date, end_date);
     `);
 
-    console.log('Database tables created successfully');
   }
 
   // Generate a UUID for client-generated IDs

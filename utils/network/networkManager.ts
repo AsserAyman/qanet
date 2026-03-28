@@ -58,7 +58,6 @@ class NetworkManager {
       });
 
       this.isInitialized = true;
-      console.log('NetworkManager initialized, online:', this.isConnected);
     } catch (error) {
       console.error('Failed to initialize NetworkManager:', error);
       throw error;

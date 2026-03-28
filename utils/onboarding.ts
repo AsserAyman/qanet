@@ -105,7 +105,6 @@ class OnboardingManager {
       // Save final data
       await AsyncStorage.setItem(ONBOARDING_DATA_KEY, JSON.stringify(data));
 
-      console.log('✅ Onboarding completed:', data);
     } catch (error) {
       console.error('Failed to mark onboarding as completed:', error);
       throw error;
