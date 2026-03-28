@@ -6,6 +6,9 @@ import { deviceIdentityManager } from './deviceIdentity';
 
 const CUSTOM_USER_ID_KEY = '@custom_user_id';
 
+// Promise lock to prevent concurrent registration calls
+let registerPromise: Promise<string> | null = null;
+
 /**
  * User Registration Manager
  *
@@ -22,6 +25,7 @@ const CUSTOM_USER_ID_KEY = '@custom_user_id';
 /**
  * Register or get custom user record
  * Creates a new custom user if one doesn't exist for this device
+ * Thread-safe: concurrent calls share the same in-flight request
  *
  * @returns Custom user ID (UUID)
  */
@@ -31,6 +35,19 @@ export async function registerOrGetCustomUser(): Promise<string> {
   if (cachedUserId) {
     return cachedUserId;
   }
+
+  // Prevent concurrent registration calls
+  if (registerPromise) return registerPromise;
+
+  registerPromise = _doRegisterOrGetCustomUser();
+  try {
+    return await registerPromise;
+  } finally {
+    registerPromise = null;
+  }
+}
+
+async function _doRegisterOrGetCustomUser(): Promise<string> {
 
   // Ensure device identity is initialized, then get device_id
   await deviceIdentityManager.initialize();

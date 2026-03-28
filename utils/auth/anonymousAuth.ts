@@ -22,14 +22,23 @@ const ANON_SESSION_CREATED_KEY = '@anon_session_created';
 class AnonymousAuthManager {
   private anonUserId: string | null = null;
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   /**
    * Initialize anonymous authentication
    * Attempts to create/restore an anonymous Supabase session
    * Non-blocking: if it fails, app continues working offline
+   * Thread-safe: concurrent calls share the same in-flight initialization
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = this._doInitialize();
+    return this.initPromise;
+  }
+
+  private async _doInitialize(): Promise<void> {
 
     try {
       // Check if we already have an active session (could be anonymous or email)

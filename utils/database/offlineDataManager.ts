@@ -618,6 +618,8 @@ class OfflineDataManager {
     }
 
     // Priority 2: Try to get custom user ID from server (if online)
+    // With the promise lock on registerOrGetCustomUser, concurrent callers
+    // share a single in-flight request instead of each making their own
     if (networkManager.isOnline()) {
       try {
         const customUserId = await registerOrGetCustomUser();
