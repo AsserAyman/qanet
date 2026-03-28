@@ -10,7 +10,16 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { I18nManager } from 'react-native';
 import { vexo } from 'vexo-analytics';
+
+// Disable automatic RTL mirroring by the OS — the app handles RTL manually
+// (row-reverse, flipped icons, text alignment). Without this, Arabic-locale
+// Android devices apply system-level RTL *and* our manual RTL, double-flipping
+// the layout.
+I18nManager.allowRTL(false);
+I18nManager.forceRTL(false);
+
 import { I18nProvider } from '../contexts/I18nContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
